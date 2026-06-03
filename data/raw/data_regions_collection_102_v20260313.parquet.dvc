@@ -1,0 +1,5 @@
+outs:
+- md5: 56213ca5c096e783ae8d8a9dab8ed2b6
+  size: 9205392
+  hash: md5
+  path: data_regions_collection_102_v20260313.parquet
