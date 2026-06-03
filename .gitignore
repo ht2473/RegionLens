@@ -1,0 +1,39 @@
+# Окружение и секреты
+.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# Django
+/db.sqlite3
+staticfiles/
+media/
+
+# Инструменты
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Данные: промежуточные/итоговые пересоздаются конвейером; сырьё — под DVC.
+data/interim/
+data/processed/
+
+# ML/эксперименты
+mlruns/
+mlartifacts/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Планы проекта
+docs/*
+!docs/.gitkeep
