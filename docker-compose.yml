@@ -1,0 +1,41 @@
+# docker-compose (dev): PostgreSQL (OLTP) + backend. Прод-сборка (multi-stage) — Ф12.
+# Контекст сборки backend — корень репозитория (нужен requirements.txt), Dockerfile — в backend/.
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: regionlens
+      POSTGRES_PASSWORD: regionlens
+      POSTGRES_DB: regionlens
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U regionlens"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    # Значения dev-окружения заданы инлайн (несекретные), чтобы `docker compose config`
+    # был валиден без файла .env. Боевые секреты — через переменные окружения хоста.
+    environment:
+      DJANGO_SECRET_KEY: dev-insecure-change-me
+      DJANGO_DEBUG: "true"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
+      DATABASE_URL: postgres://regionlens:regionlens@postgres:5432/regionlens
+      DUCKDB_PATH: data/regionlens.duckdb
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+volumes:
+  pgdata: {}
