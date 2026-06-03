@@ -6,6 +6,7 @@
     python main.py
 Адрес и порт можно переопределить переменной окружения REGIONLENS_ADDRPORT.
 """
+
 import os
 import sys
 from pathlib import Path

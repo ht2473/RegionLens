@@ -5,6 +5,7 @@
 приложение поднималось «из коробки» (`python main.py`) даже без сконфигурированного
 .env. Боевое развёртывание ОБЯЗАТЕЛЬНО переопределяет SECRET_KEY/DEBUG/DATABASE_URL.
 """
+
 from pathlib import Path
 
 import environ
@@ -19,9 +20,7 @@ environ.Env.read_env(REPO_ROOT / ".env")
 
 SECRET_KEY = env("DJANGO_SECRET_KEY", default="dev-insecure-change-me")
 DEBUG = env.bool("DJANGO_DEBUG", default=True)
-ALLOWED_HOSTS = env.list(
-    "DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "0.0.0.0"]
-)
+ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1", "0.0.0.0"])
 
 # OLTP: PostgreSQL через DATABASE_URL. По умолчанию — локальный sqlite-fallback, чтобы
 # tooling и первый запуск работали без поднятого Postgres. Прод/dev используют Postgres.

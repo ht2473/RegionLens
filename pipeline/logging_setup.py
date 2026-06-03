@@ -1,4 +1,5 @@
 """Единая настройка структурного логирования (structlog) для всего конвейера."""
+
 import logging
 
 import structlog

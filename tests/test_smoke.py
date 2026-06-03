@@ -1,4 +1,5 @@
 """Smoke-тесты Ф0: импорт пакетов, настройка логирования, загрузка настроек Django."""
+
 from __future__ import annotations
 
 from typing import Any

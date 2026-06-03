@@ -1,4 +1,5 @@
 """ASGI-точка входа RegionLens (на будущее; основной режим — WSGI)."""
+
 import os
 
 from django.core.asgi import get_asgi_application

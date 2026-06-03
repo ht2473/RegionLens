@@ -1,4 +1,5 @@
 """Маршруты приложения core (каркас; расширяется в Ф6/Ф7)."""
+
 from django.urls import path
 
 from . import views
