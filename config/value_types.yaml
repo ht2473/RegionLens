@@ -1,0 +1,11 @@
+# Классификация value_type по подстроке в indicator_unit.
+# Порядок правил важен: берётся ПЕРВОЕ совпадение. ФИНАЛ на Ф2.
+rules:
+  - {match: "к предыдущему году", type: rate_yoy}
+  - {match: "к декабрю",          type: rate_yoy}
+  - {match: "в процентах от",     type: share}
+  - {match: "в процентах к итогу", type: share}
+  - {match: "индекс",             type: index}
+  - {match: "на душу",            type: per_capita}
+default: absolute
+nodata_marker: "ND"   # как правило -> excluded

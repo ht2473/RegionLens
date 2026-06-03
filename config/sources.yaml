@@ -1,0 +1,8 @@
+# Реестр источников данных. Каждый источник -> свой адаптер (SourceAdapter).
+# Точка роста: новый источник = новый адаптер + запись здесь, без правки ETL.
+sources:
+  - id: rosstat_collection_102
+    adapter: pipeline.ingestion.rosstat_collection.RosstatCollectionAdapter
+    path: data/raw/data_regions_collection_102_v20260313.parquet
+    license: "CC BY 4.0"
+    note: "Росстат / портал «Если быть точным». Формат long, 14 колонок."

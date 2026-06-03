@@ -1,0 +1,15 @@
+# Схемы весов композитного индекса развития. ФИНАЛ на Ф4.
+schemes:
+  equal: {}
+  pca: {}
+  expert:
+    economy: 0.25
+    income: 0.25
+    demography: 0.15
+    labor: 0.15
+    infrastructure: 0.10
+    health_edu: 0.10
+normalization:
+  method: minmax_window
+  lo: 0
+  hi: 100

@@ -1,0 +1,15 @@
+# Гиперпараметры аналитики (без хардкода в коде). Разделы наполняются по фазам.
+window: {start: 2010, end: 2024}     # окно анализа (типология/индекс/переходы)
+coverage_threshold: 0.80              # Ф2: порог покрытия метрики
+corr_threshold: 0.95                  # Ф2: порог удаления коллинеарных метрик
+impute_max_gap: 2                     # Ф2: макс. длина подряд импутируемых точек
+impute_share_max: 0.15                # Ф2: макс. доля импутаций (pandera-гейт)
+clustering: {k_range: [3, 8], chosen_k: null, seed: 42, algo: kmeans}   # Ф3
+trajectory: {leap_gap: 2, volatile_changes: 3}                           # Ф5
+forecasting:                                                             # Ф8
+  horizon: 2
+  lags: [1, 2, 3]
+  min_train: 5
+  alpha: 0.1
+  models: [naive, ets, theta, global_gbm]
+anomalies: {contamination: 0.05, ruptures_model: rbf, ruptures_pen: 3.0}  # Ф9
