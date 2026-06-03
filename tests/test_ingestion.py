@@ -1,4 +1,5 @@
 """Тесты слоя приёма данных (Ф1, S1): схема, типы, обработка ошибок."""
+
 from __future__ import annotations
 
 from pathlib import Path

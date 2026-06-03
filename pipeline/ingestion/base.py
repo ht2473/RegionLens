@@ -3,6 +3,7 @@
 Точка роста: новый источник = новый адаптер (наследник SourceAdapter) + запись
 в config/sources.yaml, без изменения остального конвейера (ETL/признаки/...).
 """
+
 from abc import ABC, abstractmethod
 
 import polars as pl

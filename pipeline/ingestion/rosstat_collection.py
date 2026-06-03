@@ -2,6 +2,7 @@
 
 Читает parquet коллекции через polars, проверяет каноническую схему и приводит типы.
 """
+
 from pathlib import Path
 
 import polars as pl
