@@ -1,0 +1,28 @@
+"""Smoke-тесты Ф0: импорт пакетов, настройка логирования, загрузка настроек Django."""
+from __future__ import annotations
+
+from typing import Any
+
+
+def test_pipeline_imports() -> None:
+    """Пакет конвейера импортируется, логирование настраивается без ошибок."""
+    import pipeline
+    from pipeline import logging_setup
+
+    logging_setup.configure_logging()
+    assert pipeline.__name__ == "pipeline"
+    assert logging_setup.log is not None
+
+
+def test_run_all_stub_runs() -> None:
+    """Каркасный оркестратор конвейера выполняется без ошибок (стадий пока нет)."""
+    from pipeline.run_all import run_all
+
+    run_all()
+
+
+def test_django_settings_load(settings: Any) -> None:
+    """Настройки Django загружаются; ключевые приложения подключены."""
+    assert "core" in settings.INSTALLED_APPS
+    assert "rest_framework" in settings.INSTALLED_APPS
+    assert settings.DUCKDB_PATH
