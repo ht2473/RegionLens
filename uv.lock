@@ -3393,6 +3393,7 @@ source = { editable = "." }
 dependencies = [
     { name = "duckdb" },
     { name = "polars" },
+    { name = "pyarrow" },
     { name = "pyyaml" },
     { name = "structlog" },
 ]
@@ -3449,6 +3450,7 @@ requires-dist = [
     { name = "polars", specifier = ">=1.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.7" },
     { name = "psycopg", extras = ["binary"], marker = "extra == 'backend'", specifier = ">=3.1" },
+    { name = "pyarrow", specifier = ">=16.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
     { name = "pytest-django", marker = "extra == 'dev'", specifier = ">=4.8" },
     { name = "python-docx", marker = "extra == 'backend'", specifier = ">=1.1" },
