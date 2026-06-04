@@ -1,9 +1,8 @@
-"""ETL S2: загрузка источников, разнос по object_level, metric_id, дедуп по источнику.
+"""ETL S2: источники → уровни → metric_id → дедуп → справочник регионов.
 
-Региональная аналитика строится ТОЛЬКО на уровне 'Регион' (правило грани 4); ФО/Страна —
-отдельные слои. Метрика = indicator_code × subsection (грань 1). При коллизии записей из
-разных изданий оставляем свежайшее (грань 3). Дальнейшие стадии S2 (region_dim, fact_region,
-pandera) добавляются в следующих модулях Ф1.
+Правила грани (Хартия §3): метрика = indicator_code × subsection (грань 1); ключ региона
+= object_okato (грань 2); при коллизии изданий — свежайшее (грань 3); аналитика только по
+уровню 'Регион' (грань 4). Дальнейшие стадии S2 (fact_region, pandera) — следующие модули Ф1.
 """
 
 import importlib
@@ -14,7 +13,7 @@ from typing import Any
 
 import polars as pl
 
-from pipeline.config import load_yaml
+from pipeline.config import load_config, load_yaml
 from pipeline.ingestion.base import SourceAdapter
 from pipeline.logging_setup import configure_logging, log
 
@@ -23,10 +22,10 @@ LEVEL_REGION = "Регион"
 LEVEL_OKRUG = "Федеральный округ"
 LEVEL_COUNTRY = "Страна"
 
-# Ключ метрики (правило грани 1): метрика = indicator_code × subsection.
+# Ключ метрики (грань 1): метрика = indicator_code × subsection.
 METRIC_KEY = ["indicator_code", "subsection"]
 
-# Грань факта (правило грани 3): уникальная запись = okato × метрика × год.
+# Грань факта (грань 3): уникальная запись = okato × метрика × год.
 DEDUP_KEY = ["object_okato", "metric_id", "year"]
 
 # Год издания ищем как максимальный 20XX в строке source.
@@ -48,8 +47,9 @@ class EtlResult:
 
     metric_dim: pl.DataFrame
     split: LevelSplit
-    region: pl.DataFrame  # уровень 'Регион' после дедупа по источнику (основа fact_region)
-    # region_dim (модуль 5) и fact_region (модуль 6) добавятся сюда позже.
+    region: pl.DataFrame  # уровень 'Регион' после дедупа (основа fact_region)
+    region_dim: pl.DataFrame  # справочник регионов
+    # fact_region (модуль 6) добавится сюда позже.
 
 
 def build_source_adapters(sources_cfg: list[dict[str, Any]]) -> list[SourceAdapter]:
@@ -130,6 +130,86 @@ def deduplicate_by_source(df: pl.DataFrame) -> pl.DataFrame:
     return deduped
 
 
+def is_aggregate_variant(name: str | None) -> bool:
+    """Это вариант-агрегат «с/без АО» (Архангельская/Тюменская)?"""
+    n = name or ""
+    return ("автономным округом" in n) or ("без автономного" in n)
+
+
+def _variant_kind(name: str | None) -> str:
+    """Вид варианта: 'with' (с АО), 'without' (без АО) или 'none' (обычный регион)."""
+    n = name or ""
+    if "без автономного" in n:
+        return "without"
+    if "автономным округом" in n:
+        return "with"
+    return "none"
+
+
+def build_region_dim(region: pl.DataFrame, regions_cfg: dict[str, Any]) -> pl.DataFrame:
+    """Справочник регионов (грань 2: ключ = OKATO).
+
+    federal_district берём из config/regions.yaml (okato→ФО); незамапленные → null
+    (логируется, сколько без ФО). included_flag исключает «лишний» вариант «с/без АО»
+    по правилу include_with_autonomous_okrug. geojson_key = okato.
+    """
+    fd_map = regions_cfg.get("federal_districts") or {}
+    variants_cfg = regions_cfg.get("aggregate_variants") or {}
+    include_with = bool(variants_cfg.get("include_with_autonomous_okrug", True))
+
+    dim = (
+        region.select(["object_okato", "object_oktmo", "object_name"])
+        .unique(subset="object_okato")
+        .rename({"object_okato": "okato", "object_oktmo": "oktmo", "object_name": "region_name"})
+        .sort("okato")
+        .with_columns(
+            pl.col("region_name")
+            .map_elements(is_aggregate_variant, return_dtype=pl.Boolean)
+            .alias("is_aggregate_variant"),
+            pl.col("region_name").map_elements(_variant_kind, return_dtype=pl.Utf8).alias("_vk"),
+            pl.col("okato").alias("geojson_key"),
+        )
+        .with_columns(
+            pl.when(pl.col("_vk") == "with")
+            .then(pl.lit(include_with))
+            .when(pl.col("_vk") == "without")
+            .then(pl.lit(not include_with))
+            .otherwise(pl.lit(True))
+            .alias("included_flag")
+        )
+        .drop("_vk")
+    )
+
+    if fd_map:
+        fd_df = pl.DataFrame(
+            {"okato": list(fd_map.keys()), "federal_district": list(fd_map.values())},
+            schema={"okato": pl.Utf8, "federal_district": pl.Utf8},
+        )
+        dim = dim.join(fd_df, on="okato", how="left")
+    else:
+        dim = dim.with_columns(pl.lit(None, dtype=pl.Utf8).alias("federal_district"))
+
+    dim = dim.select(
+        [
+            "okato",
+            "oktmo",
+            "region_name",
+            "is_aggregate_variant",
+            "federal_district",
+            "included_flag",
+            "geojson_key",
+        ]
+    )
+    log.info(
+        "region_dim_built",
+        stage="etl",
+        regions=dim.height,
+        included=dim.filter(pl.col("included_flag")).height,
+        missing_federal_district=dim.filter(pl.col("federal_district").is_null()).height,
+    )
+    return dim
+
+
 def split_by_level(df: pl.DataFrame) -> LevelSplit:
     """Разнести строки по object_level: регион / федеральный округ / страна.
 
@@ -153,10 +233,9 @@ def split_by_level(df: pl.DataFrame) -> LevelSplit:
 
 
 def run_etl(sources_path: str | Path = "config/sources.yaml") -> EtlResult:
-    """Каркас S2: источники → metric_id/metric_dim → разнос по уровням → дедуп региона.
+    """Каркас S2: источники → metric_id → разнос по уровням → дедуп → region_dim.
 
-    Следующие модули Ф1 добавят сюда: region_dim, запись fact_region в DuckDB
-    и pandera-валидацию с отчётом качества.
+    Следующие модули Ф1 добавят сюда запись fact_region в DuckDB и pandera-валидацию.
     """
     configure_logging()
     cfg = load_yaml(sources_path)
@@ -167,4 +246,5 @@ def run_etl(sources_path: str | Path = "config/sources.yaml") -> EtlResult:
     log.info("etl_metrics", stage="etl", metrics=metric_dim.height)
     split = split_by_level(df)
     region = deduplicate_by_source(split.region)
-    return EtlResult(metric_dim=metric_dim, split=split, region=region)
+    region_dim = build_region_dim(region, load_config("regions"))
+    return EtlResult(metric_dim=metric_dim, split=split, region=region, region_dim=region_dim)
