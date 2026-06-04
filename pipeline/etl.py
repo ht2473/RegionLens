@@ -1,9 +1,10 @@
-"""ETL S2: загрузка источников по конфигу и разнос строк по object_level.
+"""ETL S2: загрузка источников, разнос по object_level, суррогатный metric_id.
 
 Региональная аналитика строится ТОЛЬКО на уровне 'Регион'. Уровни 'Федеральный округ'
 и 'Страна' выделяются в отдельные слои (контекст/бенчмарк) и в типологию/нормировку
-не идут (Хартия §3, правило грани 4). Дальнейшие стадии S2 (metric_id, дедуп,
-region_dim, fact_region, pandera) добавляются в следующих модулях Ф1.
+не идут (Хартия §3, правило грани 4). Метрика = indicator_code × subsection
+(правило грани 1). Дальнейшие стадии S2 (дедуп, region_dim, fact_region, pandera)
+добавляются в следующих модулях Ф1.
 """
 
 import importlib
@@ -22,6 +23,9 @@ LEVEL_REGION = "Регион"
 LEVEL_OKRUG = "Федеральный округ"
 LEVEL_COUNTRY = "Страна"
 
+# Ключ метрики (правило грани 1): метрика = indicator_code × subsection.
+METRIC_KEY = ["indicator_code", "subsection"]
+
 
 @dataclass
 class LevelSplit:
@@ -30,6 +34,15 @@ class LevelSplit:
     region: pl.DataFrame
     okrug: pl.DataFrame
     country: pl.DataFrame
+
+
+@dataclass
+class EtlResult:
+    """Результат S2 (растёт по модулям Ф1): справочник метрик + разнос по уровням."""
+
+    metric_dim: pl.DataFrame
+    split: LevelSplit
+    # region_dim (модуль 5) и fact_region (модуль 6) добавятся сюда позже.
 
 
 def build_source_adapters(sources_cfg: list[dict[str, Any]]) -> list[SourceAdapter]:
@@ -54,6 +67,35 @@ def read_sources(adapters: list[SourceAdapter]) -> pl.DataFrame:
     return frames[0] if len(frames) == 1 else pl.concat(frames, how="vertical")
 
 
+def build_metric_dim(df: pl.DataFrame) -> pl.DataFrame:
+    """Справочник метрик: суррогатный metric_id (1..N) по паре (indicator_code, subsection).
+
+    Грань 1: метрика = indicator_code × subsection. metric_id детерминирован
+    (стабильная сортировка ключа + индекс строки) → воспроизводим между прогонами.
+    Поля domain / value_type / higher_is_better / coverage добавит Ф2.
+    """
+    return (
+        df.select(["indicator_code", "subsection", "indicator_name", "indicator_unit", "section"])
+        # сортировка по полному ключу делает выбор представителя имени/единицы детерминированным
+        .sort(["indicator_code", "subsection", "indicator_name", "indicator_unit", "section"])
+        .unique(subset=METRIC_KEY, keep="first")
+        .sort(METRIC_KEY)
+        .with_row_index("metric_id", offset=1)
+        .rename({"indicator_name": "metric_name", "indicator_unit": "unit"})
+        .select(["metric_id", "indicator_code", "subsection", "metric_name", "unit", "section"])
+    )
+
+
+def attach_metric_id(df: pl.DataFrame, metric_dim: pl.DataFrame) -> pl.DataFrame:
+    """Добавить metric_id к факту по ключу (indicator_code, subsection).
+
+    nulls_equal=True — чтобы строки с пустым subsection тоже получили id
+    (иначе null != null и metric_id оказался бы пустым).
+    """
+    keys = metric_dim.select(["metric_id", *METRIC_KEY])
+    return df.join(keys, on=METRIC_KEY, how="left", nulls_equal=True)
+
+
 def split_by_level(df: pl.DataFrame) -> LevelSplit:
     """Разнести строки по object_level: регион / федеральный округ / страна.
 
@@ -76,15 +118,17 @@ def split_by_level(df: pl.DataFrame) -> LevelSplit:
     return LevelSplit(region=region, okrug=okrug, country=country)
 
 
-def run_etl(sources_path: str | Path = "config/sources.yaml") -> LevelSplit:
-    """Каркас S2: загрузить источники по конфигу и разнести по уровням.
+def run_etl(sources_path: str | Path = "config/sources.yaml") -> EtlResult:
+    """Каркас S2: источники по конфигу → metric_id/metric_dim → разнос по уровням.
 
-    Следующие модули Ф1 добавят сюда: metric_id + metric_dim, дедуп по источнику,
-    region_dim, запись fact_region в DuckDB и pandera-валидацию с отчётом качества.
+    Следующие модули Ф1 добавят сюда: дедуп по источнику, region_dim, запись
+    fact_region в DuckDB и pandera-валидацию с отчётом качества.
     """
     configure_logging()
     cfg = load_yaml(sources_path)
-    adapters = build_source_adapters(cfg["sources"])
-    df = read_sources(adapters)
+    df = read_sources(build_source_adapters(cfg["sources"]))
     log.info("etl_ingested", stage="etl", rows=df.height)
-    return split_by_level(df)
+    metric_dim = build_metric_dim(df)
+    df = attach_metric_id(df, metric_dim)
+    log.info("etl_metrics", stage="etl", metrics=metric_dim.height)
+    return EtlResult(metric_dim=metric_dim, split=split_by_level(df))
