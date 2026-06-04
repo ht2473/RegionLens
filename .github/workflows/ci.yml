@@ -14,11 +14,10 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install
-        # На Ф0 достаточно backend+dev (быстро). Группа pipeline добавится в install,
-        # когда появятся модули конвейера, требующие ML-зависимостей (Ф1+).
+        # Ф1+: ставим и группу pipeline (pipeline-модули импортируют pandera и пр.).
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[backend,dev]"
+          pip install -e ".[pipeline,backend,dev]"
       - name: Ruff (lint)
         run: ruff check .
       - name: Ruff (format)

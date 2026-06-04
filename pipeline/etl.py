@@ -17,6 +17,7 @@ from pipeline.config import load_config, load_yaml
 from pipeline.duck import write_table
 from pipeline.ingestion.base import SourceAdapter
 from pipeline.logging_setup import configure_logging, log
+from pipeline.validation import quality_report, validate_fact_region
 
 # Контролируемый словарь уровней (REFERENCE §1). Именованные константы — не «магия».
 LEVEL_REGION = "Регион"
@@ -90,6 +91,7 @@ def build_metric_dim(df: pl.DataFrame) -> pl.DataFrame:
         .unique(subset=METRIC_KEY, keep="first")
         .sort(METRIC_KEY)
         .with_row_index("metric_id", offset=1)
+        .with_columns(pl.col("metric_id").cast(pl.Int32))
         .rename({"indicator_name": "metric_name", "indicator_unit": "unit"})
         .select(["metric_id", "indicator_code", "subsection", "metric_name", "unit", "section"])
     )
@@ -280,8 +282,13 @@ def run_etl(
     log.info("etl_metrics", stage="etl", metrics=metric_dim.height)
     region = deduplicate_by_source(split_by_level(df).region)
     region_dim = build_region_dim(region, load_config("regions"))
-    fact_region = build_fact_region(region)
+    fact_region = validate_fact_region(build_fact_region(region))
+    quality_report(fact_region, metric_dim, region_dim)
     result = EtlResult(metric_dim=metric_dim, region_dim=region_dim, fact_region=fact_region)
     if write:
         write_tables(result, duckdb_path)
     return result
+
+
+if __name__ == "__main__":
+    run_etl()
