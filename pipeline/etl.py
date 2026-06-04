@@ -1,8 +1,8 @@
-"""ETL S2: источники → уровни → metric_id → дедуп → справочник регионов.
+"""ETL S2: источники → уровни → metric_id → дедуп → справочники → запись в DuckDB.
 
 Правила грани (Хартия §3): метрика = indicator_code × subsection (грань 1); ключ региона
 = object_okato (грань 2); при коллизии изданий — свежайшее (грань 3); аналитика только по
-уровню 'Регион' (грань 4). Дальнейшие стадии S2 (fact_region, pandera) — следующие модули Ф1.
+уровню 'Регион' (грань 4). Стадию pandera-валидации + отчёт качества добавит модуль 7.
 """
 
 import importlib
@@ -14,6 +14,7 @@ from typing import Any
 import polars as pl
 
 from pipeline.config import load_config, load_yaml
+from pipeline.duck import write_table
 from pipeline.ingestion.base import SourceAdapter
 from pipeline.logging_setup import configure_logging, log
 
@@ -31,6 +32,9 @@ DEDUP_KEY = ["object_okato", "metric_id", "year"]
 # Год издания ищем как максимальный 20XX в строке source.
 _YEAR_RE = re.compile(r"20\d{2}")
 
+# Путь к аналитическому хранилищу по умолчанию (относительно корня репозитория).
+DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
+
 
 @dataclass
 class LevelSplit:
@@ -43,13 +47,11 @@ class LevelSplit:
 
 @dataclass
 class EtlResult:
-    """Результат S2 (растёт по модулям Ф1)."""
+    """Контрактные таблицы S2 — то, что пишется в DuckDB."""
 
     metric_dim: pl.DataFrame
-    split: LevelSplit
-    region: pl.DataFrame  # уровень 'Регион' после дедупа (основа fact_region)
-    region_dim: pl.DataFrame  # справочник регионов
-    # fact_region (модуль 6) добавится сюда позже.
+    region_dim: pl.DataFrame
+    fact_region: pl.DataFrame
 
 
 def build_source_adapters(sources_cfg: list[dict[str, Any]]) -> list[SourceAdapter]:
@@ -210,6 +212,17 @@ def build_region_dim(region: pl.DataFrame, regions_cfg: dict[str, Any]) -> pl.Da
     return dim
 
 
+def build_fact_region(region: pl.DataFrame) -> pl.DataFrame:
+    """Факт fact_region (грань okato × metric_id × year).
+
+    Базовые поля: okato, metric_id, year, value, source. value_harmonized и is_imputed
+    добавит Ф2 (гармонизация форм + импутация).
+    """
+    return region.select(["object_okato", "metric_id", "year", "indicator_value", "source"]).rename(
+        {"object_okato": "okato", "indicator_value": "value"}
+    )
+
+
 def split_by_level(df: pl.DataFrame) -> LevelSplit:
     """Разнести строки по object_level: регион / федеральный округ / страна.
 
@@ -232,10 +245,31 @@ def split_by_level(df: pl.DataFrame) -> LevelSplit:
     return LevelSplit(region=region, okrug=okrug, country=country)
 
 
-def run_etl(sources_path: str | Path = "config/sources.yaml") -> EtlResult:
-    """Каркас S2: источники → metric_id → разнос по уровням → дедуп → region_dim.
+def write_tables(result: EtlResult, duckdb_path: str) -> None:
+    """Записать контрактные таблицы S2 в DuckDB (перезаписью)."""
+    write_table(duckdb_path, "fact_region", result.fact_region)
+    write_table(duckdb_path, "metric_dim", result.metric_dim)
+    write_table(duckdb_path, "region_dim", result.region_dim)
+    log.info(
+        "duck_written",
+        stage="etl",
+        path=duckdb_path,
+        fact_rows=result.fact_region.height,
+        metrics=result.metric_dim.height,
+        regions=result.region_dim.height,
+    )
 
-    Следующие модули Ф1 добавят сюда запись fact_region в DuckDB и pandera-валидацию.
+
+def run_etl(
+    sources_path: str | Path = "config/sources.yaml",
+    duckdb_path: str = DEFAULT_DUCKDB_PATH,
+    *,
+    write: bool = True,
+) -> EtlResult:
+    """Полный проход S2: источники → metric_id → уровни → дедуп → справочники → fact_region.
+
+    При write=True пишет fact_region/metric_dim/region_dim в DuckDB. Модуль 7 добавит
+    pandera-валидацию и отчёт качества (DoD Ф1).
     """
     configure_logging()
     cfg = load_yaml(sources_path)
@@ -244,7 +278,10 @@ def run_etl(sources_path: str | Path = "config/sources.yaml") -> EtlResult:
     metric_dim = build_metric_dim(df)
     df = attach_metric_id(df, metric_dim)
     log.info("etl_metrics", stage="etl", metrics=metric_dim.height)
-    split = split_by_level(df)
-    region = deduplicate_by_source(split.region)
+    region = deduplicate_by_source(split_by_level(df).region)
     region_dim = build_region_dim(region, load_config("regions"))
-    return EtlResult(metric_dim=metric_dim, split=split, region=region, region_dim=region_dim)
+    fact_region = build_fact_region(region)
+    result = EtlResult(metric_dim=metric_dim, region_dim=region_dim, fact_region=fact_region)
+    if write:
+        write_tables(result, duckdb_path)
+    return result
