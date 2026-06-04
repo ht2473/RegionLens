@@ -1,13 +1,13 @@
-"""ETL S2: загрузка источников, разнос по object_level, суррогатный metric_id.
+"""ETL S2: загрузка источников, разнос по object_level, metric_id, дедуп по источнику.
 
-Региональная аналитика строится ТОЛЬКО на уровне 'Регион'. Уровни 'Федеральный округ'
-и 'Страна' выделяются в отдельные слои (контекст/бенчмарк) и в типологию/нормировку
-не идут (Хартия §3, правило грани 4). Метрика = indicator_code × subsection
-(правило грани 1). Дальнейшие стадии S2 (дедуп, region_dim, fact_region, pandera)
-добавляются в следующих модулях Ф1.
+Региональная аналитика строится ТОЛЬКО на уровне 'Регион' (правило грани 4); ФО/Страна —
+отдельные слои. Метрика = indicator_code × subsection (грань 1). При коллизии записей из
+разных изданий оставляем свежайшее (грань 3). Дальнейшие стадии S2 (region_dim, fact_region,
+pandera) добавляются в следующих модулях Ф1.
 """
 
 import importlib
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -26,6 +26,12 @@ LEVEL_COUNTRY = "Страна"
 # Ключ метрики (правило грани 1): метрика = indicator_code × subsection.
 METRIC_KEY = ["indicator_code", "subsection"]
 
+# Грань факта (правило грани 3): уникальная запись = okato × метрика × год.
+DEDUP_KEY = ["object_okato", "metric_id", "year"]
+
+# Год издания ищем как максимальный 20XX в строке source.
+_YEAR_RE = re.compile(r"20\d{2}")
+
 
 @dataclass
 class LevelSplit:
@@ -38,10 +44,11 @@ class LevelSplit:
 
 @dataclass
 class EtlResult:
-    """Результат S2 (растёт по модулям Ф1): справочник метрик + разнос по уровням."""
+    """Результат S2 (растёт по модулям Ф1)."""
 
     metric_dim: pl.DataFrame
     split: LevelSplit
+    region: pl.DataFrame  # уровень 'Регион' после дедупа по источнику (основа fact_region)
     # region_dim (модуль 5) и fact_region (модуль 6) добавятся сюда позже.
 
 
@@ -96,6 +103,33 @@ def attach_metric_id(df: pl.DataFrame, metric_dim: pl.DataFrame) -> pl.DataFrame
     return df.join(keys, on=METRIC_KEY, how="left", nulls_equal=True)
 
 
+def edition_year(source: str | None) -> int:
+    """Год издания источника: максимальный 20XX в строке source (0, если нет)."""
+    years = [int(y) for y in _YEAR_RE.findall(source or "")]
+    return max(years) if years else 0
+
+
+def deduplicate_by_source(df: pl.DataFrame) -> pl.DataFrame:
+    """Дедуп по источнику (грань 3): при коллизии (okato, metric_id, year) оставить
+    свежайшее издание — по году в source, затем по version_date. Снятые дубли логируются.
+    """
+    before = df.height
+    deduped = (
+        df.with_columns(
+            pl.col("source").map_elements(edition_year, return_dtype=pl.Int32).alias("ed_year")
+        )
+        .sort(
+            ["object_okato", "metric_id", "year", "ed_year", "version_date"],
+            descending=[False, False, False, True, True],
+        )
+        .unique(subset=DEDUP_KEY, keep="first")
+        .drop("ed_year")
+    )
+    removed = before - deduped.height
+    log.info("etl_dedup", stage="etl", removed=removed, kept=deduped.height)
+    return deduped
+
+
 def split_by_level(df: pl.DataFrame) -> LevelSplit:
     """Разнести строки по object_level: регион / федеральный округ / страна.
 
@@ -119,10 +153,10 @@ def split_by_level(df: pl.DataFrame) -> LevelSplit:
 
 
 def run_etl(sources_path: str | Path = "config/sources.yaml") -> EtlResult:
-    """Каркас S2: источники по конфигу → metric_id/metric_dim → разнос по уровням.
+    """Каркас S2: источники → metric_id/metric_dim → разнос по уровням → дедуп региона.
 
-    Следующие модули Ф1 добавят сюда: дедуп по источнику, region_dim, запись
-    fact_region в DuckDB и pandera-валидацию с отчётом качества.
+    Следующие модули Ф1 добавят сюда: region_dim, запись fact_region в DuckDB
+    и pandera-валидацию с отчётом качества.
     """
     configure_logging()
     cfg = load_yaml(sources_path)
@@ -131,4 +165,6 @@ def run_etl(sources_path: str | Path = "config/sources.yaml") -> EtlResult:
     metric_dim = build_metric_dim(df)
     df = attach_metric_id(df, metric_dim)
     log.info("etl_metrics", stage="etl", metrics=metric_dim.height)
-    return EtlResult(metric_dim=metric_dim, split=split_by_level(df))
+    split = split_by_level(df)
+    region = deduplicate_by_source(split.region)
+    return EtlResult(metric_dim=metric_dim, split=split, region=region)
