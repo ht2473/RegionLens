@@ -65,7 +65,12 @@ def build_source_adapters(sources_cfg: list[dict[str, Any]]) -> list[SourceAdapt
     for src in sources_cfg:
         module_path, _, cls_name = str(src["adapter"]).rpartition(".")
         cls = getattr(importlib.import_module(module_path), cls_name)
-        adapters.append(cls(src["path"]))
+        # na_values пробрасываем, только если источник его объявил — адаптеры без
+        # поддержки кодов «нет данных» не обязаны принимать этот аргумент
+        kwargs: dict[str, Any] = {}
+        if "na_values" in src:
+            kwargs["na_values"] = src["na_values"]
+        adapters.append(cls(src["path"], **kwargs))
     return adapters
 
 
