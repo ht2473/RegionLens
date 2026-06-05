@@ -1,4 +1,250 @@
-# Доменная таксономия (section -> домен) и курируемое ядро метрик.
-# ФИНАЛ: domains — Ф1/Ф2; core — Ф2 (после отбора на реальных данных, 3 фильтра).
-domains: {}    # "Денежные доходы населения и их использование": income, ...
-core: []       # [{metric_id: <int>, name: <str>, domain: <str>, higher_is_better: <bool>}, ...]
+# config/indicators.yaml — домены и курируемое ядро метрик (Ф2 / S3).
+# Отобрано на ОЧИЩЕННОМ от заглушек дампе (окно 2010-2024): покрытие и
+# доля заглушек (sent_share) проверены поштучно. REFERENCE §7/§10.
+#
+# population_metric_id — знаменатель подушевой гармонизации (value_type=absolute -> /pop).
+population_metric_id: 1781   # Среднегодовая численность населения (тыс. чел.)
+
+# Раздел -> домен. Грубый классификатор для ХВОСТА (не-ядро) и отчётов покрытия;
+# для метрик ядра домен берётся из блока core ниже (приоритетнее). Неперечисленные
+# разделы (цены/тарифы, экология, преступность, нишевые услуги и т.п.) -> default_domain.
+default_domain: excluded
+domains:
+  # --- economy ---
+  "Валовой региональный продукт": economy
+  "Инвестиции в основной капитал": economy
+  "Инвестиции": economy
+  "Результаты инвестиционной деятельности": economy
+  "Основные фонды": economy
+  "Основные фонды и инвестиции в основной капитал": economy
+  "Финансовые вложения организаций": economy
+  "Финансы": economy
+  "Организации": economy
+  "Промышленное производство": economy
+  "Торговля и услуги населению": economy
+  "Наука и инновации": economy
+  "Субъекты малого и среднего предпринимательства — юридические лица": economy
+  "Индивидуальные предприниматели": economy
+  "Сельское, лесное хозяйство, рыболовство и рыбоводство": economy
+  "Основные показатели сельского хозяйства": economy
+  # --- income ---
+  "Уровень жизни населения": income
+  "Денежные доходы населения и их использование": income
+  "Расходы и потребление домашних хозяйств": income
+  "Дифференциация доходов и бедность": income
+  "Социальная защита": income
+  "Уровень благосостояния, социальное обеспечение и социальная помощь": income
+  # --- labor ---
+  "Труд": labor
+  "Участие в рабочей силе, занятость и безработица": labor
+  "Занятые": labor
+  "Безработные": labor
+  "Рабочая сила": labor
+  "Население, не входящее в состав рабочей силы": labor
+  "Занятость и безработица": labor
+  "Занятость, безработица и заработная плата": labor
+  "Затраты на рабочую силу, заработная плата работников": labor
+  "Условия труда, производственный травматизм": labor
+  # --- demography ---
+  "Население": demography
+  "Численность населения": demography
+  "Демографическая ситуация": demography
+  "Миграция": demography
+  "Рождаемость": demography
+  # --- infrastructure ---
+  "Строительство": infrastructure
+  "Строительные организации": infrastructure
+  "Жилищное и социально-культурное строительство": infrastructure
+  "Состояние жилищного фонда": infrastructure
+  "Жилищные условия населения": infrastructure
+  "Жилищные условия": infrastructure
+  "Строительство и рынок жилья": infrastructure
+  "Реализация программ в сфере жилищно-коммунального хозяйства": infrastructure
+  "Транспорт": infrastructure
+  "Основные экономические показатели транспорта": infrastructure
+  "Ввод в действие зданий и производственных мощностей": infrastructure
+  "Информационные и коммуникационные технологии": infrastructure
+  # --- health_edu ---
+  "Здравоохранение": health_edu
+  "Состояние здоровья населения": health_edu
+  "Ресурсы и деятельность организаций здравоохранения": health_edu
+  "Образование": health_edu
+  "Подготовка кадров": health_edu
+
+# Курируемое ядро (~30-50 метрик). value_type/higher_is_better проставлены вручную:
+#   absolute  -> делится на население при гармонизации (value_harmonized);
+#   per_capita-> уже подушевое / на 1000 / на 10000 / на 100000 населения (без деления);
+#   share     -> процент/удельный вес (без деления);
+#   index     -> готовый сопоставимый уровень/коэффициент, НЕ нормированный на
+#                численность (лет, на 1 женщину, на 1000 трудосп., плотность) (без деления).
+core:
+  - metric_id: 1782
+    name: "Среднедушевые денежные доходы (руб/мес)"
+    domain: income
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1786
+    name: "Среднемесячная номинальная зарплата (руб)"
+    domain: income
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1720
+    name: "Потребительские расходы на душу (руб/мес)"
+    domain: income
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1889
+    name: "Доля населения с доходами ниже границы бедности (%)"
+    domain: income
+    value_type: share
+    higher_is_better: false
+  - metric_id: 1509
+    name: "Инвестиции в основной капитал на душу (руб)"
+    domain: economy
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1655
+    name: "Объем платных услуг на душу (руб)"
+    domain: economy
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1471
+    name: "Доходы консолидированного бюджета субъекта (млн руб)"
+    domain: economy
+    value_type: absolute
+    higher_is_better: true
+  - metric_id: 1628
+    name: "Оборот организаций (млрд руб)"
+    domain: economy
+    value_type: absolute
+    higher_is_better: true
+  - metric_id: 1773
+    name: "Сальдированный финансовый результат (млн руб)"
+    domain: economy
+    value_type: absolute
+    higher_is_better: true
+  - metric_id: 1800
+    name: "Степень износа основных фондов (%)"
+    domain: economy
+    value_type: share
+    higher_is_better: false
+  - metric_id: 1841
+    name: "Удельный вес убыточных организаций (%)"
+    domain: economy
+    value_type: share
+    higher_is_better: false
+  - metric_id: 1844
+    name: "Уровень безработицы (%)"
+    domain: labor
+    value_type: share
+    higher_is_better: false
+  - metric_id: 1847
+    name: "Уровень занятости населения (%)"
+    domain: labor
+    value_type: share
+    higher_is_better: true
+  - metric_id: 1849
+    name: "Уровень участия в рабочей силе (%)"
+    domain: labor
+    value_type: share
+    higher_is_better: true
+  - metric_id: 1621
+    name: "Нагрузка незанятых на 100 вакансий"
+    domain: labor
+    value_type: index
+    higher_is_better: false
+  - metric_id: 1662
+    name: "Ожидаемая продолжительность жизни (лет)"
+    domain: demography
+    value_type: index
+    higher_is_better: true
+  - metric_id: 1828
+    name: "Суммарный коэффициент рождаемости (детей на женщину)"
+    domain: demography
+    value_type: index
+    higher_is_better: true
+  - metric_id: 1638
+    name: "Общий коэффициент смертности (на 1000)"
+    domain: demography
+    value_type: per_capita
+    higher_is_better: false
+  - metric_id: 1604
+    name: "Коэффициент младенческой смертности"
+    domain: demography
+    value_type: index
+    higher_is_better: false
+  - metric_id: 1599
+    name: "Коэффициент демографической нагрузки (на 1000 трудосп.)"
+    domain: demography
+    value_type: index
+    higher_is_better: false
+  - metric_id: 1602
+    name: "Коэффициент естественного прироста (на 1000)"
+    domain: demography
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1417
+    name: "Ввод жилья на 1000 человек (кв.м)"
+    domain: infrastructure
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1632
+    name: "Площадь жилья на 1 жителя (кв.м)"
+    domain: infrastructure
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1925
+    name: "Легковых автомобилей на 1000 человек (шт)"
+    domain: infrastructure
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1701
+    name: "Плотность автодорог с твердым покрытием (км/1000 км2)"
+    domain: infrastructure
+    value_type: index
+    higher_is_better: true
+  - metric_id: 1832
+    name: "Удельный вес дорог с твердым покрытием (%)"
+    domain: infrastructure
+    value_type: share
+    higher_is_better: true
+  - metric_id: 1579
+    name: "Использование ШПД-интернета в организациях (%)"
+    domain: infrastructure
+    value_type: share
+    higher_is_better: true
+  - metric_id: 1920
+    name: "Число ДТП на 100000 человек"
+    domain: infrastructure
+    value_type: per_capita
+    higher_is_better: false
+  - metric_id: 1867
+    name: "Врачей на 10000 человек"
+    domain: health_edu
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1908
+    name: "Среднего медперсонала на 10000 человек"
+    domain: health_edu
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1617
+    name: "Мощность поликлиник на 10000 человек (посещений/смену)"
+    domain: health_edu
+    value_type: per_capita
+    higher_is_better: true
+  - metric_id: 1477
+    name: "Заболеваемость на 1000 человек"
+    domain: health_edu
+    value_type: per_capita
+    higher_is_better: false
+  - metric_id: 1404
+    name: "Охват дошкольным образованием (%)"
+    domain: health_edu
+    value_type: share
+    higher_is_better: true
+  - metric_id: 1916
+    name: "Число больничных коек (тыс)"
+    domain: health_edu
+    value_type: absolute
+    higher_is_better: true
