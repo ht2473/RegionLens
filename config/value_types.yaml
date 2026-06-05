@@ -1,11 +1,28 @@
-# Классификация value_type по подстроке в indicator_unit.
-# Порядок правил важен: берётся ПЕРВОЕ совпадение. ФИНАЛ на Ф2.
+# config/value_types.yaml — классификация value_type по строке unit (Ф2 / S3).
+# ВАЖНО: это ГРУБЫЙ первый проход для "хвоста" (не-ядро). Для метрик ядра
+# value_type задан вручную в indicators.yaml (core) и имеет приоритет — единицы
+# Росстата шумны (263 варианта, многие — не единицы, а уточнения "на конец года").
+#
+# Порядок правил важен: берётся ПЕРВОЕ совпадение по подстроке в unit (без регистра).
+# rate_yoy идёт раньше share, т.к. "в процентах к предыдущему году" содержит обе подстроки.
 rules:
   - {match: "к предыдущему году", type: rate_yoy}
-  - {match: "к декабрю",          type: rate_yoy}
-  - {match: "в процентах от",     type: share}
+  - {match: "к декабрю", type: rate_yoy}
   - {match: "в процентах к итогу", type: share}
-  - {match: "индекс",             type: index}
-  - {match: "на душу",            type: per_capita}
+  - {match: "в процентах от", type: share}
+  - {match: "в процентах", type: share}
+  - {match: "процентов", type: share}
+  - {match: "удельный вес", type: share}
+  - {match: "индекс", type: index}
+  - {match: "число лет", type: index}
+  - {match: "на 1 женщину", type: index}
+  - {match: "на душу", type: per_capita}
+  - {match: "на 1000 человек", type: per_capita}
+  - {match: "на 10000 человек", type: per_capita}
+  - {match: "на 100000 человек", type: per_capita}
+  - {match: "на 100 000 человек", type: per_capita}
+  - {match: "рублей в месяц", type: per_capita}
+  - {match: "в месяц, рублей", type: per_capita}
 default: absolute
-nodata_marker: "ND"   # как правило -> excluded
+# Маркер "нет данных" в unit: метрика, как правило, уходит в excluded.
+nodata_marker: "ND"
