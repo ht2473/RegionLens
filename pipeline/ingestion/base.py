@@ -63,6 +63,27 @@ def coerce_to_canonical(df: pl.DataFrame, *, source_id: str = "unknown") -> pl.D
     return df.select(CANONICAL).with_columns(casts)
 
 
+def null_na_values(df: pl.DataFrame, na_values: list[float] | None) -> pl.DataFrame:
+    """Заменить коды «нет данных» в indicator_value на null.
+
+    Росстат кодирует отсутствие данных числами-заглушками (например, -99999999,
+    -77777777). Это не значения, а маркеры, поэтому до любой аналитики их надо
+    превратить в пропуск — иначе они завышают покрытие и попадают в расчёты.
+
+    Список кодов источник-специфичен и задаётся в config/sources.yaml (na_values).
+    Если список пуст или не задан, DataFrame возвращается без изменений.
+    """
+    if not na_values:
+        return df
+    codes = [float(v) for v in na_values]
+    return df.with_columns(
+        pl.when(pl.col("indicator_value").is_in(codes))
+        .then(None)
+        .otherwise(pl.col("indicator_value"))
+        .alias("indicator_value")
+    )
+
+
 class SourceAdapter(ABC):
     """Адаптер источника: читает сырьё и отдаёт DataFrame в схеме CANONICAL.
 
