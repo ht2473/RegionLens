@@ -1,11 +1,13 @@
-"""Признаки (Ф2 / S3): гармонизация форм, обогащение metric_dim, покрытие, ядро.
+"""Признаки (Ф2 / S3): гармонизация форм, обогащение metric_dim, покрытие, ядро,
+импутация и z-score → запись features_wide в DuckDB.
 
 Блок A: из fact_region получаем сопоставимые значения (value_harmonized),
 обогащаем справочник метрик (domain / value_type / higher_is_better / coverage)
-и отбираем курируемое ядро. Блок B (далее) добавит pivot + импутацию + z-score
-и запишет features_wide в DuckDB.
+и отбираем курируемое ядро.
+Блок B: pivot ядра в полную сетку (включённые регионы × годы окна × метрики ядра),
+импутация с предохранителями (+ is_imputed), z-score по году, запись в DuckDB.
 
-Параметры — из конфигов (без хардкода): окно и порог покрытия — analytics.yaml;
+Параметры — из конфигов (без хардкода): окно, пороги покрытия и импутации — analytics.yaml;
 домены, ядро, метрика населения — indicators.yaml; правила value_type — value_types.yaml.
 """
 
@@ -15,6 +17,7 @@ from typing import Any
 import polars as pl
 
 from pipeline.config import load_config
+from pipeline.duck import write_table
 from pipeline.logging_setup import log
 
 # Правила value_type: (список правил подстрока->тип, тип по умолчанию, маркер «нет данных»).
@@ -22,6 +25,9 @@ ValueTypeRules = tuple[list[dict[str, str]], str, str | None]
 
 # Только value_type=absolute делится на население; остальные формы уже сопоставимы.
 ABSOLUTE = "absolute"
+
+# Путь к аналитическому хранилищу по умолчанию (как в pipeline.etl.DEFAULT_DUCKDB_PATH).
+DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
 
 
 @dataclass
@@ -34,6 +40,17 @@ class CoreFeatures:
     window: list[int]  # годы окна анализа (2010..2024)
 
 
+@dataclass
+class FeaturesResult:
+    """Итог Ф2: матрица признаков и обогащённый справочник метрик."""
+
+    features_wide: pl.DataFrame
+    metric_dim: pl.DataFrame
+
+
+# --------------------------------------------------------------------------- #
+# Блок A: гармонизация форм, обогащение metric_dim, покрытие, отбор ядра
+# --------------------------------------------------------------------------- #
 def classify_value_type(
     unit: str | None, rules: list[dict[str, str]], default: str, nodata_marker: str | None
 ) -> str:
@@ -207,3 +224,167 @@ def prepare_features(
         metrics_enriched=enriched.height,
     )
     return CoreFeatures(metric_dim=enriched, fact_core=fact_core, core_ids=core_ids, window=window)
+
+
+# --------------------------------------------------------------------------- #
+# Блок B: pivot ядра, импутация с предохранителями, z-score, запись
+# --------------------------------------------------------------------------- #
+def build_long_grid(
+    fact_core: pl.DataFrame, region_dim: pl.DataFrame, core_ids: list[int], window: list[int]
+) -> pl.DataFrame:
+    """Полная длинная сетка: включённые регионы × годы окна × метрики ядра.
+
+    Декартово произведение даёт прямоугольную матрицу (пропуски явные — null),
+    к которой слева подклеиваются гармонизированные значения. Только included_flag-регионы
+    (дубль-варианты «с/без АО» не задваиваются, когда included_flag проставлен верно).
+    """
+    included = region_dim.filter(pl.col("included_flag")).select("okato")
+    years = pl.DataFrame({"year": pl.Series(window, dtype=pl.Int64)})
+    metrics = pl.DataFrame({"metric_id": pl.Series(core_ids, dtype=pl.Int32)})
+    grid = included.join(years, how="cross").join(metrics, how="cross")
+    return grid.join(
+        fact_core.select(["okato", "year", "metric_id", "value_harmonized"]),
+        on=["okato", "year", "metric_id"],
+        how="left",
+    )
+
+
+def impute_features(grid: pl.DataFrame, max_gap: int, share_max: float) -> pl.DataFrame:
+    """Импутация с предохранителями.
+
+    Возвращает (okato, year, metric_id, value_harmonized, is_imputed).
+
+    Шаги: (1) линейная интерполяция внутри региона по времени, но только короткие внутренние
+    разрывы (длина серии пропусков ≤ max_gap); (2) остаток — медиана по (metric_id, year) между
+    регионами; (3) предохранитель: если что-то ещё пусто — медиана по метрике.
+    Падаем, если доля импутаций превысила порог impute_share_max или остались пропуски.
+    """
+    g = grid.sort(["okato", "metric_id", "year"]).with_columns(
+        pl.col("value_harmonized").is_null().alias("_isnull"),
+        pl.col("value_harmonized")
+        .is_not_null()
+        .cast(pl.Int32)
+        .cum_sum()
+        .over(["okato", "metric_id"])
+        .alias("_anchor"),
+        pl.col("value_harmonized").interpolate().over(["okato", "metric_id"]).alias("_interp"),
+    )
+    # длина серии пропусков, относящейся к одному «якорю» (последнему непустому)
+    g = g.with_columns(
+        pl.col("_isnull").sum().over(["okato", "metric_id", "_anchor"]).alias("_gap")
+    )
+    # шаг 1: короткие внутренние разрывы заполняем интерполяцией (края interpolate не трогает)
+    g = g.with_columns(
+        pl.when(pl.col("value_harmonized").is_not_null())
+        .then(pl.col("value_harmonized"))
+        .when(pl.col("_interp").is_not_null() & (pl.col("_gap") <= max_gap))
+        .then(pl.col("_interp"))
+        .otherwise(None)
+        .alias("_vh1")
+    )
+    # шаг 2: межрегиональная медиана по (metric_id, year)
+    g = g.with_columns(pl.col("_vh1").median().over(["metric_id", "year"]).alias("_med_my"))
+    g = g.with_columns(
+        pl.when(pl.col("_vh1").is_not_null())
+        .then(pl.col("_vh1"))
+        .otherwise(pl.col("_med_my"))
+        .alias("_vh2")
+    )
+    # шаг 3 (предохранитель): остаток — медиана по всей метрике
+    g = g.with_columns(pl.col("_vh2").median().over(["metric_id"]).alias("_med_m"))
+    g = g.with_columns(
+        pl.when(pl.col("_vh2").is_not_null())
+        .then(pl.col("_vh2"))
+        .otherwise(pl.col("_med_m"))
+        .alias("_vh")
+    )
+    g = g.with_columns((pl.col("_isnull") & pl.col("_vh").is_not_null()).alias("is_imputed"))
+
+    n_cells = g.height
+    n_imp = int(g["is_imputed"].sum())
+    share = n_imp / n_cells if n_cells else 0.0
+    if share > share_max:
+        raise ValueError(
+            f"Доля импутаций {share:.3f} превышает порог impute_share_max={share_max}."
+        )
+    still_null = int(g["_vh"].is_null().sum())
+    if still_null:
+        raise ValueError(f"После импутации осталось {still_null} пустых ячеек ядра.")
+    log.info(
+        "features_imputed",
+        stage="features",
+        cells=n_cells,
+        imputed=n_imp,
+        impute_share=round(share, 4),
+    )
+    return g.select(
+        "okato",
+        "year",
+        "metric_id",
+        pl.col("_vh").alias("value_harmonized"),
+        "is_imputed",
+    )
+
+
+def add_zscore(features: pl.DataFrame) -> pl.DataFrame:
+    """Добавить z_value: стандартизация value_harmonized по (metric_id, year).
+
+    z = (x - среднее) / стандартное отклонение в пределах года. Если std не определён
+    или равен нулю (вырожденный случай) — z=0. Направление (higher_is_better) здесь
+    НЕ применяется: знак учитывается на этапе индекса (Ф4), контракт хранит «сырой» z.
+    """
+    mean = pl.col("value_harmonized").mean().over(["metric_id", "year"])
+    std = pl.col("value_harmonized").std().over(["metric_id", "year"])
+    return features.with_columns(
+        pl.when(std.is_not_null() & (std > 0))
+        .then((pl.col("value_harmonized") - mean) / std)
+        .otherwise(0.0)
+        .alias("z_value")
+    )
+
+
+def build_features_wide(core: CoreFeatures, region_dim: pl.DataFrame) -> pl.DataFrame:
+    """Собрать features_wide: сетка → импутация → z-score (пороги — из analytics.yaml)."""
+    analytics = load_config("analytics")
+    max_gap = int(analytics["impute_max_gap"])
+    share_max = float(analytics["impute_share_max"])
+
+    grid = build_long_grid(core.fact_core, region_dim, core.core_ids, core.window)
+    imputed = impute_features(grid, max_gap, share_max)
+    return (
+        add_zscore(imputed)
+        .select(["okato", "year", "metric_id", "value_harmonized", "z_value", "is_imputed"])
+        .sort(["okato", "metric_id", "year"])
+    )
+
+
+def run_features(
+    metric_dim: pl.DataFrame,
+    region_dim: pl.DataFrame,
+    fact_region: pl.DataFrame,
+    *,
+    duckdb_path: str = DEFAULT_DUCKDB_PATH,
+    write: bool = True,
+) -> FeaturesResult:
+    """Ф2 целиком: блок A → блок B. При write=True пишет features_wide и обогащённый metric_dim."""
+    core = prepare_features(metric_dim, region_dim, fact_region)
+    features_wide = build_features_wide(core, region_dim)
+    if write:
+        write_table(duckdb_path, "features_wide", features_wide)
+        # обогащённый metric_dim перезаписывает базовый из Ф1 (добавлены domain/value_type/...)
+        write_table(duckdb_path, "metric_dim", core.metric_dim)
+        log.info(
+            "features_written",
+            stage="features",
+            path=duckdb_path,
+            features_rows=features_wide.height,
+            metric_dim_rows=core.metric_dim.height,
+        )
+    return FeaturesResult(features_wide=features_wide, metric_dim=core.metric_dim)
+
+
+if __name__ == "__main__":
+    from pipeline.etl import run_etl
+
+    etl = run_etl(write=False)
+    run_features(etl.metric_dim, etl.region_dim, etl.fact_region)
