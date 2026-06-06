@@ -5,7 +5,14 @@ from __future__ import annotations
 import numpy as np
 import polars as pl
 
-from pipeline.typology import align_labels, build_clusters, choose_k, year_matrix
+from pipeline.typology import (
+    align_labels,
+    build_clusters,
+    choose_k,
+    compute_cluster_shap,
+    run_typology,
+    year_matrix,
+)
 
 
 def test_align_labels_remaps_permuted() -> None:
@@ -73,3 +80,22 @@ def test_build_clusters_stable_ids_and_profile() -> None:
 
     assert profile.height == 3 * 2 * 2  # 3 кластера × 2 метрики × 2 года
     assert clusters["cluster_label"].null_count() == 0
+
+
+def test_compute_cluster_shap_complete() -> None:
+    """cluster_shap: по строке на (okato, year, metric_id), без пропусков, нужные колонки."""
+    fw = _synthetic_features()
+    res = build_clusters(fw, k=3)
+    sh = compute_cluster_shap(fw, res.clusters, seed=42)
+    assert set(sh.columns) == {"okato", "year", "metric_id", "shap_value"}
+    assert sh.height == 6 * 2 * 2
+    assert sh["shap_value"].null_count() == 0
+
+
+def test_run_typology_returns_three_tables() -> None:
+    """run_typology без записи/MLflow возвращает три непустые таблицы типологии."""
+    fw = _synthetic_features()
+    res = run_typology(fw, write=False, log_mlflow=False)
+    assert res.clusters.height == 6 * 2
+    assert res.cluster_profile.height > 0
+    assert res.cluster_shap.height == 6 * 2 * 2
