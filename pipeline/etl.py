@@ -139,20 +139,25 @@ def deduplicate_by_source(df: pl.DataFrame) -> pl.DataFrame:
     return deduped
 
 
-def is_aggregate_variant(name: str | None) -> bool:
-    """Это вариант-агрегат «с/без АО» (Архангельская/Тюменская)?"""
-    n = name or ""
-    return ("автономным округом" in n) or ("без автономного" in n)
-
-
 def _variant_kind(name: str | None) -> str:
-    """Вид варианта: 'with' (с АО), 'without' (без АО) или 'none' (обычный регион)."""
+    """Вид варианта «с/без АО»: 'with', 'without' или 'none' (обычный регион).
+
+    Ловим по скобочному маркеру, чтобы покрыть и единственное число (Архангельская:
+    «(без автономного округа)» / «(с автономным округом)»), и множественное
+    (Тюменская: «(без автономных округов)» / «(с автономными округами)»).
+    Самостоятельные округа-субъекты («Ненецкий автономный округ» и т.п.) — это 'none'.
+    """
     n = name or ""
-    if "без автономного" in n:
+    if "(без автономн" in n:
         return "without"
-    if "автономным округом" in n:
+    if "(с автономн" in n:
         return "with"
     return "none"
+
+
+def is_aggregate_variant(name: str | None) -> bool:
+    """Это вариант-агрегат «с/без АО» (Архангельская/Тюменская)?"""
+    return _variant_kind(name) != "none"
 
 
 def build_region_dim(region: pl.DataFrame, regions_cfg: dict[str, Any]) -> pl.DataFrame:
