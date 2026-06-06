@@ -12,12 +12,14 @@
 """
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import polars as pl
+import shap
 from scipy.optimize import linear_sum_assignment
 from sklearn.cluster import AgglomerativeClustering, KMeans
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import (
     calinski_harabasz_score,
     davies_bouldin_score,
@@ -25,6 +27,7 @@ from sklearn.metrics import (
 )
 
 from pipeline.config import load_config
+from pipeline.duck import write_table
 from pipeline.logging_setup import log
 
 
@@ -82,8 +85,11 @@ def choose_k(
     Единое k обеспечивает сопоставимость типологии между годами (одинаковое число типов).
     """
     matrices = [year_matrix(features_wide, y)[1] for y in years]
+    # silhouette требует 2 <= k <= n_samples-1; ограничиваем верх по самому малому году
+    min_samples = min(m.shape[0] for m in matrices)
+    k_max = min(k_range[1], min_samples - 1)
     best_k, best_score = k_range[0], float("-inf")
-    for k in range(k_range[0], k_range[1] + 1):
+    for k in range(k_range[0], k_max + 1):
         sils = [silhouette_score(m, fit_labels(m, k, algo, seed)) for m in matrices]
         mean_sil = float(np.mean(sils))
         log.info("choose_k_candidate", stage="typology", k=k, mean_silhouette=round(mean_sil, 4))
@@ -243,3 +249,121 @@ def build_clusters(features_wide: pl.DataFrame, *, k: int | None = None) -> Typo
         rows=clusters.height,
     )
     return TypologyTables(clusters=clusters, cluster_profile=profile)
+
+
+# --------------------------------------------------------------------------- #
+# Блок M2: SHAP-объяснение принадлежности, MLflow, запись таблиц
+# --------------------------------------------------------------------------- #
+def _shap_to_class_array(shap_values: object, n_samples: int, n_features: int) -> np.ndarray:
+    """Привести вывод shap к форме (n_samples, n_features, n_classes) для разных версий shap."""
+    if isinstance(shap_values, list):  # старый формат: список матриц по классам
+        return np.stack(shap_values, axis=-1)
+    arr = np.asarray(shap_values)
+    if arr.ndim == 3:  # новый формат: уже (n_samples, n_features, n_classes)
+        return arr
+    return arr.reshape(n_samples, n_features, 1)  # бинарный случай
+
+
+def compute_cluster_shap(
+    features_wide: pl.DataFrame, clusters: pl.DataFrame, *, seed: int = 42
+) -> pl.DataFrame:
+    """SHAP-объяснение принадлежности: вклад каждой метрики в попадание региона в его тип.
+
+    По каждому году обучаем бустинг предсказывать СТАБИЛЬНЫЙ cluster_id (из clusters) по
+    признакам ядра и берём SHAP-значения для фактического класса региона. Результат —
+    cluster_shap(okato, year, metric_id, shap_value).
+    """
+    rows: list[dict[str, Any]] = []
+    years = sorted(int(y) for y in features_wide["year"].unique().to_list())
+    for year in years:
+        okato, matrix, metric_ids = year_matrix(features_wide, year)
+        lab = clusters.filter(pl.col("year") == year).sort("okato")
+        labels = np.array(lab["cluster_id"].to_list())
+        clf = HistGradientBoostingClassifier(random_state=seed).fit(matrix, labels)
+        sv = _shap_to_class_array(
+            shap.TreeExplainer(clf).shap_values(matrix), len(okato), len(metric_ids)
+        )
+        classes = clf.classes_.tolist()
+        for i, ok in enumerate(okato):
+            class_idx = classes.index(int(labels[i]))
+            for j, mid in enumerate(metric_ids):
+                rows.append(
+                    {
+                        "okato": ok,
+                        "year": year,
+                        "metric_id": mid,
+                        "shap_value": float(sv[i, j, class_idx]),
+                    }
+                )
+    shap_df = pl.DataFrame(rows)
+    log.info("cluster_shap_built", stage="typology", rows=shap_df.height, years=len(years))
+    return shap_df
+
+
+def _log_mlflow(clusters: pl.DataFrame, algo: str, k: int) -> None:
+    """Best-effort логирование метрик типологии в MLflow (если установлен)."""
+    try:
+        import mlflow
+    except ImportError:
+        log.warning("mlflow_skip", stage="typology", reason="mlflow не установлен")
+        return
+    sil = clusters.group_by("year").agg(pl.col("silhouette").first())["silhouette"].mean()
+    stab = (
+        clusters.filter(pl.col("stability_flag").is_not_null())
+        .group_by("year")
+        .agg(pl.col("stability_flag").first())["stability_flag"]
+        .mean()
+    )
+    with mlflow.start_run(run_name=f"typology_{algo}_k{k}"):
+        mlflow.log_param("algo", algo)
+        mlflow.log_param("k", k)
+        mlflow.log_metric("silhouette_mean", cast(float, sil) if sil is not None else 0.0)
+        mlflow.log_metric("stability_mean", cast(float, stab) if stab is not None else 0.0)
+
+
+@dataclass
+class TypologyResult:
+    """Итог Ф3: три таблицы типологии."""
+
+    clusters: pl.DataFrame
+    cluster_profile: pl.DataFrame
+    cluster_shap: pl.DataFrame
+
+
+def run_typology(
+    features_wide: pl.DataFrame,
+    *,
+    duckdb_path: str = "data/regionlens.duckdb",
+    write: bool = True,
+    log_mlflow: bool = True,
+) -> TypologyResult:
+    """Ф3 целиком: M1 (кластеры/профили) → M2 (SHAP) → запись таблиц + MLflow."""
+    tables = build_clusters(features_wide)
+    seed = int((load_config("analytics").get("clustering") or {}).get("seed", 42))
+    shap_df = compute_cluster_shap(features_wide, tables.clusters, seed=seed)
+    algo = tables.clusters["algo"][0]
+    k = int(tables.clusters["k"][0])
+    if log_mlflow:
+        _log_mlflow(tables.clusters, algo, k)
+    if write:
+        write_table(duckdb_path, "clusters", tables.clusters)
+        write_table(duckdb_path, "cluster_profile", tables.cluster_profile)
+        write_table(duckdb_path, "cluster_shap", shap_df)
+        log.info(
+            "typology_written",
+            stage="typology",
+            path=duckdb_path,
+            clusters=tables.clusters.height,
+            profile=tables.cluster_profile.height,
+            shap=shap_df.height,
+        )
+    return TypologyResult(
+        clusters=tables.clusters, cluster_profile=tables.cluster_profile, cluster_shap=shap_df
+    )
+
+
+if __name__ == "__main__":
+    from pipeline.duck import read_table
+
+    fw = read_table("data/regionlens.duckdb", "features_wide")
+    run_typology(fw)
