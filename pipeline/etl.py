@@ -65,8 +65,6 @@ def build_source_adapters(sources_cfg: list[dict[str, Any]]) -> list[SourceAdapt
     for src in sources_cfg:
         module_path, _, cls_name = str(src["adapter"]).rpartition(".")
         cls = getattr(importlib.import_module(module_path), cls_name)
-        # na_values пробрасываем, только если источник его объявил — адаптеры без
-        # поддержки кодов «нет данных» не обязаны принимать этот аргумент
         kwargs: dict[str, Any] = {}
         if "na_values" in src:
             kwargs["na_values"] = src["na_values"]
@@ -118,6 +116,27 @@ def edition_year(source: str | None) -> int:
     return max(years) if years else 0
 
 
+def drop_aggregate_variants(region: pl.DataFrame) -> pl.DataFrame:
+    """Убрать строки-агрегаты «с автономным округом» (матрёшка) до дедупа.
+
+    В данных okato 11000000/71000000 несут ОБА варианта имени («с/без АО») под одним
+    кодом, и дедуп по (okato, metric_id, year) иначе произвольно смешал бы их значения
+    (недетерминизм + порча факта). Плюс есть крошечные дубли-агрегаты (okato 11200000/
+    71200000). Отсекаем все «(с автономн…» строки: остаются непересекающиеся субъекты
+    («без АО» + Ненецкий/ХМАО/ЯНАО) = 85, результат детерминирован.
+    """
+    before = region.height
+    mask = pl.col("object_name").fill_null("").str.contains("(с автономн", literal=True)
+    cleaned = region.filter(~mask)
+    log.info(
+        "drop_aggregate_variants",
+        stage="etl",
+        dropped_rows=before - cleaned.height,
+        okato_left=cleaned["object_okato"].n_unique(),
+    )
+    return cleaned
+
+
 def deduplicate_by_source(df: pl.DataFrame) -> pl.DataFrame:
     """Дедуп по источнику (грань 3): при коллизии (okato, metric_id, year) оставить
     свежайшее издание — по году в source, затем по version_date. Снятые дубли логируются.
@@ -139,25 +158,19 @@ def deduplicate_by_source(df: pl.DataFrame) -> pl.DataFrame:
     return deduped
 
 
-def _variant_kind(name: str | None) -> str:
-    """Вид варианта «с/без АО»: 'with', 'without' или 'none' (обычный регион).
+def is_aggregate_variant(name: str | None) -> bool:
+    """Это вариант-агрегат «с/без АО» (Архангельская/Тюменская)?"""
+    return _variant_kind(name) != "none"
 
-    Ловим по скобочному маркеру, чтобы покрыть и единственное число (Архангельская:
-    «(без автономного округа)» / «(с автономным округом)»), и множественное
-    (Тюменская: «(без автономных округов)» / «(с автономными округами)»).
-    Самостоятельные округа-субъекты («Ненецкий автономный округ» и т.п.) — это 'none'.
-    """
+
+def _variant_kind(name: str | None) -> str:
+    """Вид варианта: 'with' (с АО), 'without' (без АО) или 'none' (обычный регион)."""
     n = name or ""
     if "(без автономн" in n:
         return "without"
     if "(с автономн" in n:
         return "with"
     return "none"
-
-
-def is_aggregate_variant(name: str | None) -> bool:
-    """Это вариант-агрегат «с/без АО» (Архангельская/Тюменская)?"""
-    return _variant_kind(name) != "none"
 
 
 def build_region_dim(region: pl.DataFrame, regions_cfg: dict[str, Any]) -> pl.DataFrame:
@@ -290,7 +303,7 @@ def run_etl(
     metric_dim = build_metric_dim(df)
     df = attach_metric_id(df, metric_dim)
     log.info("etl_metrics", stage="etl", metrics=metric_dim.height)
-    region = deduplicate_by_source(split_by_level(df).region)
+    region = deduplicate_by_source(drop_aggregate_variants(split_by_level(df).region))
     region_dim = build_region_dim(region, load_config("regions"))
     fact_region = validate_fact_region(build_fact_region(region))
     quality_report(fact_region, metric_dim, region_dim)

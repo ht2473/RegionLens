@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import polars as pl
 
-from pipeline.etl import _variant_kind, build_region_dim
+from pipeline.etl import _variant_kind, build_region_dim, drop_aggregate_variants
 
 
 def test_variant_kind_handles_singular_and_plural() -> None:
@@ -19,7 +19,7 @@ def test_variant_kind_handles_singular_and_plural() -> None:
 
 
 def test_region_dim_key_variants_and_district() -> None:
-    """geojson_key=okato; оба варианта «с/без АО» помечены; ФО из конфига; агрегат «с АО»
+    """geojson_key=okato; варианты «с/без АО» помечены; ФО из конфига; агрегат «с АО»
     исключён, «без АО» включён (include_with_autonomous_okrug=false)."""
     region = pl.DataFrame(
         {
@@ -51,8 +51,7 @@ def test_region_dim_key_variants_and_district() -> None:
     }
     assert dim.height == 5
     assert (dim["geojson_key"] == dim["okato"]).all()
-    # из 5 строк включены 3: Татарстан + два «без АО»; два агрегата «с АО» исключены
-    assert dim.filter(pl.col("included_flag")).height == 3
+    assert dim.filter(pl.col("included_flag")).height == 3  # Татарстан + два «без АО»
     assert dim.filter(pl.col("is_aggregate_variant")).height == 4  # обе пары вариантов
 
     tat = dim.filter(pl.col("okato") == "92000000").row(0, named=True)
@@ -81,3 +80,25 @@ def test_region_dim_empty_fd_map_gives_null_district() -> None:
     assert dim.height == 1
     assert dim["federal_district"].null_count() == 1
     assert dim["included_flag"][0]
+
+
+def test_drop_aggregate_variants_removes_with_okrug() -> None:
+    """Строки-агрегаты «(с автономн…» отсекаются; «без АО» и обычные регионы остаются."""
+    region = pl.DataFrame(
+        {
+            "object_okato": ["11000000", "11000000", "11200000", "92000000"],
+            "object_name": [
+                "Архангельская область (с автономным округом)",
+                "Архангельская область (без автономного округа)",
+                "Тюменская область (с автономными округами)",
+                "Республика Татарстан",
+            ],
+            "value": [1.0, 2.0, 3.0, 4.0],
+        }
+    )
+    out = drop_aggregate_variants(region)
+    names = out["object_name"].to_list()
+    assert all("(с автономн" not in n for n in names)
+    assert "Архангельская область (без автономного округа)" in names
+    assert "Республика Татарстан" in names
+    assert out.height == 2
