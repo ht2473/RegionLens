@@ -1,14 +1,17 @@
-"""Тесты признаков (Ф2 / S3, блок A): value_type, покрытие, обогащение, гармонизация."""
+"""Тесты признаков (Ф2 / S3): value_type, покрытие, обогащение, гармонизация,
+импутация с предохранителями и z-score."""
 
 from __future__ import annotations
 
 import polars as pl
 
 from pipeline.features import (
+    add_zscore,
     classify_value_type,
     compute_coverage,
     enrich_metric_dim,
     harmonize,
+    impute_features,
     select_core,
 )
 
@@ -129,3 +132,54 @@ def test_select_core_warns_below_threshold() -> None:
     md = pl.DataFrame({"metric_id": [1, 2], "coverage": [0.97, 0.40]})
     core_ids = select_core(md, _indicators_cfg(), coverage_threshold=0.80)
     assert core_ids == [1, 2]
+
+
+def test_impute_interpolates_short_gaps_and_flags() -> None:
+    """Короткий внутренний разрыв заполняется интерполяцией; флаг is_imputed выставлен."""
+    grid = pl.DataFrame(
+        {
+            "okato": ["01"] * 5,
+            "metric_id": pl.Series([1] * 5, dtype=pl.Int32),
+            "year": pl.Series([2010, 2011, 2012, 2013, 2014], dtype=pl.Int64),
+            "value_harmonized": [10.0, None, 30.0, 40.0, 50.0],
+        }
+    )
+    out = impute_features(grid, max_gap=2, share_max=0.5).sort("year")
+    vals = out["value_harmonized"].to_list()
+    assert vals == [10.0, 20.0, 30.0, 40.0, 50.0]  # 20 — линейная интерполяция
+    assert out["value_harmonized"].null_count() == 0
+    assert out["is_imputed"].to_list() == [False, True, False, False, False]
+
+
+def test_impute_long_gap_falls_back_to_cross_region_median() -> None:
+    """Длинный/краевой разрыв не интерполируется, а заполняется медианой по (metric, year)."""
+    # 02 имеет пропуск в 2010 (краевой) -> медиана по году между регионами (01=100) -> 100.
+    grid = pl.DataFrame(
+        {
+            "okato": ["01", "01", "02", "02"],
+            "metric_id": pl.Series([1, 1, 1, 1], dtype=pl.Int32),
+            "year": pl.Series([2010, 2011, 2010, 2011], dtype=pl.Int64),
+            "value_harmonized": [100.0, 200.0, None, 200.0],
+        }
+    )
+    out = impute_features(grid, max_gap=2, share_max=0.5)
+    cell = out.filter((pl.col("okato") == "02") & (pl.col("year") == 2010))
+    assert cell["value_harmonized"][0] == 100.0
+    assert cell["is_imputed"][0] is True
+
+
+def test_zscore_mean0_std1_per_year() -> None:
+    """z-score по (metric_id, year): для [1,2,3] -> [-1,0,1]; вырожденный год -> 0."""
+    feats = pl.DataFrame(
+        {
+            "okato": ["01", "02", "03", "04"],
+            "metric_id": [1, 1, 1, 2],
+            "year": [2010, 2010, 2010, 2010],
+            "value_harmonized": [1.0, 2.0, 3.0, 7.0],
+        }
+    )
+    z = add_zscore(feats).sort(["metric_id", "okato"])
+    by_m1 = z.filter(pl.col("metric_id") == 1)["z_value"].to_list()
+    assert by_m1 == [-1.0, 0.0, 1.0]
+    # метрика 2 одна в году -> std не определён -> z=0
+    assert z.filter(pl.col("metric_id") == 2)["z_value"][0] == 0.0
