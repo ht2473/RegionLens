@@ -114,6 +114,17 @@ def api_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-u
         "('45000000', 2019, 2020, 1, 1, 'stable_high'), "
         "('46000000', 2019, 2020, 0, 0, 'stable_low')"
     )
+
+    # cluster_profile: средний z метрик в типе 1 за 2020 (для профиля типа).
+    con.execute(
+        "CREATE TABLE cluster_profile (algo VARCHAR, k INTEGER, year INTEGER, "
+        "cluster_id INTEGER, metric_id INTEGER, mean_z DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO cluster_profile VALUES "
+        "('kmeans', 3, 2020, 1, 1, 1.80), "
+        "('kmeans', 3, 2020, 1, 2, -0.40)"
+    )
     con.close()
 
     settings.DUCKDB_PATH = str(path)
@@ -309,3 +320,84 @@ def test_transitions_all(api_duckdb: Path) -> None:
     resp = APIClient().get("/api/transitions/")
     assert resp.status_code == 200
     assert len(resp.json()) == 2
+
+
+def test_typology_year(api_duckdb: Path) -> None:
+    """typology/?year= → принадлежность регионов к типам за год (только этот год)."""
+    resp = APIClient().get("/api/typology/", {"year": 2020})
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert {r["okato"] for r in rows} == {"45000000", "46000000"}
+    assert set(rows[0]) == {
+        "okato",
+        "cluster_id",
+        "cluster_label",
+        "distance_to_centroid",
+        "stability_flag",
+    }
+
+
+def test_typology_explain_ok(api_duckdb: Path) -> None:
+    """typology/<okato>/explain/ → SHAP по |вкладу|, с контекстом типа."""
+    resp = APIClient().get("/api/typology/45000000/explain/", {"year": 2020})
+    assert resp.status_code == 200
+    d = resp.json()
+    assert d["cluster_id"] == 1
+    assert [s["metric_id"] for s in d["shap"]] == [1, 2, 3]  # по убыванию |shap|: 0.9, 0.3, 0.05
+
+
+def test_typology_explain_not_found(api_duckdb: Path) -> None:
+    """Нет региона в типологии за год → 404."""
+    resp = APIClient().get("/api/typology/45000000/explain/", {"year": 1999})
+    assert resp.status_code == 404
+
+
+def test_cluster_profile_ok(api_duckdb: Path) -> None:
+    """typology/profile/ → профиль типа, метрики по убыванию |mean_z|."""
+    resp = APIClient().get("/api/typology/profile/", {"year": 2020, "cluster_id": 1})
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert [r["metric_id"] for r in rows] == [1, 2]  # |1.8| > |0.4|
+    assert set(rows[0]) == {"metric_id", "metric_name", "mean_z"}
+
+
+def test_cluster_profile_missing_cluster_id(api_duckdb: Path) -> None:
+    """profile/ без cluster_id → 400."""
+    assert APIClient().get("/api/typology/profile/", {"year": 2020}).status_code == 400
+
+
+def test_compare_ok(api_duckdb: Path) -> None:
+    """compare/ с 2 регионами → индекс+тип по каждому, сортировка по убыванию индекса."""
+    resp = APIClient().get("/api/compare/", {"year": 2020, "okato": ["45000000", "46000000"]})
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert [r["okato"] for r in rows] == ["45000000", "46000000"]  # 88.5 > 12.3
+    assert rows[0]["region_name"] == "Москва" and rows[0]["cluster_id"] == 1
+    assert "income" in rows[0]
+
+
+def test_compare_too_few(api_duckdb: Path) -> None:
+    """compare/ с одним регионом → 400 (нужно 2-3)."""
+    resp = APIClient().get("/api/compare/", {"year": 2020, "okato": "45000000"})
+    assert resp.status_code == 400
+
+
+def test_exception_handler_unhandled_returns_500() -> None:
+    """Единый обработчик: необработанное исключение → 500 с чистым телом."""
+    from core.api.exceptions import custom_exception_handler
+
+    resp = custom_exception_handler(RuntimeError("boom"), {"view": None})
+    assert resp is not None and resp.status_code == 500
+    assert resp.data == {"detail": "внутренняя ошибка сервера"}
+
+
+def test_openapi_schema_served() -> None:
+    """drf-spectacular: схема отдаётся (200)."""
+    resp = APIClient().get("/api/schema/")
+    assert resp.status_code == 200
+
+
+def test_swagger_ui_served() -> None:
+    """drf-spectacular: Swagger UI отдаётся (200)."""
+    resp = APIClient().get("/api/docs/")
+    assert resp.status_code == 200

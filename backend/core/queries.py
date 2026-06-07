@@ -201,3 +201,82 @@ def transitions_list(okato: str | None = None) -> list[dict[str, Any]]:
             [okato],
         )
     return q(f"SELECT {cols} FROM transitions ORDER BY okato, year_from")
+
+
+def typology(year: int, k: int | None = None) -> list[dict[str, Any]]:
+    """Типология на год: тип/метка/типичность(A1)/стабильность по каждому региону."""
+    sql = (
+        "SELECT okato, cluster_id, cluster_label, distance_to_centroid, stability_flag "
+        "FROM clusters WHERE year = ? AND algo = ?"
+    )
+    params: list[Any] = [year, MAP_CLUSTER_ALGO]
+    if k is not None:
+        sql += " AND k = ?"
+        params.append(k)
+    sql += " ORDER BY okato"
+    return q(sql, params)
+
+
+def typology_explain(okato: str, year: int) -> dict[str, Any] | None:
+    """SHAP-объяснение принадлежности региона к типу за год (все метрики по |вкладу|).
+
+    SHAP объясняет решение классификатора (почему регион отнесён к типу), это НЕ
+    причинность. Возвращает None, если региона нет в типологии за год (→ 404 в API).
+    """
+    clus = q(
+        "SELECT cluster_id, cluster_label FROM clusters WHERE okato = ? AND year = ? AND algo = ?",
+        [okato, year, MAP_CLUSTER_ALGO],
+    )
+    if not clus:
+        return None
+    shap = q(
+        "SELECT s.metric_id, m.metric_name, s.shap_value "
+        "FROM cluster_shap s JOIN metric_dim m USING(metric_id) "
+        "WHERE s.okato = ? AND s.year = ? ORDER BY abs(s.shap_value) DESC",
+        [okato, year],
+    )
+    return {
+        "okato": okato,
+        "year": year,
+        "cluster_id": clus[0]["cluster_id"],
+        "cluster_label": clus[0]["cluster_label"],
+        "shap": shap,
+    }
+
+
+def cluster_profile(year: int, cluster_id: int, k: int | None = None) -> list[dict[str, Any]]:
+    """Профиль типа за год: средний z метрик (по |mean_z|) — чем характерен тип."""
+    sql = (
+        "SELECT p.metric_id, m.metric_name, p.mean_z "
+        "FROM cluster_profile p JOIN metric_dim m USING(metric_id) "
+        "WHERE p.year = ? AND p.cluster_id = ? AND p.algo = ?"
+    )
+    params: list[Any] = [year, cluster_id, MAP_CLUSTER_ALGO]
+    if k is not None:
+        sql += " AND p.k = ?"
+        params.append(k)
+    sql += " ORDER BY abs(p.mean_z) DESC"
+    return q(sql, params)
+
+
+def compare(okatos: list[str], year: int, scheme: str = MAP_INDEX_SCHEME) -> list[dict[str, Any]]:
+    """Сравнение регионов на год: индекс по доменам + тип — для gap-анализа на фронте."""
+    placeholders = ", ".join(["?"] * len(okatos))
+    cols = "d.okato, r.region_name, d.total_score, " + ", ".join(f"d.{c}" for c in INDEX_DOMAINS)
+    rows = q(
+        f"SELECT {cols} FROM dev_index d JOIN region_dim r USING(okato) "
+        f"WHERE d.year = ? AND d.weighting_scheme = ? AND d.okato IN ({placeholders}) "
+        "ORDER BY d.total_score DESC",
+        [year, scheme, *okatos],
+    )
+    clus = q(
+        f"SELECT okato, cluster_id, cluster_label FROM clusters "
+        f"WHERE year = ? AND algo = ? AND okato IN ({placeholders})",
+        [year, MAP_CLUSTER_ALGO, *okatos],
+    )
+    clus_by = {c["okato"]: c for c in clus}
+    for row in rows:
+        c = clus_by.get(row["okato"])
+        row["cluster_id"] = c["cluster_id"] if c else None
+        row["cluster_label"] = c["cluster_label"] if c else None
+    return rows

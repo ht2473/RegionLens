@@ -19,6 +19,16 @@ class RegionSerializer(serializers.Serializer):
     federal_district = serializers.CharField(allow_null=True)
 
 
+class GeoLayerPointSerializer(serializers.Serializer):
+    """Точка слоя карты (надмножество полей measure=cluster|index — для OpenAPI-схемы)."""
+
+    okato = serializers.CharField()
+    cluster_id = serializers.IntegerField(required=False)
+    cluster_label = serializers.CharField(required=False, allow_null=True)
+    distance_to_centroid = serializers.FloatField(required=False, allow_null=True)
+    total_score = serializers.FloatField(required=False, allow_null=True)
+
+
 class MetricSerializer(serializers.Serializer):
     """Элемент каталога метрик ядра (из metric_dim)."""
 
@@ -119,3 +129,47 @@ class RegionDashboardSerializer(serializers.Serializer):
     cluster = ClusterBlockSerializer(allow_null=True)
     shap_top = ShapTopSerializer(many=True)
     rank = RankSerializer(allow_null=True)
+
+
+class TypologyRowSerializer(serializers.Serializer):
+    """Принадлежность региона к типу на год (для обзора типологии и карты)."""
+
+    okato = serializers.CharField()
+    cluster_id = serializers.IntegerField()
+    cluster_label = serializers.CharField(allow_null=True)
+    distance_to_centroid = serializers.FloatField(allow_null=True)
+    stability_flag = serializers.FloatField(allow_null=True)
+
+
+class TypologyExplainSerializer(serializers.Serializer):
+    """SHAP-объяснение принадлежности региона к типу (полный список по |вкладу|)."""
+
+    okato = serializers.CharField()
+    year = serializers.IntegerField()
+    cluster_id = serializers.IntegerField()
+    cluster_label = serializers.CharField(allow_null=True)
+    shap = ShapTopSerializer(many=True)
+
+
+class ClusterProfileRowSerializer(serializers.Serializer):
+    """Строка профиля типа: средний z метрики (чем характерен тип)."""
+
+    metric_id = serializers.IntegerField()
+    metric_name = serializers.CharField(allow_null=True)
+    mean_z = serializers.FloatField(allow_null=True)
+
+
+class CompareRowSerializer(serializers.Serializer):
+    """Строка сравнения регионов: индекс по доменам + тип (для gap-анализа)."""
+
+    okato = serializers.CharField()
+    region_name = serializers.CharField(allow_null=True)
+    total_score = serializers.FloatField(allow_null=True)
+    economy = serializers.FloatField(allow_null=True)
+    income = serializers.FloatField(allow_null=True)
+    demography = serializers.FloatField(allow_null=True)
+    labor = serializers.FloatField(allow_null=True)
+    infrastructure = serializers.FloatField(allow_null=True)
+    health_edu = serializers.FloatField(allow_null=True)
+    cluster_id = serializers.IntegerField(allow_null=True)
+    cluster_label = serializers.CharField(allow_null=True)
