@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Карта — RegionLens{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Пространственный взгляд</p>
+  <h1>Карта регионов</h1>
+  <p class="lead">Раскраска субъектов по типу или индексу развития с выбором года. Интерактивная
+    карта (MapLibre) подключается на данных эндпойнта <code>/api/geo/layer/</code>.</p>
+</section>
+<div class="shell" id="map-root">
+  <p class="spinner">Карта подключается в следующем модуле Ф7 (MapLibre + слой <code>geo/layer</code>).</p>
+</div>
+{% endblock %}

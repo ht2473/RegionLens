@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Рейтинг — RegionLens{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Ранжирование</p>
+  <h1>Рейтинг регионов</h1>
+  <p class="lead">Места регионов по индексу развития за выбранный год и схему весов.
+    Источник — эндпойнт <code>/api/index/</code>.</p>
+</section>
+<div class="shell" id="rankings-root">
+  <p class="spinner">Таблица рейтинга подключается в модуле Ф7 (на данных <code>index</code>).</p>
+</div>
+{% endblock %}

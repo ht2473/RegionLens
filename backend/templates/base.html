@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}RegionLens{% endblock %}</title>
+  <meta name="description" content="RegionLens — аналитическая платформа социально-экономического развития регионов РФ на данных Росстата.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="site-header" x-data="{ open: false }">
+    <div class="container header-row">
+      <div class="brand">
+        <a href="{% url 'home' %}"><span class="mark">Region<b>Lens</b></span></a>
+        <span class="tag">аналитика регионов РФ</span>
+      </div>
+      <button class="nav-toggle" @click="open = !open" aria-label="Меню">☰</button>
+      <nav class="nav" :class="{ open: open }" aria-label="Основная навигация">
+        <a href="{% url 'home' %}" class="{% if active == 'home' %}is-active{% endif %}">Главная</a>
+        <a href="{% url 'map' %}" class="{% if active == 'map' %}is-active{% endif %}">Карта</a>
+        <a href="{% url 'rankings' %}" class="{% if active == 'rankings' %}is-active{% endif %}">Рейтинг</a>
+        <a href="{% url 'typology' %}" class="{% if active == 'typology' %}is-active{% endif %}">Типология</a>
+        <a href="{% url 'compare' %}" class="{% if active == 'compare' %}is-active{% endif %}">Сравнение</a>
+        <a href="{% url 'regions' %}" class="{% if active == 'regions' %}is-active{% endif %}">Регионы</a>
+        <a href="{% url 'methodology' %}" class="{% if active == 'methodology' %}is-active{% endif %}">Методология</a>
+        <a href="{% url 'data' %}" class="{% if active == 'data' %}is-active{% endif %}">Данные</a>
+        <a href="{% url 'help' %}" class="{% if active == 'help' %}is-active{% endif %}">Справка</a>
+        <a href="{% url 'feedback' %}" class="{% if active == 'feedback' %}is-active{% endif %}">Обратная связь</a>
+      </nav>
+    </div>
+  </header>
+
+  {% block breadcrumbs %}
+    {% include "partials/_breadcrumbs.html" %}
+  {% endblock %}
+
+  <main>
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container foot-row">
+      <div>
+        <strong>RegionLens</strong> · ВКР по направлению «Прикладная информатика»<br>
+        <span class="muted">Автор: Кузьмин Евгений Олегович · студенческий билет № 70232275</span>
+      </div>
+      <div class="muted">
+        Данные: Росстат / портал «Если быть точным» · лицензия CC BY 4.0<br>
+        Окно анализа 2010–2024 · <a href="{% url 'help' %}">Справка</a>
+      </div>
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

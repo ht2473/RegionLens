@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Типология — RegionLens{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Типы регионов</p>
+  <h1>Обзор типологии</h1>
+  <p class="lead">Состав типов регионов за год, их метки и профили. Источник — эндпойнты
+    <code>/api/typology/</code> и <code>/api/typology/profile/</code>.</p>
+</section>
+<div class="shell" id="typology-root">
+  <p class="spinner">Обзор типологии подключается в модуле Ф7.</p>
+</div>
+{% endblock %}

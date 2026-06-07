@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Сравнение — RegionLens{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Сопоставление</p>
+  <h1>Сравнение регионов</h1>
+  <p class="lead">Сравнение 2–3 регионов по доменам индекса (gap-анализ) за выбранный год.
+    Источник — эндпойнт <code>/api/compare/</code>.</p>
+</section>
+<div class="shell" id="compare-root">
+  <p class="spinner">Инструмент сравнения подключается в модуле Ф7.</p>
+</div>
+{% endblock %}

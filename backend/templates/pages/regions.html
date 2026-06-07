@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Регионы — RegionLens{% endblock %}
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Каталог субъектов</p>
+  <h1>Регионы</h1>
+  <p class="lead">Список из 85 субъектов с переходом к дашборду региона: индекс по доменам, тип,
+    объяснение принадлежности и траектория. Источник — эндпойнт <code>/api/regions/</code>.</p>
+</section>
+<div class="shell" id="regions-root">
+  <p class="spinner">Список регионов и дашборд подключаются в модуле Ф7.</p>
+</div>
+{% endblock %}
