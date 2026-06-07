@@ -15,6 +15,7 @@ from rest_framework.views import APIView
 from pipeline.logging_setup import log
 
 from .. import queries
+from ..serializers import MetricSerializer, MetricSeriesPointSerializer, RegionSerializer
 
 GEO_MEASURES = ("cluster", "index")
 
@@ -51,3 +52,57 @@ class GeoLayer(APIView):
         data = queries.geo_layer(year, measure)
         log.info("geo_layer", stage="api", year=year, measure=measure, rows=len(data))
         return Response(data)
+
+
+class RegionList(APIView):
+    """GET /api/regions/ — каталог регионов, участвующих в аналитике (85 субъектов)."""
+
+    def get(self, request: Request) -> Response:
+        data = queries.regions()
+        log.info("regions", stage="api", rows=len(data))
+        return Response(RegionSerializer(data, many=True).data)
+
+
+class MetricList(APIView):
+    """GET /api/metrics/?domain=<str> — каталог метрик ядра (опц. фильтр по домену)."""
+
+    def get(self, request: Request) -> Response:
+        domain = request.query_params.get("domain")
+        data = queries.metrics(domain)
+        log.info("metrics", stage="api", domain=domain, rows=len(data))
+        return Response(MetricSerializer(data, many=True).data)
+
+
+class MetricSeries(APIView):
+    """GET /api/metrics/<id>/series/?okato=&from=&to= — ряд значений метрики по региону."""
+
+    def get(self, request: Request, metric_id: int) -> Response:
+        okato = request.query_params.get("okato")
+        if not okato:
+            return Response(
+                {"detail": "параметр 'okato' обязателен"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            year_from = _optional_int(request.query_params.get("from"))
+            year_to = _optional_int(request.query_params.get("to"))
+        except ValueError:
+            return Response(
+                {"detail": "'from'/'to' должны быть целыми числами"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = queries.metric_series(metric_id, okato, year_from, year_to)
+        log.info(
+            "metric_series",
+            stage="api",
+            metric_id=metric_id,
+            okato=okato,
+            rows=len(data),
+        )
+        return Response(MetricSeriesPointSerializer(data, many=True).data)
+
+
+def _optional_int(raw: str | None) -> int | None:
+    """Разобрать необязательный целочисленный query-параметр (None пропускается)."""
+    return None if raw is None else int(raw)

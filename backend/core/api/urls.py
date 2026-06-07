@@ -10,4 +10,11 @@ from . import endpoints
 
 urlpatterns = [
     path("geo/layer/", endpoints.GeoLayer.as_view(), name="geo-layer"),
+    path("regions/", endpoints.RegionList.as_view(), name="regions"),
+    path("metrics/", endpoints.MetricList.as_view(), name="metrics"),
+    path(
+        "metrics/<int:metric_id>/series/",
+        endpoints.MetricSeries.as_view(),
+        name="metric-series",
+    ),
 ]
