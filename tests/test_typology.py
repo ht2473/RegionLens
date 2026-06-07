@@ -8,6 +8,7 @@ import polars as pl
 from pipeline.typology import (
     align_labels,
     build_clusters,
+    centroid_distances,
     choose_k,
     compute_cluster_shap,
     run_typology,
@@ -69,6 +70,7 @@ def test_build_clusters_stable_ids_and_profile() -> None:
         "cluster_label",
         "silhouette",
         "stability_flag",
+        "distance_to_centroid",
     }
     by_region = clusters.group_by("okato").agg(pl.col("cluster_id").n_unique().alias("n"))
     assert by_region["n"].max() == 1  # один регион -> один cluster_id в оба года
@@ -80,6 +82,26 @@ def test_build_clusters_stable_ids_and_profile() -> None:
 
     assert profile.height == 3 * 2 * 2  # 3 кластера × 2 метрики × 2 года
     assert clusters["cluster_label"].null_count() == 0
+
+
+def test_centroid_distances_typicality() -> None:
+    """A1: расстояние до центра ≥ 0; самый близкий к среднему регион — самый типичный."""
+    # один кластер из 3 точек: одна в центре, две на удалении
+    matrix = np.array([[0.0, 0.0], [2.0, 0.0], [-2.0, 0.0]])
+    labels = np.array([0, 0, 0])
+    dist = centroid_distances(matrix, labels)
+    assert (dist >= 0).all()
+    assert np.isfinite(dist).all()
+    assert dist[0] < dist[1] and dist[0] < dist[2]  # центральная точка — самая типичная
+
+
+def test_build_clusters_has_distance_to_centroid() -> None:
+    """A1: clusters содержит distance_to_centroid — конечное и неотрицательное по всем строкам."""
+    res = build_clusters(_synthetic_features(), k=3)
+    col = res.clusters["distance_to_centroid"]
+    assert col.null_count() == 0
+    assert col.min() >= 0.0
+    assert all(np.isfinite(v) for v in col.to_list())
 
 
 def test_compute_cluster_shap_complete() -> None:

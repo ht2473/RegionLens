@@ -35,7 +35,8 @@ from pipeline.logging_setup import log
 class TypologyTables:
     """Результат блока M1 — вход для блока M2 (SHAP/запись)."""
 
-    # okato, year, algo, k, cluster_id, cluster_label, silhouette, stability_flag
+    # okato, year, algo, k, cluster_id, cluster_label, silhouette, stability_flag,
+    # distance_to_centroid (A1)
     clusters: pl.DataFrame
     cluster_profile: pl.DataFrame  # algo, k, year, cluster_id, metric_id, mean_z
 
@@ -122,6 +123,23 @@ def align_labels(
     return np.array([remap[int(label)] for label in cur_labels.tolist()])
 
 
+def centroid_distances(matrix: np.ndarray, labels: np.ndarray) -> np.ndarray:
+    """Евклидово расстояние каждого региона до центра (среднего) своего кластера (A1).
+
+    Центроиды считаются эмпирически по фактическим (уже согласованным) меткам — поэтому
+    мера корректна и для KMeans, и для Ward, и после венгерского переименования меток.
+    Интерпретация: «насколько типичен регион для своего типа» — малое расстояние = ядро
+    типа, большое = пограничный/нетипичный регион. Это мера типичности/пограничности,
+    НЕ вероятность перехода в другой тип.
+    """
+    distances = np.zeros(matrix.shape[0], dtype=float)
+    for label in np.unique(labels):
+        mask = labels == label
+        centroid = matrix[mask].mean(axis=0)
+        distances[mask] = np.linalg.norm(matrix[mask] - centroid, axis=1)
+    return distances
+
+
 def _cluster_labels(profile: pl.DataFrame, names: dict[int, str], top: int = 2) -> pl.DataFrame:
     """Метка кластера: top-N метрик профиля по |mean_z| со знаком (↑ выше / ↓ ниже среднего)."""
     rows: list[dict[str, Any]] = []
@@ -191,6 +209,7 @@ def build_clusters(features_wide: pl.DataFrame, *, k: int | None = None) -> Typo
         else:
             same = None  # первый год окна — опорный, год-к-году не с чем сравнивать
         sil = cluster_quality(matrix, labels)["silhouette"]
+        distances = centroid_distances(matrix, labels)  # A1: типичность/пограничность
 
         for i, ok in enumerate(okato):
             cluster_rows.append(
@@ -202,6 +221,7 @@ def build_clusters(features_wide: pl.DataFrame, *, k: int | None = None) -> Typo
                     "cluster_id": int(labels[i]),
                     "silhouette": sil,
                     "stability_flag": same,
+                    "distance_to_centroid": float(distances[i]),
                 }
             )
         ydf = pl.DataFrame({"okato": okato, "cluster_id": labels.tolist()}).join(
@@ -236,6 +256,7 @@ def build_clusters(features_wide: pl.DataFrame, *, k: int | None = None) -> Typo
                 "cluster_label",
                 "silhouette",
                 "stability_flag",
+                "distance_to_centroid",
             ]
         )
         .sort(["year", "okato"])
