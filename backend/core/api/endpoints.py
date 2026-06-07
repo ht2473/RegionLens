@@ -15,9 +15,17 @@ from rest_framework.views import APIView
 from pipeline.logging_setup import log
 
 from .. import queries
-from ..serializers import MetricSerializer, MetricSeriesPointSerializer, RegionSerializer
+from ..serializers import (
+    IndexRowSerializer,
+    MetricSerializer,
+    MetricSeriesPointSerializer,
+    RegionDashboardSerializer,
+    RegionSerializer,
+    TransitionSerializer,
+)
 
 GEO_MEASURES = ("cluster", "index")
+INDEX_SCHEMES = ("equal", "pca", "expert")
 
 
 class GeoLayer(APIView):
@@ -106,3 +114,72 @@ class MetricSeries(APIView):
 def _optional_int(raw: str | None) -> int | None:
     """Разобрать необязательный целочисленный query-параметр (None пропускается)."""
     return None if raw is None else int(raw)
+
+
+class RegionDashboard(APIView):
+    """GET /api/regions/<okato>/?year=<int> — дашборд региона на год.
+
+    Индекс по доменам (+B4: дельта к предыдущему году), тип/метка/типичность (A1),
+    SHAP-топ метрик принадлежности, ранг по индексу. 404 — если данных за год нет.
+    """
+
+    def get(self, request: Request, okato: str) -> Response:
+        raw_year = request.query_params.get("year")
+        if raw_year is None:
+            return Response(
+                {"detail": "параметр 'year' обязателен"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            year = int(raw_year)
+        except ValueError:
+            return Response(
+                {"detail": "'year' должен быть целым числом"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.region_dashboard(okato, year)
+        if data is None:
+            return Response(
+                {"detail": "нет данных индекса для региона за указанный год"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        log.info("region_dashboard", stage="api", okato=okato, year=year)
+        return Response(RegionDashboardSerializer(data).data)
+
+
+class IndexRanking(APIView):
+    """GET /api/index/?year=<int>&scheme=equal|pca|expert — рейтинг регионов на год."""
+
+    def get(self, request: Request) -> Response:
+        raw_year = request.query_params.get("year")
+        if raw_year is None:
+            return Response(
+                {"detail": "параметр 'year' обязателен"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            year = int(raw_year)
+        except ValueError:
+            return Response(
+                {"detail": "'year' должен быть целым числом"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        scheme = request.query_params.get("scheme", queries.MAP_INDEX_SCHEME)
+        if scheme not in INDEX_SCHEMES:
+            return Response(
+                {"detail": f"'scheme' должен быть одним из {list(INDEX_SCHEMES)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.index_ranking(year, scheme)
+        log.info("index_ranking", stage="api", year=year, scheme=scheme, rows=len(data))
+        return Response(IndexRowSerializer(data, many=True).data)
+
+
+class Transitions(APIView):
+    """GET /api/transitions/?okato=<str> — переходы между типами + тип траектории."""
+
+    def get(self, request: Request) -> Response:
+        okato = request.query_params.get("okato")
+        data = queries.transitions_list(okato)
+        log.info("transitions", stage="api", okato=okato, rows=len(data))
+        return Response(TransitionSerializer(data, many=True).data)

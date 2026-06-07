@@ -34,11 +34,19 @@ def api_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-u
     )
     con.execute(
         "CREATE TABLE dev_index (okato VARCHAR, year INTEGER, weighting_scheme VARCHAR, "
-        "total_score DOUBLE)"
+        "total_score DOUBLE, economy DOUBLE, income DOUBLE, demography DOUBLE, "
+        "labor DOUBLE, infrastructure DOUBLE, health_edu DOUBLE)"
     )
     con.execute(
         "INSERT INTO dev_index VALUES "
-        "('45000000', 2020, 'equal', 88.5), ('46000000', 2020, 'equal', 12.3)"
+        # 2019 (предыдущий год — для B4-дельты)
+        "('45000000', 2019, 'equal', 80.0, 1.0, 1.5, -0.5, 0.2, 0.8, 0.3), "
+        # 2020 (текущий год)
+        "('45000000', 2020, 'equal', 88.5, 1.2, 2.0, -0.4, 0.5, 0.9, 0.4), "
+        "('46000000', 2020, 'equal', 12.3, -1.0, -0.8, -1.2, -0.3, -0.5, -0.6), "
+        "('47000000', 2020, 'equal', 50.0, 0.0, 0.1, -0.2, 0.0, 0.1, 0.0), "
+        # другая схема — не должна попадать в equal-выдачу
+        "('45000000', 2020, 'pca', 90.0, 1.2, 2.0, -0.4, 0.5, 0.9, 0.4)"
     )
 
     # region_dim: 2 включённых субъекта + 1 исключённый вариант-агрегат «с АО».
@@ -83,6 +91,29 @@ def api_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-u
         "('45000000', 1, 2021, 60000.0, NULL, 's2022', TRUE), "
         "('46000000', 1, 2020, 20000.0, 20000.0, 's2021', FALSE)"
     )
+
+    # cluster_shap: вклад метрик в принадлежность 45000000 к типу в 2020.
+    con.execute(
+        "CREATE TABLE cluster_shap (okato VARCHAR, year INTEGER, metric_id INTEGER, "
+        "shap_value DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO cluster_shap VALUES "
+        "('45000000', 2020, 1, 0.90), "
+        "('45000000', 2020, 2, -0.30), "
+        "('45000000', 2020, 3, 0.05)"
+    )
+
+    # transitions: путь региона 45000000 между типами.
+    con.execute(
+        "CREATE TABLE transitions (okato VARCHAR, year_from INTEGER, year_to INTEGER, "
+        "cluster_from INTEGER, cluster_to INTEGER, trajectory_type VARCHAR)"
+    )
+    con.execute(
+        "INSERT INTO transitions VALUES "
+        "('45000000', 2019, 2020, 1, 1, 'stable_high'), "
+        "('46000000', 2019, 2020, 0, 0, 'stable_low')"
+    )
     con.close()
 
     settings.DUCKDB_PATH = str(path)
@@ -106,7 +137,7 @@ def test_geo_layer_index(api_duckdb: Path) -> None:
     resp = APIClient().get("/api/geo/layer/", {"year": 2020, "measure": "index"})
     assert resp.status_code == 200
     rows = resp.json()
-    assert len(rows) == 2
+    assert len(rows) == 3
     assert set(rows[0]) == {"okato", "total_score"}
 
 
@@ -195,3 +226,86 @@ def test_metric_series_bad_year(api_duckdb: Path) -> None:
     """series/?from=abc → 400."""
     resp = APIClient().get("/api/metrics/1/series/", {"okato": "45000000", "from": "abc"})
     assert resp.status_code == 400
+
+
+def test_region_dashboard_ok(api_duckdb: Path) -> None:
+    """regions/<okato>/ → 200: индекс+B4, кластер, SHAP-топ, ранг — собраны верно."""
+    resp = APIClient().get("/api/regions/45000000/", {"year": 2020})
+    assert resp.status_code == 200
+    d = resp.json()
+    assert d["okato"] == "45000000" and d["region_name"] == "Москва"
+
+    idx = d["index"]
+    assert idx["total_score"] == 88.5 and idx["total_score_prev"] == 80.0
+    assert abs(idx["total_delta"] - 8.5) < 1e-9
+    domains = {x["domain"]: x for x in idx["domains"]}
+    assert len(domains) == 6
+    assert abs(domains["income"]["delta"] - 0.5) < 1e-9  # 2.0 - 1.5
+
+    assert d["cluster"]["cluster_id"] == 1
+    assert d["cluster"]["distance_to_centroid"] == 0.42
+
+    # SHAP-топ отсортирован по |value|: метрика 1 (0.90) впереди метрики 3 (0.05)
+    assert d["shap_top"][0]["metric_id"] == 1
+    assert d["shap_top"][0]["metric_name"] == "Среднедушевые доходы"
+
+    # ранг: 45000000 (88.5) — первый из трёх в 2020
+    assert d["rank"] == {"rank": 1, "of": 3}
+
+
+def test_region_dashboard_no_prev_year(api_duckdb: Path) -> None:
+    """Если предыдущего года нет — дельты null, но дашборд отдаётся."""
+    resp = APIClient().get("/api/regions/46000000/", {"year": 2020})
+    assert resp.status_code == 200
+    idx = resp.json()["index"]
+    assert idx["total_score_prev"] is None and idx["total_delta"] is None
+    assert all(x["delta"] is None for x in idx["domains"])
+
+
+def test_region_dashboard_not_found(api_duckdb: Path) -> None:
+    """Нет записи индекса за год → 404."""
+    assert APIClient().get("/api/regions/45000000/", {"year": 1999}).status_code == 404
+
+
+def test_region_dashboard_missing_year(api_duckdb: Path) -> None:
+    """regions/<okato>/ без year → 400."""
+    assert APIClient().get("/api/regions/45000000/").status_code == 400
+
+
+def test_index_ranking(api_duckdb: Path) -> None:
+    """index/ → рейтинг по убыванию total_score с рангами; только схема equal."""
+    resp = APIClient().get("/api/index/", {"year": 2020})
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert [r["okato"] for r in rows] == ["45000000", "47000000", "46000000"]
+    assert [r["rank"] for r in rows] == [1, 2, 3]
+    assert set(rows[0]) >= {"rank", "okato", "total_score", "economy", "income"}
+
+
+def test_index_bad_scheme(api_duckdb: Path) -> None:
+    """index/?scheme=bad → 400."""
+    assert APIClient().get("/api/index/", {"year": 2020, "scheme": "bad"}).status_code == 400
+
+
+def test_transitions_by_okato(api_duckdb: Path) -> None:
+    """transitions/?okato= → путь региона; форма и тип траектории."""
+    resp = APIClient().get("/api/transitions/", {"okato": "45000000"})
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) == 1
+    assert rows[0]["trajectory_type"] == "stable_high"
+    assert set(rows[0]) == {
+        "okato",
+        "year_from",
+        "year_to",
+        "cluster_from",
+        "cluster_to",
+        "trajectory_type",
+    }
+
+
+def test_transitions_all(api_duckdb: Path) -> None:
+    """transitions/ без okato → все переходы."""
+    resp = APIClient().get("/api/transitions/")
+    assert resp.status_code == 200
+    assert len(resp.json()) == 2

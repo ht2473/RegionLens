@@ -38,3 +38,84 @@ class MetricSeriesPointSerializer(serializers.Serializer):
     value = serializers.FloatField(allow_null=True)
     value_harmonized = serializers.FloatField(allow_null=True)
     is_imputed = serializers.BooleanField(allow_null=True)
+
+
+class IndexRowSerializer(serializers.Serializer):
+    """Строка рейтинга регионов на год: ранг, итоговый балл и доменные баллы."""
+
+    rank = serializers.IntegerField()
+    okato = serializers.CharField()
+    total_score = serializers.FloatField(allow_null=True)
+    economy = serializers.FloatField(allow_null=True)
+    income = serializers.FloatField(allow_null=True)
+    demography = serializers.FloatField(allow_null=True)
+    labor = serializers.FloatField(allow_null=True)
+    infrastructure = serializers.FloatField(allow_null=True)
+    health_edu = serializers.FloatField(allow_null=True)
+
+
+class TransitionSerializer(serializers.Serializer):
+    """Переход региона между типами год-к-году + тип его траектории."""
+
+    okato = serializers.CharField()
+    year_from = serializers.IntegerField()
+    year_to = serializers.IntegerField()
+    cluster_from = serializers.IntegerField(allow_null=True)
+    cluster_to = serializers.IntegerField(allow_null=True)
+    trajectory_type = serializers.CharField(allow_null=True)
+
+
+# --- Дашборд региона (вложенная структура) ------------------------------------ #
+class DomainDeltaSerializer(serializers.Serializer):
+    """Доменный балл в году, в предыдущем году и дельта (B4 — арифметика по доменам)."""
+
+    domain = serializers.CharField()
+    score = serializers.FloatField(allow_null=True)
+    score_prev = serializers.FloatField(allow_null=True)
+    delta = serializers.FloatField(allow_null=True)
+
+
+class IndexBlockSerializer(serializers.Serializer):
+    """Блок индекса дашборда: итог, его дельта и поддоменная разбивка."""
+
+    total_score = serializers.FloatField(allow_null=True)
+    total_score_prev = serializers.FloatField(allow_null=True)
+    total_delta = serializers.FloatField(allow_null=True)
+    domains = DomainDeltaSerializer(many=True)
+
+
+class ClusterBlockSerializer(serializers.Serializer):
+    """Блок типологии дашборда: тип, метка, типичность (A1), стабильность."""
+
+    cluster_id = serializers.IntegerField()
+    cluster_label = serializers.CharField(allow_null=True)
+    distance_to_centroid = serializers.FloatField(allow_null=True)
+    stability_flag = serializers.FloatField(allow_null=True)
+
+
+class ShapTopSerializer(serializers.Serializer):
+    """Вклад метрики в принадлежность региона к типу (SHAP — объяснение, не причинность)."""
+
+    metric_id = serializers.IntegerField()
+    metric_name = serializers.CharField(allow_null=True)
+    shap_value = serializers.FloatField()
+
+
+class RankSerializer(serializers.Serializer):
+    """Ранг региона по индексу среди всех регионов года."""
+
+    rank = serializers.IntegerField()
+    of = serializers.IntegerField()
+
+
+class RegionDashboardSerializer(serializers.Serializer):
+    """Полный дашборд региона на год (центральный экран региона)."""
+
+    okato = serializers.CharField()
+    year = serializers.IntegerField()
+    region_name = serializers.CharField(allow_null=True)
+    federal_district = serializers.CharField(allow_null=True)
+    index = IndexBlockSerializer()
+    cluster = ClusterBlockSerializer(allow_null=True)
+    shap_top = ShapTopSerializer(many=True)
+    rank = RankSerializer(allow_null=True)

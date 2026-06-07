@@ -11,10 +11,13 @@ from . import endpoints
 urlpatterns = [
     path("geo/layer/", endpoints.GeoLayer.as_view(), name="geo-layer"),
     path("regions/", endpoints.RegionList.as_view(), name="regions"),
+    path("regions/<str:okato>/", endpoints.RegionDashboard.as_view(), name="region-dashboard"),
     path("metrics/", endpoints.MetricList.as_view(), name="metrics"),
     path(
         "metrics/<int:metric_id>/series/",
         endpoints.MetricSeries.as_view(),
         name="metric-series",
     ),
+    path("index/", endpoints.IndexRanking.as_view(), name="index"),
+    path("transitions/", endpoints.Transitions.as_view(), name="transitions"),
 ]
