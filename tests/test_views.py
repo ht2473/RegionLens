@@ -83,3 +83,12 @@ def test_feedback_post_acknowledges(client: Client) -> None:
     """POST с текстом подтверждается (сохранение в БД — в Ф10)."""
     html = client.post("/feedback/", {"text": "тест"}).content.decode()
     assert "Сообщение получено" in html
+
+
+def test_map_page_wiring(client: Client) -> None:
+    """Страница карты подключает MapLibre, map.js, ползунок лет и переключатель меры."""
+    html = client.get("/map/").content.decode()
+    assert "maplibre-gl" in html
+    assert "js/map.js" in html
+    assert 'id="year-slider"' in html
+    assert 'data-measure="cluster"' in html and 'data-measure="index"' in html
