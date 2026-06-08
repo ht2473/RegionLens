@@ -116,3 +116,21 @@ def test_region_dashboard_passes_okato(client: Client) -> None:
     """Любой okato из пути пробрасывается в шаблон (валидность проверяет API в JS)."""
     assert client.get("/regions/77000000/").status_code == 200
     assert 'data-okato="77000000"' in client.get("/regions/77000000/").content.decode()
+
+
+def test_rankings_page_wiring(client: Client) -> None:
+    """Рейтинг: rankings.js, контейнер, контролы год/схема."""
+    html = client.get("/rankings/").content.decode()
+    assert "js/rankings.js" in html
+    assert 'id="rankings-root"' in html
+    assert 'id="year-slider"' in html and 'id="scheme-select"' in html
+    assert 'value="equal"' in html and 'value="pca"' in html and 'value="expert"' in html
+
+
+def test_compare_page_wiring(client: Client) -> None:
+    """Сравнение: compare.js, Plotly, три выбора региона, год, кнопка."""
+    html = client.get("/compare/").content.decode()
+    assert "js/compare.js" in html
+    assert "plot.ly" in html
+    assert 'id="cmp-1"' in html and 'id="cmp-2"' in html and 'id="cmp-3"' in html
+    assert 'id="cmp-go"' in html and 'id="year-slider"' in html

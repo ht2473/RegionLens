@@ -1,13 +1,32 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Сравнение — RegionLens{% endblock %}
+
 {% block content %}
 <section class="hero">
   <p class="eyebrow">Сопоставление</p>
   <h1>Сравнение регионов</h1>
-  <p class="lead">Сравнение 2–3 регионов по доменам индекса (gap-анализ) за выбранный год.
-    Источник — эндпойнт <code>/api/compare/</code>.</p>
+  <p class="lead">Выберите 2–3 региона и год — увидите различие по доменам (gap-анализ) и сводку
+    по индексу и типу.</p>
 </section>
-<div class="shell" id="compare-root">
-  <p class="spinner">Инструмент сравнения подключается в модуле Ф7.</p>
+
+<div class="compare-controls">
+  <div class="field"><label>Регион 1</label><select class="cmp-region" id="cmp-1"></select></div>
+  <div class="field"><label>Регион 2</label><select class="cmp-region" id="cmp-2"></select></div>
+  <div class="field"><label>Регион 3 (необяз.)</label><select class="cmp-region" id="cmp-3"></select></div>
+  <div class="field">
+    <label for="year-slider">Год: <strong id="year-label">2024</strong></label>
+    <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
+  </div>
+  <div class="field" style="align-self:end;"><button class="btn" id="cmp-go">Сравнить</button></div>
 </div>
+
+<div id="compare-msg" class="chart-note"></div>
+<div class="card"><div id="chart-compare" class="chart"></div></div>
+<div id="compare-summary"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<script src="{% static 'js/compare.js' %}"></script>
 {% endblock %}

@@ -1,13 +1,35 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Рейтинг — RegionLens{% endblock %}
+
 {% block content %}
 <section class="hero">
   <p class="eyebrow">Ранжирование</p>
   <h1>Рейтинг регионов</h1>
-  <p class="lead">Места регионов по индексу развития за выбранный год и схему весов.
-    Источник — эндпойнт <code>/api/index/</code>.</p>
+  <p class="lead">Места субъектов по индексу развития за выбранный год и схему весов.
+    Клик по строке открывает дашборд региона.</p>
 </section>
-<div class="shell" id="rankings-root">
-  <p class="spinner">Таблица рейтинга подключается в модуле Ф7 (на данных <code>index</code>).</p>
+
+<div class="map-controls">
+  <div class="year-control">
+    <label for="year-slider">Год: <strong id="year-label">2024</strong></label>
+    <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
+  </div>
+  <div class="year-control">
+    <label for="scheme-select">Схема весов</label>
+    <select id="scheme-select">
+      <option value="equal">Равные</option>
+      <option value="pca">PCA</option>
+      <option value="expert">Экспертные</option>
+    </select>
+  </div>
 </div>
+
+<div id="rankings-root">
+  <div class="shell"><p>Загрузка рейтинга…</p></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/rankings.js' %}"></script>
 {% endblock %}
