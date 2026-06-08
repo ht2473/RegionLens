@@ -1,0 +1,207 @@
+/* RegionLens — дашборд региона (Ф7, модуль 3).
+   Тянет /api/regions/<okato>/?year= и /api/transitions/?okato= и рисует:
+   KPI (индекс+B4-дельта, ранг, тип+типичность, траектория), радар профиля по доменам,
+   диверг-бары изменения по доменам (B4), SHAP-вклад, шаговую траекторию типа по годам.
+   Формулировки: B4 — арифметика по доменам; SHAP — объяснение классификатора, не причинность. */
+
+(function () {
+  "use strict";
+
+  var root = document.getElementById("region-root");
+  if (!root || typeof Plotly === "undefined") return;
+
+  var OKATO = root.dataset.okato;
+  var qy = new URLSearchParams(window.location.search).get("year");
+  var initYear = qy && /^\d{4}$/.test(qy) ? parseInt(qy, 10) : parseInt(root.dataset.year || "2024", 10);
+  var state = { year: Math.min(2024, Math.max(2010, initYear)) };
+
+  var DOMAIN_RU = {
+    economy: "Экономика",
+    income: "Доходы",
+    demography: "Демография",
+    labor: "Труд",
+    infrastructure: "Инфраструктура",
+    health_edu: "Здоровье/образование",
+  };
+  var DOMAIN_ORDER = ["economy", "income", "demography", "labor", "infrastructure", "health_edu"];
+  var TRAJ_RU = {
+    stable_high: "устойчиво высокий",
+    stable_mid: "устойчиво средний",
+    stable_low: "устойчиво низкий",
+    converger: "догоняющий",
+    diverger: "отстающий",
+    leapfrogger: "рывок",
+    volatile: "волатильный",
+    drifting: "дрейфующий",
+  };
+  var POS = "#1f6f63", NEG = "#b4532a", INK = "#1b2430", GRID = "#e9e3d6";
+  var FONT = { family: "Golos Text, system-ui, sans-serif", color: INK, size: 13 };
+  var CFG = { responsive: true, displayModeBar: false };
+
+  function fmt(x, d) { return x == null ? "—" : Number(x).toFixed(d == null ? 1 : d); }
+
+  function show(id, on) { document.getElementById(id).style.display = on ? "" : "none"; }
+
+  function fail(msg) {
+    var e = document.getElementById("region-error");
+    e.textContent = msg;
+    show("region-error", true);
+    show("region-body", false);
+  }
+
+  function load() {
+    var u = "/api/regions/" + encodeURIComponent(OKATO) + "/?year=" + state.year;
+    Promise.all([
+      fetch(u),
+      fetch("/api/transitions/?okato=" + encodeURIComponent(OKATO)),
+    ])
+      .then(function (rs) {
+        if (rs[0].status === 404) throw new Error("Регион не найден или нет данных за год.");
+        if (!rs[0].ok) throw new Error("Ошибка загрузки (" + rs[0].status + ").");
+        return Promise.all([rs[0].json(), rs[1].ok ? rs[1].json() : []]);
+      })
+      .then(function (out) {
+        show("region-error", false);
+        show("region-body", true);
+        render(out[0], out[1]);
+      })
+      .catch(function (err) { fail(err.message); });
+  }
+
+  function render(d, transitions) {
+    // Заголовок
+    document.getElementById("region-title").textContent = d.region_name || OKATO;
+    var typeLabel = d.cluster ? d.cluster.cluster_label : "—";
+    document.getElementById("region-sub").textContent =
+      (d.federal_district ? d.federal_district + " · " : "") + "тип: " + typeLabel;
+
+    // KPI
+    document.getElementById("kpi-total").textContent = fmt(d.index.total_score);
+    var dl = document.getElementById("kpi-delta");
+    if (d.index.total_delta == null) {
+      dl.textContent = "нет пред. года";
+      dl.style.color = "#8a96a1";
+    } else {
+      var up = d.index.total_delta >= 0;
+      dl.textContent = (up ? "▲ +" : "▼ ") + fmt(d.index.total_delta) + " к пред. году";
+      dl.style.color = up ? POS : NEG;
+    }
+    document.getElementById("kpi-rank").textContent = d.rank ? d.rank.rank : "—";
+    document.getElementById("kpi-rank-sub").textContent = d.rank ? "из " + d.rank.of : "";
+    document.getElementById("kpi-type").textContent = typeLabel;
+    document.getElementById("kpi-typicality").textContent = d.cluster
+      ? "удалённость от центра типа: " + fmt(d.cluster.distance_to_centroid, 2)
+      : "";
+    var traj = (transitions[0] && transitions[0].trajectory_type) || null;
+    document.getElementById("kpi-traj").textContent = traj ? TRAJ_RU[traj] || traj : "—";
+
+    drawRadar(d.index.domains);
+    drawB4(d.index.domains);
+    drawShap(d.shap_top || []);
+    drawTrajectory(transitions);
+  }
+
+  function drawRadar(domains) {
+    var theta = DOMAIN_ORDER.map(function (k) { return DOMAIN_RU[k]; });
+    var byd = {};
+    domains.forEach(function (x) { byd[x.domain] = x.score; });
+    var r = DOMAIN_ORDER.map(function (k) { return byd[k] == null ? 0 : byd[k]; });
+    var vals = r.concat([0]);
+    var lo = Math.min.apply(null, vals) - 0.5, hi = Math.max.apply(null, vals) + 0.5;
+    Plotly.newPlot(
+      "chart-radar",
+      [
+        { type: "scatterpolar", r: DOMAIN_ORDER.map(function () { return 0; }).concat([0]),
+          theta: theta.concat([theta[0]]), mode: "lines",
+          line: { color: "#b9c2cb", dash: "dot", width: 1 }, name: "среднее РФ", hoverinfo: "skip" },
+        { type: "scatterpolar", r: r.concat([r[0]]), theta: theta.concat([theta[0]]),
+          fill: "toself", fillcolor: "rgba(31,111,99,0.18)",
+          line: { color: POS, width: 2 }, name: "регион" },
+      ],
+      { polar: { radialaxis: { range: [lo, hi], gridcolor: GRID, tickfont: { size: 10 } },
+          angularaxis: { tickfont: { size: 11 } } },
+        showlegend: false, font: FONT, margin: { t: 20, b: 20, l: 40, r: 40 },
+        height: 300, paper_bgcolor: "rgba(0,0,0,0)" },
+      CFG
+    );
+  }
+
+  function divergeBars(id, labels, values, opts) {
+    opts = opts || {};
+    var colors = values.map(function (v) { return v >= 0 ? POS : NEG; });
+    Plotly.newPlot(
+      id,
+      [{ type: "bar", orientation: "h", x: values, y: labels, marker: { color: colors },
+        hovertemplate: "%{y}: %{x:.2f}<extra></extra>" }],
+      { font: FONT, margin: { t: 10, b: 30, l: opts.left || 130, r: 20 },
+        height: opts.height || 300, paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+        xaxis: { zeroline: true, zerolinecolor: "#b9c2cb", gridcolor: GRID },
+        yaxis: { automargin: true } },
+      CFG
+    );
+  }
+
+  function drawB4(domains) {
+    var withDelta = domains.filter(function (x) { return x.delta != null; });
+    if (!withDelta.length) {
+      document.getElementById("chart-b4").innerHTML =
+        '<p class="chart-note">Нет предыдущего года для сравнения.</p>';
+      return;
+    }
+    var labels = withDelta.map(function (x) { return DOMAIN_RU[x.domain] || x.domain; });
+    var values = withDelta.map(function (x) { return x.delta; });
+    divergeBars("chart-b4", labels, values);
+  }
+
+  function drawShap(shap) {
+    if (!shap.length) {
+      document.getElementById("chart-shap").innerHTML =
+        '<p class="chart-note">Нет данных SHAP за год.</p>';
+      return;
+    }
+    var ordered = shap.slice().reverse(); // крупнейший |вклад| — сверху
+    divergeBars(
+      "chart-shap",
+      ordered.map(function (s) { return s.metric_name || "metric " + s.metric_id; }),
+      ordered.map(function (s) { return s.shap_value; }),
+      { left: 240, height: 340 }
+    );
+  }
+
+  function drawTrajectory(transitions) {
+    if (!transitions.length) {
+      document.getElementById("chart-traj").innerHTML =
+        '<p class="chart-note">Нет данных о переходах.</p>';
+      return;
+    }
+    var sorted = transitions.slice().sort(function (a, b) { return a.year_from - b.year_from; });
+    var years = [sorted[0].year_from];
+    var clusters = [sorted[0].cluster_from];
+    sorted.forEach(function (t) { years.push(t.year_to); clusters.push(t.cluster_to); });
+    Plotly.newPlot(
+      "chart-traj",
+      [{ type: "scatter", mode: "lines+markers", x: years, y: clusters, line: { shape: "hv", color: POS, width: 2 },
+        marker: { size: 7, color: POS }, hovertemplate: "%{x}: тип %{y}<extra></extra>" }],
+      { font: FONT, margin: { t: 10, b: 30, l: 40, r: 20 }, height: 300,
+        paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+        xaxis: { gridcolor: GRID, dtick: 2 },
+        yaxis: { title: "тип", dtick: 1, gridcolor: GRID, zeroline: false } },
+      CFG
+    );
+  }
+
+  // Ползунок года
+  var slider = document.getElementById("year-slider");
+  var label = document.getElementById("year-label");
+  if (slider) {
+    slider.value = state.year;
+    if (label) label.textContent = state.year;
+    slider.addEventListener("input", function () {
+      state.year = parseInt(slider.value, 10);
+      if (label) label.textContent = state.year;
+    });
+    slider.addEventListener("change", load);
+  }
+
+  load();
+})();

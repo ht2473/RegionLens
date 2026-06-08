@@ -11,6 +11,7 @@ urlpatterns = [
     path("typology/", views.typology, name="typology"),
     path("compare/", views.compare, name="compare"),
     path("regions/", views.regions, name="regions"),
+    path("regions/<str:okato>/", views.region_dashboard_page, name="region-dashboard-page"),
     path("methodology/", views.methodology, name="methodology"),
     path("data/", views.data_page, name="data"),
     path("help/", views.help_page, name="help"),

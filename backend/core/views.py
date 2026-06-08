@@ -57,6 +57,20 @@ def regions(request: HttpRequest) -> HttpResponse:
     return _page(request, "pages/regions.html", active="regions", title="Регионы")
 
 
+def region_dashboard_page(request: HttpRequest, okato: str) -> HttpResponse:
+    """Дашборд региона: оболочка; данные (индекс/B4/тип/SHAP/ранг/траектория) тянет region.js."""
+    crumbs = [
+        {"title": "Главная", "url": reverse("home")},
+        {"title": "Регионы", "url": reverse("regions")},
+        {"title": "Регион"},
+    ]
+    return render(
+        request,
+        "pages/region.html",
+        {"active": "regions", "breadcrumbs": crumbs, "okato": okato},
+    )
+
+
 def methodology(request: HttpRequest) -> HttpResponse:
     """Методология расчётов."""
     return _page(request, "pages/methodology.html", active="methodology", title="Методология")

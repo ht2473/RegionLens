@@ -190,3 +190,23 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
   background: linear-gradient(90deg, #e7f0ee, #9cc8bd, #5fa896, #2e8170, #0c5c4f);
 }
 .legend-scale { display: flex; justify-content: space-between; color: var(--ink-faint); font-size: 0.76rem; }
+
+/* ── Дашборд региона и список регионов (Ф7, модуль 3) ────────────────── */
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 8px 0 22px; }
+@media (max-width: 880px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .kpi-row { grid-template-columns: 1fr; } }
+.card.kpi { padding: 16px 18px; }
+.kpi-label { font-size: 0.8rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
+.kpi .num { margin-top: 4px; }
+.kpi-type { font-family: var(--serif); font-size: 1.1rem; color: var(--ink); margin-top: 4px; line-height: 1.25; }
+.kpi-delta { font-size: 0.85rem; font-weight: 500; margin-top: 4px; }
+.kpi-sub { font-size: 0.82rem; color: var(--ink-faint); margin-top: 4px; }
+.chart { width: 100%; min-height: 300px; }
+.chart-note { font-size: 0.82rem; color: var(--ink-faint); margin: 0 0 6px; }
+
+.region-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
+.region-chip {
+  display: block; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--ink); text-decoration: none; font-size: 0.92rem;
+}
+.region-chip:hover { border-color: var(--accent); background: var(--accent-soft); text-decoration: none; }

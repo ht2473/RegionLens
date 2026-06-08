@@ -92,3 +92,27 @@ def test_map_page_wiring(client: Client) -> None:
     assert "js/map.js" in html
     assert 'id="year-slider"' in html
     assert 'data-measure="cluster"' in html and 'data-measure="index"' in html
+
+
+def test_regions_list_wiring(client: Client) -> None:
+    """Список регионов подключает Alpine-компонент на /api/regions/."""
+    html = client.get("/regions/").content.decode()
+    assert "regionsList()" in html
+    assert "/api/regions/" in html
+
+
+def test_region_dashboard_page(client: Client) -> None:
+    """Дашборд региона: 200, okato в data-атрибуте, Plotly+region.js, ползунок, крошки, подвал."""
+    html = client.get("/regions/45000000/").content.decode()
+    assert 'data-okato="45000000"' in html
+    assert "js/region.js" in html
+    assert "plot.ly" in html
+    assert 'id="year-slider"' in html
+    assert 'class="crumbs"' in html
+    assert "Кузьмин Евгений Олегович" in html
+
+
+def test_region_dashboard_passes_okato(client: Client) -> None:
+    """Любой okato из пути пробрасывается в шаблон (валидность проверяет API в JS)."""
+    assert client.get("/regions/77000000/").status_code == 200
+    assert 'data-okato="77000000"' in client.get("/regions/77000000/").content.decode()
