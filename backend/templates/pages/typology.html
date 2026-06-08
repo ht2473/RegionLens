@@ -1,13 +1,28 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Типология — RegionLens{% endblock %}
+
 {% block content %}
 <section class="hero">
   <p class="eyebrow">Типы регионов</p>
   <h1>Обзор типологии</h1>
-  <p class="lead">Состав типов регионов за год, их метки и профили. Источник — эндпойнты
-    <code>/api/typology/</code> и <code>/api/typology/profile/</code>.</p>
+  <p class="lead">Состав типов регионов за выбранный год: какие субъекты в каждом типе, чем тип
+    характерен (профиль по метрикам) и насколько регионы типичны для своего типа.</p>
 </section>
-<div class="shell" id="typology-root">
-  <p class="spinner">Обзор типологии подключается в модуле Ф7.</p>
+
+<div class="map-controls">
+  <div class="year-control">
+    <label for="year-slider">Год: <strong id="year-label">2024</strong></label>
+    <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
+  </div>
 </div>
+
+<div id="typology-root">
+  <div class="shell"><p>Загрузка типологии…</p></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<script src="{% static 'js/typology.js' %}"></script>
 {% endblock %}

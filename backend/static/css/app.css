@@ -223,3 +223,19 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 }
 .compare-controls .field { margin: 0; }
 @media (max-width: 820px) { .compare-controls { grid-template-columns: 1fr 1fr; } }
+
+/* ── Обзор типологии (Ф7, модуль 5) ──────────────────────────────────── */
+.type-summary { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 20px; }
+.type-pill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 20px; font-size: 0.9rem;
+}
+.type-pill .swatch, .type-card h3 .swatch {
+  width: 13px; height: 13px; border-radius: 3px; display: inline-block; flex: 0 0 auto;
+}
+.type-card h3 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.type-count { font-family: var(--sans); font-size: 0.82rem; font-weight: 400; color: var(--ink-faint); }
+.profile-chart { min-height: 220px; }
+.region-grid.sm { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.region-chip.sm { padding: 6px 9px; font-size: 0.85rem; }
+@media (max-width: 760px) { .type-grid { grid-template-columns: 1fr; } }

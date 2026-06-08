@@ -134,3 +134,12 @@ def test_compare_page_wiring(client: Client) -> None:
     assert "plot.ly" in html
     assert 'id="cmp-1"' in html and 'id="cmp-2"' in html and 'id="cmp-3"' in html
     assert 'id="cmp-go"' in html and 'id="year-slider"' in html
+
+
+def test_typology_page_wiring(client: Client) -> None:
+    """Обзор типологии: typology.js, Plotly, контейнер, ползунок года."""
+    html = client.get("/typology/").content.decode()
+    assert "js/typology.js" in html
+    assert "plot.ly" in html
+    assert 'id="typology-root"' in html
+    assert 'id="year-slider"' in html
