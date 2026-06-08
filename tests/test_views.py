@@ -143,3 +143,22 @@ def test_typology_page_wiring(client: Client) -> None:
     assert "plot.ly" in html
     assert 'id="typology-root"' in html
     assert 'id="year-slider"' in html
+
+
+def test_page_names_resolve_to_pages_not_api() -> None:
+    """Имена маршрутов страниц ведут на страницы, а не на /api/ (защита от коллизии имён)."""
+    from django.urls import reverse
+
+    assert reverse("typology") == "/typology/"
+    assert reverse("compare") == "/compare/"
+    assert reverse("regions") == "/regions/"
+    assert reverse("api:typology") == "/api/typology/"
+
+
+def test_menu_links_point_to_pages(client: Client) -> None:
+    """Ссылки меню на главной ведут на страницы (не на API-эндпойнты)."""
+    html = client.get("/").content.decode()
+    assert 'href="/typology/"' in html
+    assert 'href="/compare/"' in html
+    assert 'href="/regions/"' in html
+    assert 'href="/api/' not in html

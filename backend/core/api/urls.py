@@ -10,10 +10,12 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from . import endpoints
 
+app_name = "api"
+
 urlpatterns = [
     # OpenAPI / Swagger
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("docs/", SpectacularSwaggerView.as_view(url_name="api:schema"), name="swagger-ui"),
     # Карта / каталоги
     path("geo/layer/", endpoints.GeoLayer.as_view(), name="geo-layer"),
     path("regions/", endpoints.RegionList.as_view(), name="regions"),
