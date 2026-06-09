@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Вход — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Учётная запись</p>
+  <h1>Вход</h1>
+  <p class="lead">Войдите, чтобы сохранять виды, экспортировать отчёты и пользоваться личным кабинетом.</p>
+</section>
+
+{% if form.errors %}
+  <div class="card" style="border-color: var(--bad);">
+    <p style="margin:0;">Неверное имя пользователя или пароль. Попробуйте ещё раз.</p>
+  </div>
+{% endif %}
+
+<form method="post" action="{% url 'login' %}" style="max-width: 460px;">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <div class="field">
+    <label for="{{ form.username.id_for_label }}">Имя пользователя</label>
+    {{ form.username }}
+  </div>
+  <div class="field">
+    <label for="{{ form.password.id_for_label }}">Пароль</label>
+    {{ form.password }}
+  </div>
+  <button class="btn" type="submit">Войти</button>
+  <p style="margin-top:14px;">Нет учётной записи? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+</form>
+{% endblock %}

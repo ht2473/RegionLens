@@ -5,9 +5,14 @@
 в следующих модулях Ф7. Каждой странице передаётся active (подсветка меню) и breadcrumbs.
 """
 
+from django.contrib.auth import login
+from django.contrib.auth.models import Group
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
+
+from .forms import RegistrationForm
+from .permissions import ROLE_VIEWER
 
 
 def healthz(request: HttpRequest) -> JsonResponse:
@@ -97,4 +102,33 @@ def feedback(request: HttpRequest) -> HttpResponse:
         request,
         "pages/feedback.html",
         {"active": "feedback", "breadcrumbs": crumbs, "sent": sent},
+    )
+
+
+def register(request: HttpRequest) -> HttpResponse:
+    """Регистрация: создаёт пользователя, назначает роль viewer и выполняет вход.
+
+    Профиль пользователя создаётся сигналом (см. core/signals.py). Уже вошедший
+    пользователь перенаправляется на главную.
+    """
+    crumbs = [
+        {"title": "Главная", "url": reverse("home")},
+        {"title": "Регистрация"},
+    ]
+    if request.user.is_authenticated:
+        return redirect("home")
+    if request.method == "POST":
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            group, _ = Group.objects.get_or_create(name=ROLE_VIEWER)
+            user.groups.add(group)
+            login(request, user)
+            return redirect("home")
+    else:
+        form = RegistrationForm()
+    return render(
+        request,
+        "registration/register.html",
+        {"active": "register", "breadcrumbs": crumbs, "form": form},
     )

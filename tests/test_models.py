@@ -21,10 +21,13 @@ def _user(username: str = "tester") -> User:
 
 
 def test_userprofile_one_to_one_and_str() -> None:
-    """Профиль 1:1 с пользователем, доступен через related_name `profile`, осмысленный __str__."""
+    """Профиль 1:1 создаётся сигналом при появлении пользователя; доступен как `user.profile`."""
     u = _user("ivan")
-    profile = UserProfile.objects.create(user=u, role_note="аналитик", organization="РЭУ")
-    assert u.profile == profile
+    profile = u.profile  # автосоздан сигналом (Ф10·3)
+    profile.role_note = "аналитик"
+    profile.organization = "РЭУ"
+    profile.save()
+    assert UserProfile.objects.get(user=u) == profile
     assert profile.organization == "РЭУ"
     assert str(profile) == "Профиль: ivan"
 
@@ -32,7 +35,7 @@ def test_userprofile_one_to_one_and_str() -> None:
 def test_userprofile_cascade_on_user_delete() -> None:
     """Удаление пользователя каскадно удаляет его профиль (OneToOne, CASCADE)."""
     u = _user("petr")
-    UserProfile.objects.create(user=u)
+    assert UserProfile.objects.filter(user=u).exists()  # автосоздан сигналом
     u.delete()
     assert UserProfile.objects.count() == 0
 
