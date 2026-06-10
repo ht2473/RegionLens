@@ -6,12 +6,16 @@
 """
 
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.core.files.base import ContentFile
+from django.http import FileResponse, Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+from . import queries, reports
 from .forms import RegistrationForm
+from .models import ExportJob
 from .permissions import ROLE_VIEWER
 
 
@@ -72,8 +76,39 @@ def region_dashboard_page(request: HttpRequest, okato: str) -> HttpResponse:
     return render(
         request,
         "pages/region.html",
-        {"active": "regions", "breadcrumbs": crumbs, "okato": okato},
+        {
+            "active": "regions",
+            "breadcrumbs": crumbs,
+            "okato": okato,
+            "export_year": request.GET.get("year", "2024"),
+        },
     )
+
+
+@login_required
+def export_region(request: HttpRequest, okato: str) -> HttpResponse:
+    """Сформировать отчёт региона (xlsx/docx), записать ExportJob и отдать файл на скачивание.
+
+    Доступ только для вошедших; задание экспорта привязывается к текущему пользователю и
+    попадает в «Историю экспортов» кабинета. Год берётся из ?year= (по умолчанию 2024).
+    """
+    fmt = request.GET.get("format", "xlsx")
+    if fmt not in ("xlsx", "docx"):
+        raise Http404("Неизвестный формат экспорта.")
+    try:
+        year = int(request.GET.get("year") or 2024)
+    except (TypeError, ValueError):
+        raise Http404("Некорректный год.") from None
+
+    data = queries.region_dashboard(okato, year)
+    if data is None:
+        raise Http404("Нет данных по региону за выбранный год.")
+
+    content = reports.region_xlsx(data) if fmt == "xlsx" else reports.region_docx(data)
+    job = ExportJob(user=request.user, okato=okato, fmt=fmt, status=ExportJob.Status.DONE)
+    filename = f"region_{okato}_{year}.{fmt}"
+    job.file.save(filename, ContentFile(content))  # save=True: сохраняет и сам ExportJob
+    return FileResponse(job.file.open("rb"), as_attachment=True, filename=filename)
 
 
 def methodology(request: HttpRequest) -> HttpResponse:

@@ -74,6 +74,7 @@ module = [
   "django.*", "rest_framework.*", "drf_spectacular.*",
   "pandas.*", "sklearn.*", "scipy.*", "statsmodels.*", "sktime.*",
   "shap.*", "mapie.*", "ruptures.*", "mlflow.*", "joblib.*", "pandera.*",
+  "openpyxl.*", "docx.*",
 ]
 ignore_missing_imports = true
 

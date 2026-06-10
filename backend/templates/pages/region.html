@@ -13,6 +13,17 @@
       <label for="year-slider">Год: <strong id="year-label">2024</strong></label>
       <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
     </div>
+    {% if user.is_authenticated %}
+      <div class="export-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+        <a class="btn ghost" id="export-xlsx"
+           href="{% url 'export_region' okato %}?format=xlsx&year={{ export_year }}">Экспорт XLSX</a>
+        <a class="btn ghost" id="export-docx"
+           href="{% url 'export_region' okato %}?format=docx&year={{ export_year }}">Экспорт DOCX</a>
+      </div>
+    {% else %}
+      <p style="margin-top:12px; color:var(--ink-faint); font-size:0.88rem;">
+        <a href="{% url 'login' %}">Войдите</a>, чтобы экспортировать отчёт по региону в xlsx/docx.</p>
+    {% endif %}
   </section>
 
   <div id="region-error" class="shell" style="display:none;"></div>
@@ -53,4 +64,20 @@
 {% block scripts %}
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <script src="{% static 'js/region.js' %}"></script>
+<script>
+  // Синхронизировать ссылки экспорта с выбранным на ползунке годом (UX; backend читает ?year=).
+  (function () {
+    var slider = document.getElementById("year-slider");
+    var xlsx = document.getElementById("export-xlsx");
+    var docx = document.getElementById("export-docx");
+    if (!slider || !xlsx || !docx) return;
+    var base = "{% url 'export_region' okato %}";
+    function sync() {
+      xlsx.href = base + "?format=xlsx&year=" + slider.value;
+      docx.href = base + "?format=docx&year=" + slider.value;
+    }
+    slider.addEventListener("input", sync);
+    sync();
+  })();
+</script>
 {% endblock %}
