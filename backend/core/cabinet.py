@@ -12,6 +12,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from .audit import record
 from .forms import ProfileForm, SavedViewForm
 from .models import ExportJob, SavedView, UserProfile
 from .permissions import effective_roles
@@ -77,11 +78,13 @@ def saved_views(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = SavedViewForm(request.POST)
         if form.is_valid():
+            name = form.cleaned_data["name"]
             SavedView.objects.update_or_create(
                 user=request.user,
-                name=form.cleaned_data["name"],
+                name=name,
                 defaults={"config": form.to_config()},
             )
+            record(request.user, f"saved_view:create {name}")
             return redirect("account_views")
     else:
         form = SavedViewForm()
@@ -113,7 +116,9 @@ def saved_view_delete(request: HttpRequest, pk: int) -> HttpResponse:
     """Удалить сохранённый вид (только свой; только POST)."""
     view = get_object_or_404(SavedView, pk=pk, user=request.user)
     if request.method == "POST":
+        name = view.name
         view.delete()
+        record(request.user, f"saved_view:delete {name}")
     return redirect("account_views")
 
 

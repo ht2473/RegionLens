@@ -1,6 +1,7 @@
 """Тесты публичных страниц (Ф7, модуль 1): доступность, хлебные крошки, меню, подвал.
 
-Страницы — серверный рендер без обращения к ORM/Postgres, поэтому маркер django_db не нужен.
+Страницы — серверный рендер без обращения к ORM/Postgres, поэтому маркер django_db в общем
+не нужен (исключение — POST обратной связи, который с Ф10·7 сохраняет сообщение в БД).
 """
 
 from __future__ import annotations
@@ -79,8 +80,9 @@ def test_feedback_get_shows_form(client: Client) -> None:
     assert "<form" in html and 'name="text"' in html
 
 
+@pytest.mark.django_db
 def test_feedback_post_acknowledges(client: Client) -> None:
-    """POST с текстом подтверждается (сохранение в БД — в Ф10)."""
+    """POST с текстом сохраняется в БД (Ф10·7) и подтверждается на странице."""
     html = client.post("/feedback/", {"text": "тест"}).content.decode()
     assert "Сообщение получено" in html
 

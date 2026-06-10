@@ -14,8 +14,9 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 
 from . import queries, reports
+from .audit import record
 from .forms import RegistrationForm
-from .models import ExportJob
+from .models import ExportJob, FeedbackMessage
 from .permissions import ROLE_VIEWER
 
 
@@ -108,6 +109,7 @@ def export_region(request: HttpRequest, okato: str) -> HttpResponse:
     job = ExportJob(user=request.user, okato=okato, fmt=fmt, status=ExportJob.Status.DONE)
     filename = f"region_{okato}_{year}.{fmt}"
     job.file.save(filename, ContentFile(content))  # save=True: сохраняет и сам ExportJob
+    record(request.user, f"export:{fmt} okato={okato} year={year}")
     return FileResponse(job.file.open("rb"), as_attachment=True, filename=filename)
 
 
@@ -127,12 +129,21 @@ def help_page(request: HttpRequest) -> HttpResponse:
 
 
 def feedback(request: HttpRequest) -> HttpResponse:
-    """Обратная связь. Приём сообщения; постоянное хранение подключается в Ф10."""
+    """Обратная связь: приём и сохранение сообщения (анонимного или от пользователя) + аудит."""
     crumbs = [
         {"title": "Главная", "url": reverse("home")},
         {"title": "Обратная связь"},
     ]
-    sent = request.method == "POST" and bool(request.POST.get("text", "").strip())
+    sent = False
+    if request.method == "POST":
+        text = request.POST.get("text", "").strip()
+        if text:
+            name = request.POST.get("name", "").strip()
+            user = request.user if request.user.is_authenticated else None
+            stored = f"{name}: {text}" if name and user is None else text
+            FeedbackMessage.objects.create(user=user, text=stored[:4000])
+            record(user, "feedback:submit")
+            sent = True
     return render(
         request,
         "pages/feedback.html",
@@ -158,6 +169,7 @@ def register(request: HttpRequest) -> HttpResponse:
             user = form.save()
             group, _ = Group.objects.get_or_create(name=ROLE_VIEWER)
             user.groups.add(group)
+            record(user, f"user:register {user.username}")
             login(request, user)
             return redirect("home")
     else:
