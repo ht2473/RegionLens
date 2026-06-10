@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Личный кабинет</p>
+  <h1>Профиль</h1>
+</section>
+
+{% include "account/_tabs.html" %}
+
+{% if saved %}
+  <div class="card" style="border-color: var(--accent); background: var(--accent-soft); max-width:520px;">
+    <p style="margin:0;">Профиль сохранён.</p>
+  </div>
+{% endif %}
+
+<form method="post" action="{% url 'account_profile' %}" style="max-width: 520px;">
+  {% csrf_token %}
+  <div class="field">
+    <label>Имя пользователя</label>
+    <input type="text" value="{{ user.get_username }}" disabled>
+  </div>
+  {% for field in form %}
+    <div class="field">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% for error in field.errors %}
+        <p style="color:var(--bad); font-size:0.85rem; margin:6px 0 0;">{{ error }}</p>
+      {% endfor %}
+    </div>
+  {% endfor %}
+  <button class="btn" type="submit">Сохранить</button>
+</form>
+{% endblock %}

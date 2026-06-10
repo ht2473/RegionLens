@@ -97,6 +97,18 @@ small { color: var(--ink-faint); }
   .nav-user, .nav-logout, .nav-logout button { display: block; width: 100%; text-align: left; }
 }
 
+.nav-user { text-decoration: none; border-radius: 7px; }
+.nav-user:hover { background: var(--accent-soft); }
+.nav-user.is-active { background: var(--accent); color: #fff; }
+
+/* ── Кабинет: вкладки разделов ───────────────────────────────────────── */
+.subnav { display: flex; flex-wrap: wrap; gap: 2px; margin: 0 0 22px;
+  border-bottom: 1px solid var(--line-soft); padding-bottom: 10px; }
+.subnav a { padding: 7px 11px; border-radius: 7px; color: var(--ink-soft);
+  font-size: 0.92rem; text-decoration: none; }
+.subnav a:hover { background: var(--accent-soft); color: var(--accent-deep); }
+.subnav a.is-active { background: var(--accent); color: #fff; }
+
 /* ── Хлебные крошки ──────────────────────────────────────────────────── */
 .crumbs { background: transparent; border-bottom: 1px solid var(--line-soft); }
 .crumbs ol { list-style: none; display: flex; flex-wrap: wrap; gap: 8px;

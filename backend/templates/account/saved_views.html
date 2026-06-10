@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Сохранённые виды — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Личный кабинет</p>
+  <h1>Сохранённые виды</h1>
+  <p class="lead">Именованные наборы параметров экрана (год, мера, схема, регион). Хранится только
+    конфигурация — аналитика всегда перечитывается из хранилища.</p>
+</section>
+
+{% include "account/_tabs.html" %}
+
+<div class="card" style="max-width: 640px;">
+  <h3 style="margin-top:0;">Сохранить новый вид</h3>
+  <form method="post" action="{% url 'account_views' %}">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="field">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}
+          <p style="color:var(--bad); font-size:0.85rem; margin:6px 0 0;">{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <button class="btn" type="submit">Сохранить вид</button>
+  </form>
+</div>
+
+<h2 style="margin-top:28px;">Мои виды</h2>
+{% if views %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Название</th><th>Параметры</th><th>Создан</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for v in views %}
+          <tr>
+            <td>{{ v.name }}</td>
+            <td style="color:var(--ink-soft);">{{ v.config }}</td>
+            <td>{{ v.created|date:"d.m.Y H:i" }}</td>
+            <td style="white-space:nowrap;">
+              <a class="btn ghost" href="{% url 'account_view_open' v.pk %}">Открыть</a>
+              <form method="post" action="{% url 'account_view_delete' v.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="btn ghost" type="submit">Удалить</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p style="color:var(--ink-faint);">Пока нет сохранённых видов.</p>
+{% endif %}
+{% endblock %}

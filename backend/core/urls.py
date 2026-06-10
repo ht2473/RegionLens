@@ -3,7 +3,7 @@
 from django.contrib.auth import views as auth_views
 from django.urls import include, path, reverse_lazy
 
-from . import views
+from . import cabinet, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -33,6 +33,45 @@ urlpatterns = [
     ),
     path("accounts/logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("accounts/register/", views.register, name="register"),
+    path("account/", cabinet.overview, name="account"),
+    path("account/profile/", cabinet.profile_edit, name="account_profile"),
+    path("account/views/", cabinet.saved_views, name="account_views"),
+    path("account/views/<int:pk>/open/", cabinet.saved_view_open, name="account_view_open"),
+    path("account/views/<int:pk>/delete/", cabinet.saved_view_delete, name="account_view_delete"),
+    path("account/exports/", cabinet.export_history, name="account_exports"),
+    path(
+        "account/password/",
+        auth_views.PasswordChangeView.as_view(
+            template_name="account/password.html",
+            success_url=reverse_lazy("account_password_done"),
+            extra_context={
+                "active": "account",
+                "cabinet_tab": "password",
+                "breadcrumbs": [
+                    {"title": "Главная", "url": reverse_lazy("home")},
+                    {"title": "Личный кабинет", "url": reverse_lazy("account")},
+                    {"title": "Смена пароля", "url": None},
+                ],
+            },
+        ),
+        name="account_password",
+    ),
+    path(
+        "account/password/done/",
+        auth_views.PasswordChangeDoneView.as_view(
+            template_name="account/password_done.html",
+            extra_context={
+                "active": "account",
+                "cabinet_tab": "password",
+                "breadcrumbs": [
+                    {"title": "Главная", "url": reverse_lazy("home")},
+                    {"title": "Личный кабинет", "url": reverse_lazy("account")},
+                    {"title": "Смена пароля", "url": None},
+                ],
+            },
+        ),
+        name="account_password_done",
+    ),
     path("healthz/", views.healthz, name="healthz"),
     path("api/", include("core.api.urls")),
 ]

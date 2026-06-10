@@ -1,0 +1,7 @@
+<nav class="subnav" aria-label="Разделы кабинета">
+  <a href="{% url 'account' %}" class="{% if cabinet_tab == 'overview' %}is-active{% endif %}">Обзор</a>
+  <a href="{% url 'account_profile' %}" class="{% if cabinet_tab == 'profile' %}is-active{% endif %}">Профиль</a>
+  <a href="{% url 'account_views' %}" class="{% if cabinet_tab == 'views' %}is-active{% endif %}">Сохранённые виды</a>
+  <a href="{% url 'account_exports' %}" class="{% if cabinet_tab == 'exports' %}is-active{% endif %}">История экспортов</a>
+  <a href="{% url 'account_password' %}" class="{% if cabinet_tab == 'password' %}is-active{% endif %}">Смена пароля</a>
+</nav>
