@@ -121,3 +121,42 @@ CACHES = {
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+# --- Безопасность боевого развёртывания (Ф12a) ---------------------------------
+# Принцип: локальная разработка идёт по HTTP (DEBUG=True), поэтому строгие флаги по
+# умолчанию ВЫКЛЮЧЕНЫ и не мешают `runserver`. В боевом режиме (DJANGO_DEBUG=false)
+# они автоматически ВКЛЮЧАЮТСЯ, давая чистый `manage.py check --deploy`. Каждый флаг
+# дополнительно переопределяется собственной переменной окружения — тонкая настройка
+# под конкретный хостинг. Это и есть «env-флаг прод-режима»: DEBUG управляет связкой.
+_PROD = not DEBUG
+
+# HTTPS: принудительный редирект + доверие заголовку X-Forwarded-Proto от
+# TLS-терминирующего прокси/балансировщика (типовая схема PaaS). Если прокси нет —
+# выключите DJANGO_TRUST_PROXY_SSL, иначе возможен цикл редиректов.
+SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=_PROD)
+if env.bool("DJANGO_TRUST_PROXY_SSL", default=_PROD):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Cookies сессии и CSRF передаются только по HTTPS в проде.
+SESSION_COOKIE_SECURE = env.bool("DJANGO_SESSION_COOKIE_SECURE", default=_PROD)
+CSRF_COOKIE_SECURE = env.bool("DJANGO_CSRF_COOKIE_SECURE", default=_PROD)
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+
+# HSTS: год, с поддоменами и preload (в проде; в dev — 0, чтобы не «залипать» на HTTPS).
+SECURE_HSTS_SECONDS = env.int("DJANGO_SECURE_HSTS_SECONDS", default=31_536_000 if _PROD else 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=_PROD)
+SECURE_HSTS_PRELOAD = env.bool("DJANGO_SECURE_HSTS_PRELOAD", default=_PROD)
+
+# Анти-MIME-sniffing и анти-кликджекинг — включены всегда (dev не мешают).
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+
+# Предохранитель: в боевом режиме небезопасный дефолтный ключ недопустим.
+if _PROD and SECRET_KEY == "dev-insecure-change-me":
+    from django.core.exceptions import ImproperlyConfigured
+
+    raise ImproperlyConfigured(
+        "В боевом режиме (DJANGO_DEBUG=false) необходимо задать длинный случайный "
+        "DJANGO_SECRET_KEY в окружении (.env / переменные хостинга)."
+    )
