@@ -1,4 +1,4 @@
-.PHONY: install lint format type test pipeline migrate run all docker-up docker-down
+.PHONY: install lint format type test audit pipeline migrate run all docker-up docker-down
 
 install:          ## Установить проект и все группы зависимостей
 	pip install -e ".[pipeline,backend,dev]"
@@ -33,3 +33,6 @@ docker-up:        ## Поднять стек в Docker
 
 docker-down:      ## Остановить стек
 	docker compose down
+
+audit:            ## Аудит зависимостей на уязвимости (pip-audit; diskcache CVE-2025-69872 — без фикса, подавлен)
+	pip-audit -r requirements.txt --no-deps --ignore-vuln CVE-2025-69872

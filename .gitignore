@@ -28,6 +28,8 @@ data/processed/
 # ML/эксперименты
 mlruns/
 mlartifacts/
+mlflow.db
+mlflow.db-journal
 
 # IDE / OS
 .idea/
@@ -40,6 +42,10 @@ docs/*
 
 # Сгенерированное аналитическое хранилище DuckDB (пересоздаётся пайплайном)
 data/*.duckdb
+
+# Локальные артефакты пайплайна/приложения (пересоздаются; в репо не нужны)
+data/geo/
+schema.yml
 
 # Скрипты для дампов
 scripts/
