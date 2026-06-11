@@ -1,4 +1,4 @@
-.PHONY: install lint format type test audit pipeline migrate run all docker-up docker-down
+.PHONY: install lint format type test audit load pipeline migrate run all docker-up docker-down
 
 install:          ## Установить проект и все группы зависимостей
 	pip install -e ".[pipeline,backend,dev]"
@@ -36,3 +36,6 @@ docker-down:      ## Остановить стек
 
 audit:            ## Аудит зависимостей на уязвимости (pip-audit; diskcache CVE-2025-69872 — без фикса, подавлен)
 	pip-audit -r requirements.txt --no-deps --ignore-vuln CVE-2025-69872
+
+load:             ## Нагрузочный замер locust (нужен поднятый сервер :8000 и DuckDB)
+	locust -f tests/load/locustfile.py --host http://127.0.0.1:8000
