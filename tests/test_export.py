@@ -13,7 +13,9 @@ from typing import Any
 import pytest
 from core import reports
 from core.models import ExportJob
+from core.views import _validated_okato
 from django.contrib.auth.models import User
+from django.http import Http404
 from django.test import Client
 from docx import Document
 from openpyxl import load_workbook
@@ -111,3 +113,34 @@ def test_export_404_when_no_data(
     client.force_login(user)
     assert client.get("/regions/00000000/export/?format=xlsx&year=2024").status_code == 404
     assert ExportJob.objects.filter(user=user).count() == 0
+
+
+@pytest.mark.parametrize("bad_okato", ["..", "45..00", "abc", "..\\sneaky", "1234567890123"])
+def test_export_rejects_invalid_okato(
+    client: Client,
+    monkeypatch: pytest.MonkeyPatch,
+    settings: Any,
+    tmp_path: Any,
+    bad_okato: str,
+) -> None:
+    """Нечисловой/traversal-okato отклоняется (404) до записи файла — защита от обхода пути.
+
+    Источник данных подменён (вернул бы образец), поэтому 404 доказывает именно валидацию
+    входа, а не отсутствие данных; ExportJob при этом не создаётся.
+    """
+    settings.MEDIA_ROOT = str(tmp_path)
+    monkeypatch.setattr("core.queries.region_dashboard", lambda okato, year: _SAMPLE)
+    user = User.objects.create_user("badokato", password=_PW)
+    client.force_login(user)
+
+    resp = client.get(f"/regions/{bad_okato}/export/?format=xlsx&year=2024")
+    assert resp.status_code == 404
+    assert ExportJob.objects.filter(user=user).count() == 0
+
+
+def test_validated_okato_helper() -> None:
+    """Хелпер валидации пропускает корректный ОКАТО и отклоняет traversal/нечисловое."""
+    assert _validated_okato("45000000") == "45000000"
+    for bad in ("..", "../etc", "..\\x", "abc", ""):
+        with pytest.raises(Http404):
+            _validated_okato(bad)

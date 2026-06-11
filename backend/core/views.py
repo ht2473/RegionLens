@@ -5,6 +5,8 @@
 в следующих модулях Ф7. Каждой странице передаётся active (подсветка меню) и breadcrumbs.
 """
 
+import re
+
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
@@ -86,16 +88,31 @@ def region_dashboard_page(request: HttpRequest, okato: str) -> HttpResponse:
     )
 
 
+# ОКАТО региона — только цифры (длина 2–12). Строгий allowlist на границе входа гарантирует,
+# что в имя файла экспорта (region_<okato>_<year>.<fmt>) не попадут разделители пути или `..`,
+# — это закрывает path traversal при записи в MEDIA_ROOT/exports/.
+_OKATO_RE = re.compile(r"^\d{2,12}$")
+
+
+def _validated_okato(okato: str) -> str:
+    """Проверить код ОКАТО по строгому шаблону; иначе 404 (защита экспорта от traversal)."""
+    if not _OKATO_RE.match(okato):
+        raise Http404("Некорректный код региона.")
+    return okato
+
+
 @login_required
 def export_region(request: HttpRequest, okato: str) -> HttpResponse:
     """Сформировать отчёт региона (xlsx/docx), записать ExportJob и отдать файл на скачивание.
 
-    Доступ только для вошедших; задание экспорта привязывается к текущему пользователю и
-    попадает в «Историю экспортов» кабинета. Год берётся из ?year= (по умолчанию 2024).
+    Доступ только для вошедших; задание привязывается к текущему пользователю и попадает в
+    «Историю экспортов» кабинета. Год берётся из ?year= (по умолчанию 2024). `okato` проходит
+    строгую валидацию — пользовательский ввод не достигает файловой системы в сыром виде.
     """
     fmt = request.GET.get("format", "xlsx")
     if fmt not in ("xlsx", "docx"):
         raise Http404("Неизвестный формат экспорта.")
+    okato = _validated_okato(okato)
     try:
         year = int(request.GET.get("year") or 2024)
     except (TypeError, ValueError):
