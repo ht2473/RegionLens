@@ -13,3 +13,4 @@ forecasting:                                                             # Ф8
   alpha: 0.1
   models: [naive, ets, theta, global_gbm]
 anomalies: {contamination: 0.05, ruptures_model: rbf, ruptures_pen: 3.0}  # Ф9
+twins: {top_n: 5}                                                         # C2: число двойников на регион-год
