@@ -27,6 +27,7 @@ from ..serializers import (
     MetricSeriesPointSerializer,
     RegionDashboardSerializer,
     RegionSerializer,
+    RegionTwinSerializer,
     TransitionSerializer,
     TypologyExplainSerializer,
     TypologyRowSerializer,
@@ -189,6 +190,30 @@ class RegionDashboard(APIView):
             )
         log.info("region_dashboard", stage="api", okato=okato, year=year)
         return Response(RegionDashboardSerializer(data).data)
+
+
+class RegionTwins(APIView):
+    """GET /api/regions/<okato>/twins/?year=<int> — статистические двойники региона (C2).
+
+    top-N ближайших по косинусной близости профилей z_value за год (предрасчёт). Это
+    сходство профиля показателей, НЕ причинность и НЕ прогноз. Пустой список — если у
+    региона нет двойников за указанный год (например, год вне окна анализа).
+    """
+
+    @extend_schema(
+        operation_id="region_twins",
+        parameters=[P_YEAR],
+        responses=RegionTwinSerializer(many=True),
+        summary="Статистические двойники региона на год",
+    )
+    def get(self, request: Request, okato: str) -> Response:
+        year, err = _parse_year(request)
+        if err is not None:
+            return err
+        assert year is not None
+        data = queries.region_twins(okato, year)
+        log.info("region_twins", stage="api", okato=okato, year=year, rows=len(data))
+        return Response(RegionTwinSerializer(data, many=True).data)
 
 
 class IndexRanking(APIView):

@@ -173,3 +173,17 @@ class CompareRowSerializer(serializers.Serializer):
     health_edu = serializers.FloatField(allow_null=True)
     cluster_id = serializers.IntegerField(allow_null=True)
     cluster_label = serializers.CharField(allow_null=True)
+
+
+class RegionTwinSerializer(serializers.Serializer):
+    """Статистический двойник региона: похожий по профилю z_value регион за год (C2).
+
+    similarity — косинусная близость профилей показателей в этот год (∈[−1;1]); rank: 1 —
+    самый похожий. Это сходство профиля показателей, НЕ причинность и НЕ прогноз.
+    """
+
+    rank = serializers.IntegerField()
+    twin_okato = serializers.CharField()
+    region_name = serializers.CharField(allow_null=True)
+    federal_district = serializers.CharField(allow_null=True)
+    similarity = serializers.FloatField()

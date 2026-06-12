@@ -20,6 +20,11 @@ urlpatterns = [
     path("geo/layer/", endpoints.GeoLayer.as_view(), name="geo-layer"),
     path("regions/", endpoints.RegionList.as_view(), name="regions"),
     path("regions/<str:okato>/", endpoints.RegionDashboard.as_view(), name="region-dashboard"),
+    path(
+        "regions/<str:okato>/twins/",
+        endpoints.RegionTwins.as_view(),
+        name="region-twins",
+    ),
     path("metrics/", endpoints.MetricList.as_view(), name="metrics"),
     path(
         "metrics/<int:metric_id>/series/",

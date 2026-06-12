@@ -125,6 +125,22 @@ def api_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-u
         "('kmeans', 3, 2020, 1, 1, 1.80), "
         "('kmeans', 3, 2020, 1, 2, -0.40)"
     )
+
+    # region_twins: двойники региона 45000000 за 2020 (C2). 11000000 присутствует в
+    # region_dim (вариант-агрегат) — используем его как второй регион-двойник, чтобы
+    # проверить порядок по rank и присоединение имени. Строка за 2019 — для проверки
+    # фильтра по году.
+    con.execute(
+        "CREATE TABLE region_twins (okato VARCHAR, year INTEGER, twin_okato VARCHAR, "
+        "similarity DOUBLE, rank INTEGER)"
+    )
+    con.execute(
+        "INSERT INTO region_twins VALUES "
+        "('45000000', 2020, '46000000', 0.42, 2), "  # вставлен раньше, но rank 2
+        "('45000000', 2020, '11000000', 0.88, 1), "  # rank 1 (выше близость)
+        "('46000000', 2020, '45000000', 0.42, 1), "
+        "('45000000', 2019, '46000000', 0.99, 1)"  # другой год — должен отфильтроваться
+    )
     con.close()
 
     settings.DUCKDB_PATH = str(path)
@@ -401,3 +417,27 @@ def test_swagger_ui_served() -> None:
     """drf-spectacular: Swagger UI отдаётся (200)."""
     resp = APIClient().get("/api/docs/")
     assert resp.status_code == 200
+
+
+def test_region_twins_ok(api_duckdb: Path) -> None:
+    """twins/ → 200; двойники по возрастанию rank, с именем региона; другой год отфильтрован."""
+    resp = APIClient().get("/api/regions/45000000/twins/", {"year": 2020})
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) == 2  # запись за 2019 не попадает
+    assert set(rows[0]) == {"rank", "twin_okato", "region_name", "federal_district", "similarity"}
+    assert [r["rank"] for r in rows] == [1, 2]  # ORDER BY rank
+    assert rows[0]["twin_okato"] == "11000000"  # rank 1 — наибольшая близость
+    assert rows[1]["twin_okato"] == "46000000" and rows[1]["region_name"] == "Курская область"
+
+
+def test_region_twins_empty_for_unknown_year(api_duckdb: Path) -> None:
+    """Год без двойников → 200 и пустой список (эндпойнт списочного типа, без 404)."""
+    resp = APIClient().get("/api/regions/45000000/twins/", {"year": 2010})
+    assert resp.status_code == 200
+    assert resp.json() == []
+
+
+def test_region_twins_missing_year(api_duckdb: Path) -> None:
+    """Отсутствие year → 400."""
+    assert APIClient().get("/api/regions/45000000/twins/").status_code == 400

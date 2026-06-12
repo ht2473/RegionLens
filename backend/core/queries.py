@@ -192,6 +192,22 @@ def region_dashboard(
     }
 
 
+def region_twins(okato: str, year: int) -> list[dict[str, Any]]:
+    """Статистические двойники региона за год: top-N ближайших по профилю z_value (C2).
+
+    Сходство — косинусная близость профилей показателей в этот год (предрасчёт
+    pipeline.twins → таблица region_twins). Это статистическое сходство профиля, НЕ
+    причинность и НЕ прогноз. Возвращает двойников по возрастанию rank (1 — самый
+    похожий) с именем и федеральным округом региона-двойника.
+    """
+    return q(
+        "SELECT t.twin_okato, r.region_name, r.federal_district, t.similarity, t.rank "
+        "FROM region_twins t JOIN region_dim r ON r.okato = t.twin_okato "
+        "WHERE t.okato = ? AND t.year = ? ORDER BY t.rank",
+        [okato, year],
+    )
+
+
 def transitions_list(okato: str | None = None) -> list[dict[str, Any]]:
     """Переходы между типами + тип траектории. С okato — путь региона; без — все потоки."""
     cols = "okato, year_from, year_to, cluster_from, cluster_to, trajectory_type"
