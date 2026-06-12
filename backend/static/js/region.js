@@ -51,24 +51,30 @@
 
   function load() {
     var u = "/api/regions/" + encodeURIComponent(OKATO) + "/?year=" + state.year;
+    var tw = "/api/regions/" + encodeURIComponent(OKATO) + "/twins/?year=" + state.year;
     Promise.all([
       fetch(u),
       fetch("/api/transitions/?okato=" + encodeURIComponent(OKATO)),
+      fetch(tw),
     ])
       .then(function (rs) {
         if (rs[0].status === 404) throw new Error("Регион не найден или нет данных за год.");
         if (!rs[0].ok) throw new Error("Ошибка загрузки (" + rs[0].status + ").");
-        return Promise.all([rs[0].json(), rs[1].ok ? rs[1].json() : []]);
+        return Promise.all([
+          rs[0].json(),
+          rs[1].ok ? rs[1].json() : [],
+          rs[2].ok ? rs[2].json() : [],
+        ]);
       })
       .then(function (out) {
         show("region-error", false);
         show("region-body", true);
-        render(out[0], out[1]);
+        render(out[0], out[1], out[2]);
       })
       .catch(function (err) { fail(err.message); });
   }
 
-  function render(d, transitions) {
+  function render(d, transitions, twins) {
     // Заголовок
     document.getElementById("region-title").textContent = d.region_name || OKATO;
     var typeLabel = d.cluster ? d.cluster.cluster_label : "—";
@@ -99,6 +105,7 @@
     drawB4(d.index.domains);
     drawShap(d.shap_top || []);
     drawTrajectory(transitions);
+    drawTwins(twins || []);
   }
 
   function drawRadar(domains) {
@@ -188,6 +195,47 @@
         yaxis: { title: "тип", dtick: 1, gridcolor: GRID, zeroline: false } },
       CFG
     );
+  }
+
+  function drawTwins(twins) {
+    var box = document.getElementById("twins-list");
+    if (!box) return;
+    box.innerHTML = "";
+    if (!twins.length) {
+      var empty = document.createElement("li");
+      empty.className = "twins-empty";
+      empty.textContent = "Нет данных о двойниках за выбранный год.";
+      box.appendChild(empty);
+      return;
+    }
+    twins.forEach(function (t) {
+      var li = document.createElement("li");
+      li.className = "twin-item";
+
+      var rank = document.createElement("span");
+      rank.className = "twin-rank";
+      rank.textContent = t.rank;
+
+      var a = document.createElement("a");
+      a.className = "twin-name";
+      a.href = "/regions/" + encodeURIComponent(t.twin_okato) + "/?year=" + state.year;
+      a.textContent = t.region_name || t.twin_okato;
+
+      var fo = document.createElement("span");
+      fo.className = "twin-fo";
+      fo.textContent = t.federal_district || "";
+
+      var sim = document.createElement("span");
+      sim.className = "twin-sim";
+      sim.title = "косинусная близость профиля z-оценок (1.00 — идентичный профиль)";
+      sim.textContent = fmt(t.similarity, 2);
+
+      li.appendChild(rank);
+      li.appendChild(a);
+      li.appendChild(fo);
+      li.appendChild(sim);
+      box.appendChild(li);
+    });
   }
 
   // Ползунок года

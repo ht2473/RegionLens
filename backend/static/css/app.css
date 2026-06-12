@@ -263,3 +263,24 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .region-grid.sm { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
 .region-chip.sm { padding: 6px 9px; font-size: 0.85rem; }
 @media (max-width: 760px) { .type-grid { grid-template-columns: 1fr; } }
+
+/* ── Статистические двойники (C2): список похожих регионов на дашборде ── */
+.twins-list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; }
+.twin-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 4px; border-bottom: 1px solid var(--line-soft);
+}
+.twin-item:last-child { border-bottom: none; }
+.twin-rank {
+  flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent-deep);
+  font-size: 0.78rem; font-weight: 600;
+}
+.twin-name { flex: 1 1 auto; color: var(--accent-deep); font-weight: 500; }
+.twin-fo { flex: 0 0 auto; color: var(--ink-faint); font-size: 0.82rem; }
+.twin-sim {
+  flex: 0 0 auto; min-width: 44px; text-align: right;
+  font-variant-numeric: tabular-nums; color: var(--ink-soft); font-weight: 600;
+}
+.twins-empty { color: var(--ink-faint); padding: 8px 4px; }
