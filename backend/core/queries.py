@@ -296,3 +296,34 @@ def compare(okatos: list[str], year: int, scheme: str = MAP_INDEX_SCHEME) -> lis
         row["cluster_id"] = c["cluster_id"] if c else None
         row["cluster_label"] = c["cluster_label"] if c else None
     return rows
+
+
+def anomalies_list(
+    *, year: int | None = None, okato: str | None = None, kind: str | None = None
+) -> list[dict[str, Any]]:
+    """Аномалии и сдвиги (Ф9): пространственные выбросы, структурные сдвиги рядов, кандидаты
+    смены методологии (A3). Необязательные фильтры year/okato/kind. Имя региона и метрики
+    подтягиваются LEFT JOIN (okato/metric_id бывают NULL: метрика-год у methodology_change,
+    профиль года у spatial). Это описательная диагностика — кандидаты для анализа, не
+    утверждение о причинах.
+    """
+    clauses: list[str] = []
+    params: list[Any] = []
+    if year is not None:
+        clauses.append("a.year = ?")
+        params.append(year)
+    if okato is not None:
+        clauses.append("a.okato = ?")
+        params.append(okato)
+    if kind is not None:
+        clauses.append("a.kind = ?")
+        params.append(kind)
+    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    return q(
+        "SELECT a.okato, r.region_name, a.metric_id, m.metric_name, a.year, "
+        "a.score, a.is_anomaly, a.kind FROM anomalies a "
+        "LEFT JOIN region_dim r ON r.okato = a.okato "
+        "LEFT JOIN metric_dim m ON m.metric_id = a.metric_id"
+        f"{where} ORDER BY a.kind, a.year, a.score DESC",
+        params,
+    )

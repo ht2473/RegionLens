@@ -18,7 +18,9 @@ from rest_framework.views import APIView
 from pipeline.logging_setup import log
 
 from .. import queries
+from ..permissions import IsAnalyst
 from ..serializers import (
+    AnomalySerializer,
     ClusterProfileRowSerializer,
     CompareRowSerializer,
     GeoLayerPointSerializer,
@@ -36,6 +38,7 @@ from ..serializers import (
 GEO_MEASURES = ("cluster", "index")
 INDEX_SCHEMES = ("equal", "pca", "expert")
 COMPARE_MIN, COMPARE_MAX = 2, 3
+ANOMALY_KINDS = ("spatial", "structural_break", "methodology_change")
 
 # Переиспользуемые описания query-параметров для OpenAPI-схемы (Swagger).
 P_YEAR = OpenApiParameter(
@@ -357,3 +360,48 @@ class Compare(APIView):
         data = queries.compare(okatos, year)
         log.info("compare", stage="api", okatos=okatos, year=year, rows=len(data))
         return Response(CompareRowSerializer(data, many=True).data)
+
+
+class Anomalies(APIView):
+    """GET /api/anomalies/?year=&okato=&kind= — аномалии и структурные сдвиги (Ф9).
+
+    Доступ: роль analyst и выше (расширенная аналитика). Возвращает пространственные
+    выбросы, структурные сдвиги рядов и кандидаты смены методологии (A3) с необязательными
+    фильтрами. Описательная диагностика, не утверждение о причинах. Пустой список — норма.
+    """
+
+    permission_classes = [IsAnalyst]
+
+    @extend_schema(
+        operation_id="anomalies",
+        parameters=[
+            OpenApiParameter("year", OpenApiTypes.INT, description="Год (опц.)"),
+            P_OKATO,
+            OpenApiParameter(
+                "kind", OpenApiTypes.STR, enum=list(ANOMALY_KINDS), description="Вид аномалии"
+            ),
+        ],
+        responses=AnomalySerializer(many=True),
+        summary="Аномалии и структурные сдвиги (analyst)",
+    )
+    def get(self, request: Request) -> Response:
+        raw_year = request.query_params.get("year")
+        year: int | None = None
+        if raw_year:
+            try:
+                year = int(raw_year)
+            except ValueError:
+                return Response(
+                    {"detail": "'year' должен быть целым числом"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        kind = request.query_params.get("kind") or None
+        if kind is not None and kind not in ANOMALY_KINDS:
+            return Response(
+                {"detail": f"'kind' должен быть одним из {', '.join(ANOMALY_KINDS)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        okato = request.query_params.get("okato") or None
+        data = queries.anomalies_list(year=year, okato=okato, kind=kind)
+        log.info("anomalies", stage="api", year=year, okato=okato, kind=kind, rows=len(data))
+        return Response(AnomalySerializer(data, many=True).data)

@@ -187,3 +187,21 @@ class RegionTwinSerializer(serializers.Serializer):
     region_name = serializers.CharField(allow_null=True)
     federal_district = serializers.CharField(allow_null=True)
     similarity = serializers.FloatField()
+
+
+class AnomalySerializer(serializers.Serializer):
+    """Строка диагностики аномалий/сдвигов (Ф9). okato/region_name пусты для находок уровня
+    «метрика-год» (methodology_change, A3); metric_id/metric_name пусты для пространственных
+    выбросов. kind ∈ {spatial, structural_break, methodology_change}. score: для spatial —
+    оценка типичности (меньше → аномальнее); для structural_break — величина сдвига; для
+    methodology_change — доля синхронно затронутых регионов.
+    """
+
+    okato = serializers.CharField(allow_null=True)
+    region_name = serializers.CharField(allow_null=True)
+    metric_id = serializers.IntegerField(allow_null=True)
+    metric_name = serializers.CharField(allow_null=True)
+    year = serializers.IntegerField()
+    score = serializers.FloatField()
+    is_anomaly = serializers.BooleanField()
+    kind = serializers.CharField()

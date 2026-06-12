@@ -44,4 +44,6 @@ urlpatterns = [
     ),
     # Сравнение
     path("compare/", endpoints.Compare.as_view(), name="compare"),
+    # Аномалии и структурные сдвиги (Ф9, доступ analyst)
+    path("anomalies/", endpoints.Anomalies.as_view(), name="anomalies"),
 ]

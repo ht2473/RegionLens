@@ -141,6 +141,20 @@ def api_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-u
         "('46000000', 2020, '45000000', 0.42, 1), "
         "('45000000', 2019, '46000000', 0.99, 1)"  # другой год — должен отфильтроваться
     )
+
+    # anomalies (Ф9): пространственный выброс (metric_id NULL), структурный сдвиг (metric 1),
+    # кандидат смены методологии A3 (okato NULL, metric 2). Разные kind/год для проверки фильтров.
+    con.execute(
+        "CREATE TABLE anomalies (okato VARCHAR, metric_id INTEGER, year INTEGER, "
+        "score DOUBLE, is_anomaly BOOLEAN, kind VARCHAR)"
+    )
+    con.execute(
+        "INSERT INTO anomalies VALUES "
+        "('45000000', NULL, 2020, -0.35, TRUE, 'spatial'), "
+        "('46000000', NULL, 2020, 0.12, FALSE, 'spatial'), "
+        "('45000000', 1, 2015, 12.5, TRUE, 'structural_break'), "
+        "(NULL, 2, 2019, 0.7, TRUE, 'methodology_change')"
+    )
     con.close()
 
     settings.DUCKDB_PATH = str(path)
@@ -441,3 +455,63 @@ def test_region_twins_empty_for_unknown_year(api_duckdb: Path) -> None:
 def test_region_twins_missing_year(api_duckdb: Path) -> None:
     """Отсутствие year → 400."""
     assert APIClient().get("/api/regions/45000000/twins/").status_code == 400
+
+
+def _client_with_role(role: str) -> APIClient:
+    """APIClient, залогиненный пользователем с заданной ролью (группа создаётся при нужде)."""
+    from django.contrib.auth.models import Group, User
+
+    user = User.objects.create_user(username=f"u_{role}", password="x")
+    group, _ = Group.objects.get_or_create(name=role)
+    user.groups.add(group)
+    client = APIClient()
+    client.force_login(user)
+    return client
+
+
+def test_anomalies_requires_authentication_anonymous() -> None:
+    """Аноним → 403 (эндпойнт аномалий под ролью analyst)."""
+    assert APIClient().get("/api/anomalies/").status_code == 403
+
+
+@pytest.mark.django_db
+def test_anomalies_forbidden_for_viewer(api_duckdb: Path) -> None:
+    """viewer не имеет доступа к расширенной аналитике → 403."""
+    assert _client_with_role("viewer").get("/api/anomalies/").status_code == 403
+
+
+@pytest.mark.django_db
+def test_anomalies_ok_for_analyst(api_duckdb: Path) -> None:
+    """analyst → 200; имена подтянуты LEFT JOIN; okato/metric_id NULL там, где положено."""
+    resp = _client_with_role("analyst").get("/api/anomalies/")
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) == 4
+    by_kind = {r["kind"]: r for r in rows}
+    assert by_kind["spatial"]["region_name"] == "Москва"
+    assert by_kind["spatial"]["metric_id"] is None and by_kind["spatial"]["metric_name"] is None
+    assert by_kind["structural_break"]["metric_name"] == "Среднедушевые доходы"
+    meth = by_kind["methodology_change"]
+    assert meth["okato"] is None and meth["region_name"] is None
+    assert meth["metric_name"] == "Уровень безработицы"
+
+
+@pytest.mark.django_db
+def test_anomalies_filter_by_kind(api_duckdb: Path) -> None:
+    """Фильтр kind=spatial → только пространственные строки."""
+    rows = _client_with_role("analyst").get("/api/anomalies/", {"kind": "spatial"}).json()
+    assert len(rows) == 2 and {r["kind"] for r in rows} == {"spatial"}
+
+
+@pytest.mark.django_db
+def test_anomalies_filter_by_okato(api_duckdb: Path) -> None:
+    """Фильтр okato → строки только этого региона (methodology_change с okato NULL не входит)."""
+    rows = _client_with_role("analyst").get("/api/anomalies/", {"okato": "45000000"}).json()
+    assert {r["kind"] for r in rows} == {"spatial", "structural_break"}
+    assert all(r["okato"] == "45000000" for r in rows)
+
+
+@pytest.mark.django_db
+def test_anomalies_invalid_kind_returns_400(api_duckdb: Path) -> None:
+    """Неизвестный kind → 400."""
+    assert _client_with_role("analyst").get("/api/anomalies/", {"kind": "bogus"}).status_code == 400
