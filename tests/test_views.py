@@ -164,3 +164,43 @@ def test_menu_links_point_to_pages(client: Client) -> None:
     assert 'href="/compare/"' in html
     assert 'href="/regions/"' in html
     assert 'href="/api/' not in html
+
+
+def _role_client(role: str) -> Client:
+    """Client, залогиненный пользователем с заданной ролью (группа создаётся при нужде)."""
+    from django.contrib.auth.models import Group, User
+
+    user = User.objects.create_user(username=f"pg_{role}", password="x")
+    group, _ = Group.objects.get_or_create(name=role)
+    user.groups.add(group)
+    client = Client()
+    client.force_login(user)
+    return client
+
+
+def test_anomalies_page_redirects_anonymous() -> None:
+    """Страница аномалий под ролью analyst: аноним → редирект на вход (302)."""
+    resp = Client().get("/anomalies/")
+    assert resp.status_code == 302 and "login" in resp.headers["Location"]
+
+
+@pytest.mark.django_db
+def test_anomalies_page_forbidden_for_viewer() -> None:
+    """viewer не имеет доступа к расширенной аналитике → 403."""
+    assert _role_client("viewer").get("/anomalies/").status_code == 403
+
+
+@pytest.mark.django_db
+def test_anomalies_page_ok_for_analyst() -> None:
+    """analyst → 200; страница содержит карту, оба списка и подключает anomalies.js."""
+    html = _role_client("analyst").get("/anomalies/").content.decode()
+    assert 'id="map"' in html
+    assert 'id="breaks-list"' in html and 'id="methodology-list"' in html
+    assert "js/anomalies.js" in html
+
+
+@pytest.mark.django_db
+def test_anomalies_menu_item_visible_only_to_analyst() -> None:
+    """Пункт меню «Аномалии» виден analyst и скрыт у viewer."""
+    assert "Аномалии" in _role_client("analyst").get("/").content.decode()
+    assert "Аномалии" not in _role_client("viewer").get("/").content.decode()

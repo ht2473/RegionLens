@@ -16,6 +16,7 @@ urlpatterns = [
     path("regions/<str:okato>/export/", views.export_region, name="export_region"),
     path("methodology/", views.methodology, name="methodology"),
     path("data/", views.data_page, name="data"),
+    path("anomalies/", views.anomalies_page, name="anomalies_page"),
     path("help/", views.help_page, name="help"),
     path("feedback/", views.feedback, name="feedback"),
     path(

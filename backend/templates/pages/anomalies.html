@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Аномалии — RegionLens{% endblock %}
+
+{% block head %}
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Расширенная аналитика · только для роли analyst</p>
+  <h1>Аномалии и структурные сдвиги</h1>
+  <p class="lead">Диагностика данных: пространственные выбросы по годам, резкие сдвиги уровня
+    в рядах показателей и кандидаты смены методологии Росстата. Это описательные находки для
+    проверки аналитиком, <strong>а не утверждение о причинах</strong>.</p>
+</section>
+
+<div class="map-controls">
+  <div class="year-control">
+    <label for="year-slider">Год: <strong id="year-label">2020</strong></label>
+    <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2020">
+  </div>
+</div>
+
+<div class="card">
+  <h3>Пространственные выбросы за <span id="sp-year">2020</span> год</h3>
+  <p class="chart-note">Регион, нетипичный на фоне остальных в этот год (IsolationForest по
+    профилю показателей). Выделенные — помеченные выбросы; наведение даёт оценку, клик ведёт
+    к дашборду региона.</p>
+  <div class="map-wrap">
+    <div id="map" data-year="2020"></div>
+    <div id="map-legend" class="map-legend"></div>
+  </div>
+</div>
+
+<div class="grid cols-2">
+  <div class="card">
+    <h3>Резкие структурные сдвиги рядов</h3>
+    <p class="chart-note">Год, когда ряд показателя региона резко сменил уровень (не плавный
+      тренд). Величина — размер сдвига в единицах показателя.</p>
+    <ol class="anom-list" id="breaks-list"><li class="anom-empty">Загрузка…</li></ol>
+  </div>
+  <div class="card">
+    <h3>Кандидаты смены методологии (A3)</h3>
+    <p class="chart-note">Метрика и год, где сдвиг произошёл синхронно у многих регионов, вне
+      известных макрошоков, на методологически ревизуемой метрике — <strong>кандидат</strong>
+      для ручной проверки, не вывод.</p>
+    <ol class="anom-list" id="methodology-list"><li class="anom-empty">Загрузка…</li></ol>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="{% static 'js/anomalies.js' %}"></script>
+{% endblock %}

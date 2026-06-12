@@ -19,7 +19,7 @@ from . import queries, reports
 from .audit import record
 from .forms import RegistrationForm
 from .models import ExportJob, FeedbackMessage
-from .permissions import ROLE_VIEWER
+from .permissions import ROLE_ANALYST, ROLE_VIEWER, role_required
 
 
 def healthz(request: HttpRequest) -> JsonResponse:
@@ -47,6 +47,12 @@ def home(request: HttpRequest) -> HttpResponse:
 def map_page(request: HttpRequest) -> HttpResponse:
     """Карта регионов (оболочка под MapLibre)."""
     return _page(request, "pages/map.html", active="map", title="Карта")
+
+
+@role_required(ROLE_ANALYST)
+def anomalies_page(request: HttpRequest) -> HttpResponse:
+    """Аномалии и структурные сдвиги (Ф9) — расширенная аналитика, только роль analyst."""
+    return _page(request, "pages/anomalies.html", active="anomalies", title="Аномалии")
 
 
 def rankings(request: HttpRequest) -> HttpResponse:
