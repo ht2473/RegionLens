@@ -20,6 +20,7 @@ from dataclasses import dataclass
 import polars as pl
 
 from pipeline.config import load_config
+from pipeline.contracts import DISPERSION_SCHEMA
 from pipeline.duck import read_table, write_table
 from pipeline.logging_setup import log
 
@@ -27,22 +28,6 @@ DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
 
 # value_type со шкалой отношений (содержательный ноль) — для них cv и P90/P10 интерпретируемы.
 RATIO_SCALE_TYPES = ("absolute", "per_capita", "share")
-
-# Контракт dispersion: разброс value_harmonized по регионам на (метрику, год).
-DISPERSION_SCHEMA = {
-    "metric_id": pl.Int32,
-    "year": pl.Int32,
-    "n_regions": pl.Int32,
-    "mean": pl.Float64,
-    "median": pl.Float64,
-    "std": pl.Float64,
-    "p10": pl.Float64,
-    "p90": pl.Float64,
-    "iqr": pl.Float64,
-    "value_range": pl.Float64,
-    "cv": pl.Float64,
-    "p90_p10_ratio": pl.Float64,
-}
 
 
 @dataclass

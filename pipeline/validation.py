@@ -5,26 +5,13 @@
 
 from typing import Any, cast
 
-import pandera.polars as pa
 import polars as pl
-from pandera import Check
 
+from pipeline.contracts import FACT_REGION_SCHEMA
 from pipeline.logging_setup import log
 
 # Уникальная грань факта (правило грани 3): okato × metric_id × year.
 GRAIN = ["okato", "metric_id", "year"]
-
-# Схема fact_region: типы + год в допустимом диапазоне. coerce приводит типы к схеме.
-FACT_REGION_SCHEMA = pa.DataFrameSchema(
-    {
-        "okato": pa.Column(pl.String),
-        "metric_id": pa.Column(pl.Int32),
-        "year": pa.Column(pl.Int64, Check.in_range(2001, 2025)),
-        "value": pa.Column(pl.Float64, nullable=True),
-        "source": pa.Column(pl.String, nullable=True),
-    },
-    coerce=True,
-)
 
 
 def validate_fact_region(fact: pl.DataFrame) -> pl.DataFrame:

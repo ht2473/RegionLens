@@ -34,20 +34,11 @@ import ruptures as rpt
 from sklearn.ensemble import IsolationForest
 
 from pipeline.config import load_config
+from pipeline.contracts import ANOMALIES_SCHEMA
 from pipeline.duck import write_table
 from pipeline.logging_setup import log
 
 DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
-
-# Контракт anomalies (REFERENCE §2): metric_id NULL для пространственных выбросов.
-ANOMALIES_SCHEMA = {
-    "okato": pl.Utf8,
-    "metric_id": pl.Int32,
-    "year": pl.Int32,
-    "score": pl.Float64,
-    "is_anomaly": pl.Boolean,
-    "kind": pl.Utf8,
-}
 
 
 @dataclass

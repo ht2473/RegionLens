@@ -17,19 +17,11 @@ import numpy as np
 import polars as pl
 
 from pipeline.config import load_config
+from pipeline.contracts import TWINS_SCHEMA
 from pipeline.duck import write_table
 from pipeline.logging_setup import log
 
 DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
-
-# Контракт region_twins (REFERENCE §2): порядок и типы колонок.
-TWINS_SCHEMA = {
-    "okato": pl.Utf8,
-    "year": pl.Int32,
-    "twin_okato": pl.Utf8,
-    "similarity": pl.Float64,
-    "rank": pl.Int32,
-}
 
 
 @dataclass
