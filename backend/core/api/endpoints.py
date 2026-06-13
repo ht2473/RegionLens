@@ -23,6 +23,7 @@ from ..serializers import (
     AnomalySerializer,
     ClusterProfileRowSerializer,
     CompareRowSerializer,
+    DispersionRowSerializer,
     GeoLayerPointSerializer,
     IndexRowSerializer,
     MetricSerializer,
@@ -405,3 +406,41 @@ class Anomalies(APIView):
         data = queries.anomalies_list(year=year, okato=okato, kind=kind)
         log.info("anomalies", stage="api", year=year, okato=okato, kind=kind, rows=len(data))
         return Response(AnomalySerializer(data, many=True).data)
+
+
+class Dispersion(APIView):
+    """GET /api/dispersion/?metric_id=&year=&from=&to= — межрегиональный разброс/неравенство.
+
+    Описательные статистики разброса значений по регионам на (метрику, год): число регионов,
+    среднее, медиана, std, P10/P90, IQR, размах, коэффициент вариации и отношение P90/P10
+    (последние два — лишь для величин со шкалой отношений). Все фильтры необязательны; ряд по
+    одной метрике за годы показывает, расширяется ли разрыв. Это описание, не прогноз.
+    """
+
+    @extend_schema(
+        operation_id="dispersion",
+        parameters=[
+            OpenApiParameter("metric_id", OpenApiTypes.INT, description="Метрика (опц.)"),
+            OpenApiParameter("year", OpenApiTypes.INT, description="Год (опц.)"),
+            P_FROM,
+            P_TO,
+        ],
+        responses=DispersionRowSerializer(many=True),
+        summary="Разброс/неравенство регионов",
+    )
+    def get(self, request: Request) -> Response:
+        try:
+            metric_id = _optional_int(request.query_params.get("metric_id"))
+            year = _optional_int(request.query_params.get("year"))
+            year_from = _optional_int(request.query_params.get("from"))
+            year_to = _optional_int(request.query_params.get("to"))
+        except ValueError:
+            return Response(
+                {"detail": "числовые параметры (metric_id, year, from, to) должны быть целыми"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.dispersion_list(
+            metric_id=metric_id, year=year, year_from=year_from, year_to=year_to
+        )
+        log.info("dispersion", stage="api", metric_id=metric_id, year=year, rows=len(data))
+        return Response(DispersionRowSerializer(data, many=True).data)

@@ -205,3 +205,27 @@ class AnomalySerializer(serializers.Serializer):
     score = serializers.FloatField()
     is_anomaly = serializers.BooleanField()
     kind = serializers.CharField()
+
+
+class DispersionRowSerializer(serializers.Serializer):
+    """Строка разброса/неравенства по регионам на (метрику, год) из таблицы dispersion.
+
+    metric_name/domain могут быть пусты (LEFT JOIN). cv и p90_p10_ratio пусты для величин
+    без шкалы отношений (index/rate_yoy) либо при неположительных mean/p10 — это ожидаемо.
+    Прочие статистики (std, iqr, value_range) считаются всегда. Описательная мера.
+    """
+
+    metric_id = serializers.IntegerField()
+    metric_name = serializers.CharField(allow_null=True)
+    domain = serializers.CharField(allow_null=True)
+    year = serializers.IntegerField()
+    n_regions = serializers.IntegerField()
+    mean = serializers.FloatField(allow_null=True)
+    median = serializers.FloatField(allow_null=True)
+    std = serializers.FloatField(allow_null=True)
+    p10 = serializers.FloatField(allow_null=True)
+    p90 = serializers.FloatField(allow_null=True)
+    iqr = serializers.FloatField(allow_null=True)
+    value_range = serializers.FloatField(allow_null=True)
+    cv = serializers.FloatField(allow_null=True)
+    p90_p10_ratio = serializers.FloatField(allow_null=True)

@@ -515,3 +515,77 @@ def test_anomalies_filter_by_okato(api_duckdb: Path) -> None:
 def test_anomalies_invalid_kind_returns_400(api_duckdb: Path) -> None:
     """Неизвестный kind → 400."""
     assert _client_with_role("analyst").get("/api/anomalies/", {"kind": "bogus"}).status_code == 400
+
+
+@pytest.fixture
+def dispersion_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с таблицами dispersion и metric_dim; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "disp.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE dispersion (metric_id INTEGER, year INTEGER, n_regions INTEGER, "
+        "mean DOUBLE, median DOUBLE, std DOUBLE, p10 DOUBLE, p90 DOUBLE, iqr DOUBLE, "
+        "value_range DOUBLE, cv DOUBLE, p90_p10_ratio DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO dispersion VALUES "
+        "(1, 2019, 80, 100.0, 95.0, 20.0, 70.0, 140.0, 30.0, 90.0, 0.20, 2.0), "
+        "(1, 2020, 80, 110.0, 100.0, 30.0, 70.0, 160.0, 45.0, 110.0, 0.2727, 2.2857), "
+        # метрика-индекс: cv и p90_p10_ratio NULL (нет шкалы отношений)
+        "(3, 2020, 80, 105.0, 105.0, 5.0, 100.0, 110.0, 6.0, 12.0, NULL, NULL)"
+    )
+    con.execute("CREATE TABLE metric_dim (metric_id INTEGER, metric_name VARCHAR, domain VARCHAR)")
+    con.execute(
+        "INSERT INTO metric_dim VALUES "
+        "(1, 'Среднедушевые доходы', 'income'), (3, 'Индекс цен', 'excluded')"
+    )
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_dispersion_returns_all_rows(dispersion_duckdb: Path) -> None:
+    """GET /api/dispersion/ без фильтров отдаёт все строки c подтянутым именем метрики."""
+    resp = APIClient().get("/api/dispersion/")
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) == 3
+    assert {r["metric_name"] for r in rows} == {"Среднедушевые доходы", "Индекс цен"}
+    assert {r["domain"] for r in rows} == {"income", "excluded"}
+
+
+def test_dispersion_filter_by_metric(dispersion_duckdb: Path) -> None:
+    """Фильтр ?metric_id= возвращает только строки этой метрики (ряд по годам)."""
+    rows = APIClient().get("/api/dispersion/?metric_id=1").json()
+    assert {r["metric_id"] for r in rows} == {1}
+    assert sorted(r["year"] for r in rows) == [2019, 2020]
+
+
+def test_dispersion_filter_by_year(dispersion_duckdb: Path) -> None:
+    """Фильтр ?year= возвращает разброс всех метрик за этот год."""
+    rows = APIClient().get("/api/dispersion/?year=2020").json()
+    assert {r["year"] for r in rows} == {2020}
+    assert {r["metric_id"] for r in rows} == {1, 3}
+
+
+def test_dispersion_year_range(dispersion_duckdb: Path) -> None:
+    """Диапазон ?from=&to= ограничивает годы (границы включительно)."""
+    rows = APIClient().get("/api/dispersion/?metric_id=1&from=2020&to=2020").json()
+    assert [r["year"] for r in rows] == [2020]
+
+
+def test_dispersion_cv_null_for_non_ratio_metric(dispersion_duckdb: Path) -> None:
+    """Для метрики без шкалы отношений cv и p90_p10_ratio приходят как null."""
+    rows = APIClient().get("/api/dispersion/?metric_id=3").json()
+    assert rows[0]["cv"] is None
+    assert rows[0]["p90_p10_ratio"] is None
+    # шкало-независимые статистики при этом присутствуют
+    assert rows[0]["std"] == 5.0
+    assert rows[0]["iqr"] == 6.0
+
+
+def test_dispersion_bad_numeric_param_returns_400(dispersion_duckdb: Path) -> None:
+    """Нечисловой числовой параметр приводит к 400, а не к 500."""
+    assert APIClient().get("/api/dispersion/?year=abc").status_code == 400

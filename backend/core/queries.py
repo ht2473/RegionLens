@@ -331,6 +331,44 @@ def anomalies_list(
     )
 
 
+def dispersion_list(
+    *,
+    metric_id: int | None = None,
+    year: int | None = None,
+    year_from: int | None = None,
+    year_to: int | None = None,
+) -> list[dict[str, Any]]:
+    """Межрегиональный разброс/неравенство на (метрику, год) из таблицы dispersion.
+
+    Необязательные фильтры: metric_id, year и диапазон year_from..year_to. Имя и домен
+    метрики подтягиваются LEFT JOIN из metric_dim. cv и p90_p10_ratio могут быть NULL —
+    они считаются лишь для величин со шкалой отношений (см. предрасчёт dispersion). Это
+    описательная мера разброса, не прогноз и не утверждение о причинах.
+    """
+    clauses: list[str] = []
+    params: list[Any] = []
+    if metric_id is not None:
+        clauses.append("d.metric_id = ?")
+        params.append(metric_id)
+    if year is not None:
+        clauses.append("d.year = ?")
+        params.append(year)
+    if year_from is not None:
+        clauses.append("d.year >= ?")
+        params.append(year_from)
+    if year_to is not None:
+        clauses.append("d.year <= ?")
+        params.append(year_to)
+    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    return q(
+        "SELECT d.metric_id, m.metric_name, m.domain, d.year, d.n_regions, "
+        "d.mean, d.median, d.std, d.p10, d.p90, d.iqr, d.value_range, d.cv, d.p90_p10_ratio "
+        "FROM dispersion d LEFT JOIN metric_dim m ON m.metric_id = d.metric_id"
+        f"{where} ORDER BY d.metric_id, d.year",
+        params,
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Сводка по данным/методологии (Ф11-обогащение): фактические числа для страниц
 # «Данные» и «Методология». ВСЁ выводится запросом к уже посчитанным контрактным

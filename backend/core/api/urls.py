@@ -46,4 +46,6 @@ urlpatterns = [
     path("compare/", endpoints.Compare.as_view(), name="compare"),
     # Аномалии и структурные сдвиги (Ф9, доступ analyst)
     path("anomalies/", endpoints.Anomalies.as_view(), name="anomalies"),
+    # Разброс/неравенство регионов на метрику-год (Ф13)
+    path("dispersion/", endpoints.Dispersion.as_view(), name="dispersion"),
 ]
