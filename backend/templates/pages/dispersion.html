@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Неравенство регионов — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Межрегиональное неравенство</p>
+  <h1>Неравенство регионов</h1>
+  <p class="lead">Насколько сильно различаются регионы по выбранному показателю и как разрыв
+    менялся по годам. Это описательная статистика разброса значений по регионам,
+    <strong>не прогноз и не вывод о причинах</strong>.</p>
+</section>
+
+<div class="map-controls">
+  <div class="year-control">
+    <label for="metric-select">Показатель</label>
+    <select id="metric-select"><option>Загрузка…</option></select>
+  </div>
+</div>
+
+<div id="dispersion-root">
+  <div class="shell"><p>Выберите показатель…</p></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/dispersion.js' %}"></script>
+{% endblock %}

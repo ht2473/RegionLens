@@ -30,6 +30,7 @@
         <a href="{% url 'regions' %}" class="{% if active == 'regions' %}is-active{% endif %}">Регионы</a>
         <a href="{% url 'methodology' %}" class="{% if active == 'methodology' %}is-active{% endif %}">Методология</a>
         <a href="{% url 'data' %}" class="{% if active == 'data' %}is-active{% endif %}">Данные</a>
+        <a href="{% url 'dispersion_page' %}" class="{% if active == 'dispersion' %}is-active{% endif %}">Неравенство</a>
         {% if is_analyst %}<a href="{% url 'anomalies_page' %}" class="{% if active == 'anomalies' %}is-active{% endif %}">Аномалии</a>{% endif %}
         <a href="{% url 'help' %}" class="{% if active == 'help' %}is-active{% endif %}">Справка</a>
         <a href="{% url 'feedback' %}" class="{% if active == 'feedback' %}is-active{% endif %}">Обратная связь</a>

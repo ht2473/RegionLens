@@ -168,6 +168,16 @@ def data_page(request: HttpRequest) -> HttpResponse:
     )
 
 
+def dispersion_page(request: HttpRequest) -> HttpResponse:
+    """Неравенство регионов (Ф13): разброс показателей по регионам (оболочка под JS)."""
+    return _page(
+        request,
+        "pages/dispersion.html",
+        active="dispersion",
+        title="Неравенство регионов",
+    )
+
+
 def help_page(request: HttpRequest) -> HttpResponse:
     """Справка по платформе (с данными об авторе)."""
     return _page(request, "pages/help.html", active="help", title="Справка")

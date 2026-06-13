@@ -18,6 +18,7 @@ PAGES = [
     "/regions/",
     "/methodology/",
     "/data/",
+    "/dispersion/",
     "/help/",
     "/feedback/",
 ]
@@ -31,6 +32,7 @@ MENU_LABELS = [
     "Регионы",
     "Методология",
     "Данные",
+    "Неравенство",
     "Справка",
     "Обратная связь",
 ]
@@ -204,3 +206,18 @@ def test_anomalies_menu_item_visible_only_to_analyst() -> None:
     """Пункт меню «Аномалии» виден analyst и скрыт у viewer."""
     assert "Аномалии" in _role_client("analyst").get("/").content.decode()
     assert "Аномалии" not in _role_client("viewer").get("/").content.decode()
+
+
+def test_dispersion_page_shell(client: Client) -> None:
+    """Страница «Неравенство регионов» публична и содержит селектор метрики и корень под JS."""
+    html = client.get("/dispersion/").content.decode()
+    assert 'id="metric-select"' in html
+    assert 'id="dispersion-root"' in html
+    assert "js/dispersion.js" in html
+
+
+def test_dispersion_nav_active(client: Client) -> None:
+    """На странице неравенства пункт меню «Неравенство» подсвечен как активный."""
+    html = client.get("/dispersion/").content.decode()
+    assert "is-active" in html
+    assert "Неравенство" in html
