@@ -116,6 +116,15 @@ def _stage_anomalies(duckdb_path: str, sources_path: str, log_mlflow: bool) -> N
     run_anomalies(features_wide, fact_region, metric_dim, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_dispersion(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """Межрегиональный разброс/неравенство показателей на (метрику, год)."""
+    from pipeline.dispersion import run_dispersion
+
+    features_wide = read_table(duckdb_path, "features_wide")
+    metric_dim = read_table(duckdb_path, "metric_dim")
+    run_dispersion(features_wide, metric_dim, duckdb_path=duckdb_path, write=True)
+
+
 #: Линейный план конвейера в порядке зависимостей (вход каждой стадии произведён выше).
 STAGES: tuple[Stage, ...] = (
     Stage(
@@ -166,6 +175,13 @@ STAGES: tuple[Stage, ...] = (
         ("features_wide", "fact_region", "metric_dim"),
         ("anomalies",),
         "Ф9 аномалии и структурные сдвиги",
+    ),
+    Stage(
+        "dispersion",
+        _stage_dispersion,
+        ("features_wide", "metric_dim"),
+        ("dispersion",),
+        "разброс/неравенство регионов на метрику-год",
     ),
 )
 
