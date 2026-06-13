@@ -15,11 +15,12 @@ def test_pipeline_imports() -> None:
     assert logging_setup.log is not None
 
 
-def test_run_all_stub_runs() -> None:
-    """Каркасный оркестратор конвейера выполняется без ошибок (стадий пока нет)."""
-    from pipeline.run_all import run_all
+def test_run_all_plan_is_wired() -> None:
+    """Оркестратор конвейера собран: план непуст, select_stages() возвращает весь план."""
+    from pipeline.run_all import STAGES, select_stages
 
-    run_all()
+    assert len(STAGES) >= 7
+    assert [s.name for s in select_stages()] == [s.name for s in STAGES]
 
 
 def test_django_settings_load(settings: Any) -> None:
