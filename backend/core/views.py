@@ -27,16 +27,26 @@ def healthz(request: HttpRequest) -> JsonResponse:
     return JsonResponse({"status": "ok", "service": "regionlens"})
 
 
-def _page(request: HttpRequest, template: str, *, active: str, title: str) -> HttpResponse:
-    """Отрисовать страницу с подсветкой меню и хлебными крошками (Главная → title)."""
+def _page(
+    request: HttpRequest,
+    template: str,
+    *,
+    active: str,
+    title: str,
+    extra: dict[str, object] | None = None,
+) -> HttpResponse:
+    """Отрисовать страницу с подсветкой меню и хлебными крошками (Главная → title).
+
+    extra — необязательный дополнительный контекст шаблона (например, сводка по данным
+    для страниц «Данные»/«Методология»).
+    """
     crumbs: list[dict[str, str]] = [{"title": "Главная", "url": reverse("home")}]
     if active != "home":
         crumbs.append({"title": title})
-    return render(
-        request,
-        template,
-        {"active": active, "breadcrumbs": crumbs},
-    )
+    context: dict[str, object] = {"active": active, "breadcrumbs": crumbs}
+    if extra:
+        context.update(extra)
+    return render(request, template, context)
 
 
 def home(request: HttpRequest) -> HttpResponse:
@@ -137,13 +147,25 @@ def export_region(request: HttpRequest, okato: str) -> HttpResponse:
 
 
 def methodology(request: HttpRequest) -> HttpResponse:
-    """Методология расчётов."""
-    return _page(request, "pages/methodology.html", active="methodology", title="Методология")
+    """Методология расчётов (с реальными числами из хранилища, если оно собрано)."""
+    return _page(
+        request,
+        "pages/methodology.html",
+        active="methodology",
+        title="Методология",
+        extra={"profile": queries.data_profile()},
+    )
 
 
 def data_page(request: HttpRequest) -> HttpResponse:
-    """Источник и охват данных."""
-    return _page(request, "pages/data.html", active="data", title="Данные")
+    """Источник и охват данных (с реальными числами из хранилища, если оно собрано)."""
+    return _page(
+        request,
+        "pages/data.html",
+        active="data",
+        title="Данные",
+        extra={"profile": queries.data_profile()},
+    )
 
 
 def help_page(request: HttpRequest) -> HttpResponse:

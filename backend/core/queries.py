@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.logging_setup import log
+
 from .duck import q
 
 # Канонические слои карты: типология строится KMeans, базовый индекс — равные веса.
@@ -327,3 +329,111 @@ def anomalies_list(
         f"{where} ORDER BY a.kind, a.year, a.score DESC",
         params,
     )
+
+
+# --------------------------------------------------------------------------- #
+# Сводка по данным/методологии (Ф11-обогащение): фактические числа для страниц
+# «Данные» и «Методология». ВСЁ выводится запросом к уже посчитанным контрактным
+# таблицам — без отдельной materialized-таблицы и без пересчёта аналитики на лету
+# (инвариант «двух миров»: приложение только читает). Делает новизну №1
+# (гармонизация) видимой в работающей системе.
+# --------------------------------------------------------------------------- #
+
+# Человекочитаемые подписи доменов и форм значений (стабильный словарь предметной
+# области; держим рядом с данными, чтобы шаблон оставался без логики).
+DOMAIN_LABELS_RU = {
+    "economy": "Экономика",
+    "income": "Доходы",
+    "demography": "Демография",
+    "labor": "Рынок труда",
+    "infrastructure": "Инфраструктура",
+    "health_edu": "Здоровье и образование",
+    "excluded": "Вне аналитики",
+}
+VALUE_TYPE_LABELS_RU = {
+    "absolute": "абсолютные",
+    "per_capita": "на душу населения",
+    "share": "доли / проценты",
+    "rate_yoy": "темпы (год к году)",
+    "index": "индексы",
+}
+
+
+def data_profile() -> dict[str, Any] | None:
+    """Сводка фактов о данных и методике из контрактных таблиц DuckDB.
+
+    Возвращает словарь с реальными числами (охват, воронка покрытия, состав ядра по
+    доменам, формы значений, доля импутаций, качество типологии, схемы индекса) либо
+    ``None``, если аналитическое хранилище ещё не собрано/недоступно — тогда страницы
+    показывают только текстовое описание (мягкая деградация, без падения).
+
+    Зависит только от таблиц обязательного ядра (Ф1–Ф4): region_dim, fact_region,
+    metric_dim, features_wide, clusters, dev_index. Опциональные Should-таблицы не
+    требуются, поэтому сводка доступна сразу после прогона Must-конвейера.
+    """
+    try:
+        regions = q(
+            "SELECT COUNT(*) FILTER (WHERE included_flag) AS included, "
+            "COUNT(*) FILTER (WHERE is_aggregate_variant) AS aggregates, "
+            "COUNT(DISTINCT federal_district) FILTER (WHERE included_flag) AS districts "
+            "FROM region_dim"
+        )[0]
+        fact = q(
+            "SELECT COUNT(*) AS rows, COUNT(DISTINCT source) AS sources, "
+            "MIN(year) AS year_min, MAX(year) AS year_max FROM fact_region"
+        )[0]
+        metrics_row = q(
+            "SELECT COUNT(*) AS total, "
+            "COUNT(*) FILTER (WHERE higher_is_better IS NOT NULL) AS core FROM metric_dim"
+        )[0]
+        core_by_domain = q(
+            "SELECT domain, COUNT(*) AS n FROM metric_dim "
+            "WHERE higher_is_better IS NOT NULL GROUP BY domain ORDER BY n DESC, domain"
+        )
+        for row in core_by_domain:
+            row["label"] = DOMAIN_LABELS_RU.get(row["domain"], row["domain"])
+        value_types = q(
+            "SELECT value_type, COUNT(*) AS n FROM metric_dim "
+            "WHERE higher_is_better IS NOT NULL GROUP BY value_type ORDER BY n DESC, value_type"
+        )
+        for row in value_types:
+            row["label"] = VALUE_TYPE_LABELS_RU.get(row["value_type"], row["value_type"])
+        coverage = q(
+            "SELECT COUNT(*) FILTER (WHERE coverage >= 0.95) AS ge95, "
+            "COUNT(*) FILTER (WHERE coverage >= 0.90) AS ge90, "
+            "COUNT(*) FILTER (WHERE coverage >= 0.80) AS ge80, "
+            "COUNT(*) FILTER (WHERE coverage >= 0.50) AS ge50 FROM metric_dim"
+        )[0]
+        fw = q(
+            "SELECT COUNT(*) AS cells, COUNT(*) FILTER (WHERE is_imputed) AS imputed, "
+            "COUNT(DISTINCT okato) AS regions, COUNT(DISTINCT metric_id) AS metrics, "
+            "MIN(year) AS window_start, MAX(year) AS window_end FROM features_wide"
+        )[0]
+        cells = fw["cells"] or 0
+        fw["impute_share"] = (fw["imputed"] / cells) if cells else 0.0
+        fw["impute_pct"] = round(fw["impute_share"] * 100, 1)
+        clustering = q(
+            "SELECT k, AVG(silhouette) AS silhouette, AVG(stability_flag) AS stability, "
+            "COUNT(DISTINCT year) AS years FROM clusters WHERE algo = ? GROUP BY k ORDER BY k",
+            [MAP_CLUSTER_ALGO],
+        )
+        for row in clustering:
+            stab = row.get("stability")
+            row["stability_pct"] = round(stab * 100, 1) if stab is not None else None
+        index_row = q(
+            "SELECT COUNT(DISTINCT weighting_scheme) AS schemes, COUNT(*) AS rows FROM dev_index"
+        )[0]
+        return {
+            "regions": regions,
+            "fact": fact,
+            "metrics": metrics_row,
+            "core_by_domain": core_by_domain,
+            "value_types": value_types,
+            "coverage": coverage,
+            "features": fw,
+            "clustering": clustering,
+            "index": index_row,
+        }
+    except Exception as exc:  # noqa: BLE001 — граница мягкой деградации: нет хранилища → нет чисел
+        log.warning("data_profile_unavailable", stage="api", error=str(exc))
+        return None

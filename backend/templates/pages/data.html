@@ -10,6 +10,31 @@
     «Если быть точным». Персональных данных нет — все показатели агрегированы по регионам.</p>
 </section>
 
+{% if profile %}
+<div class="kpi-row">
+  <div class="card kpi">
+    <div class="kpi-label">Субъектов в аналитике</div>
+    <div class="num">{{ profile.regions.included }}</div>
+    <div class="kpi-sub">+{{ profile.regions.aggregates }} агрегата «с АО» исключены</div>
+  </div>
+  <div class="card kpi">
+    <div class="kpi-label">Изданий-источников</div>
+    <div class="num">{{ profile.fact.sources }}</div>
+    <div class="kpi-sub">дедупликация по свежайшему</div>
+  </div>
+  <div class="card kpi">
+    <div class="kpi-label">Диапазон рядов</div>
+    <div class="num">{{ profile.fact.year_min }}–{{ profile.fact.year_max }}</div>
+    <div class="kpi-sub">для отображения на дашбордах</div>
+  </div>
+  <div class="card kpi">
+    <div class="kpi-label">Окно расчёта</div>
+    <div class="num">{{ profile.features.window_start }}–{{ profile.features.window_end }}</div>
+    <div class="kpi-sub">типология / индекс / переходы</div>
+  </div>
+</div>
+{% endif %}
+
 <div class="prose">
   <h2>Источник</h2>
   <ul>
@@ -20,17 +45,41 @@
 
   <h2>Охват</h2>
   <ul>
-    <li><strong>85</strong> непересекающихся субъектов РФ (агрегаты «с автономным округом» исключены,
-      чтобы не задваивать данные).</li>
-    <li>Полный диапазон рядов — 2001–2025 (для отображения); окно расчёта аналитики —
-      <strong>2010–2024</strong>.</li>
+    <li><strong>{% if profile %}{{ profile.regions.included }}{% else %}85{% endif %}</strong>
+      непересекающихся субъектов РФ{% if profile %} в {{ profile.regions.districts }} федеральных
+      округах{% endif %} (агрегаты «с автономным округом» исключены, чтобы не задваивать данные).</li>
+    <li>Полный диапазон рядов — для отображения; окно расчёта аналитики —
+      <strong>{% if profile %}{{ profile.features.window_start }}–{{ profile.features.window_end }}{% else %}2010–2024{% endif %}</strong>.</li>
     <li>Ключ региона и стыковка с картой — код <strong>ОКАТО</strong>.</li>
   </ul>
+</div>
 
+{% if profile %}
+<h2>Отбор показателей: от тысяч к курируемому ядру</h2>
+<p class="chart-note">Покрытие метрики — доля заполненных пар «регион×год» в окне расчёта. Из всего
+  массива по покрытию, релевантности и неизбыточности отобрано курируемое ядро.</p>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>Ступень отбора</th><th class="num">Метрик</th></tr></thead>
+    <tbody>
+      <tr><td>Всего метрик (код × подкатегория)</td><td class="num">{{ profile.metrics.total }}</td></tr>
+      <tr><td>Покрытие ≥ 50%</td><td class="num">{{ profile.coverage.ge50 }}</td></tr>
+      <tr><td>Покрытие ≥ 80%</td><td class="num">{{ profile.coverage.ge80 }}</td></tr>
+      <tr><td>Покрытие ≥ 90%</td><td class="num">{{ profile.coverage.ge90 }}</td></tr>
+      <tr><td>Покрытие ≥ 95%</td><td class="num">{{ profile.coverage.ge95 }}</td></tr>
+      <tr><td><strong>Курируемое ядро (в аналитике)</strong></td><td class="num"><strong>{{ profile.metrics.core }}</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="prose">
   <h2>Качество и воспроизводимость</h2>
   <ul>
     <li>Дедупликация по свежайшему изданию источника; контроль качества как код.</li>
-    <li>Импутация пропусков с предохранителями; доля импутаций контролируется.</li>
+    <li>Импутация пропусков с предохранителями;
+      {% if profile %}фактическая доля импутаций в аналитической матрице —
+      <strong>{{ profile.features.impute_pct }}%</strong>{% else %}доля импутаций контролируется{% endif %}.</li>
     <li>Сиды зафиксированы — пересборка аналитики детерминирована.</li>
   </ul>
 
