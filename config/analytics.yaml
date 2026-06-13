@@ -6,12 +6,6 @@ impute_max_gap: 2                     # Ф2: макс. длина подряд �
 impute_share_max: 0.15                # Ф2: макс. доля импутаций (pandera-гейт)
 clustering: {k_range: [3, 8], chosen_k: 3, seed: 42, algo: kmeans}   # Ф3 (chosen_k зафиксирован)
 trajectory: {leap_gap: 2, volatile_changes: 3}                           # Ф5
-forecasting:                                                             # Ф8
-  horizon: 2
-  lags: [1, 2, 3]
-  min_train: 5
-  alpha: 0.1
-  models: [naive, ets, theta, global_gbm]
 anomalies:                                     # Ф9
   contamination: 0.05      # доля пространственных выбросов (IsolationForest)
   ruptures_model: l2       # стоимость сегментации Binseg (l2 — сдвиг среднего)

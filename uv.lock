@@ -2167,20 +2167,6 @@ wheels = [
 ]
 
 [[package]]
-name = "mapie"
-version = "1.4.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-    { name = "scikit-learn" },
-    { name = "scipy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/35/ed/f1be8cd32f3bf00cfc4453b6313f7ae552f64fe19c48d60dc00a3b82b39e/mapie-1.4.0.tar.gz", hash = "sha256:d924b3aebae36e19127e861da348b631eb609afb8c28e235521a7977e894819e", size = 15269060, upload-time = "2026-04-30T15:34:26.138Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/e8/2c36847996dd64d5c78a56ffb903a6f74855145d8833b8dc4c26814db366/mapie-1.4.0-py3-none-any.whl", hash = "sha256:3a810b140eedb39f3fb072d78b058e97682e45e4c791ad2dbf8ffbd2671b98b9", size = 265371, upload-time = "2026-04-30T15:34:23.906Z" },
-]
-
-[[package]]
 name = "markdown-it-py"
 version = "4.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3882,7 +3868,6 @@ dev = [
 pipeline = [
     { name = "dvc" },
     { name = "joblib" },
-    { name = "mapie" },
     { name = "mlflow" },
     { name = "pandas" },
     { name = "pandera" },
@@ -3890,7 +3875,6 @@ pipeline = [
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "shap" },
-    { name = "sktime" },
     { name = "statsmodels" },
 ]
 
@@ -3905,7 +3889,6 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27" },
     { name = "joblib", marker = "extra == 'pipeline'", specifier = ">=1.4" },
     { name = "locust", marker = "extra == 'dev'", specifier = ">=2.20" },
-    { name = "mapie", marker = "extra == 'pipeline'", specifier = ">=0.8" },
     { name = "mlflow", marker = "extra == 'pipeline'", specifier = ">=2.13" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
     { name = "openpyxl", marker = "extra == 'backend'", specifier = ">=3.1" },
@@ -3925,7 +3908,6 @@ requires-dist = [
     { name = "scikit-learn", marker = "extra == 'pipeline'", specifier = ">=1.4" },
     { name = "scipy", marker = "extra == 'pipeline'", specifier = ">=1.13" },
     { name = "shap", marker = "extra == 'pipeline'", specifier = ">=0.45" },
-    { name = "sktime", marker = "extra == 'pipeline'", specifier = ">=0.30" },
     { name = "statsmodels", marker = "extra == 'pipeline'", specifier = ">=0.14" },
     { name = "structlog", specifier = ">=24.1" },
 ]
@@ -4123,15 +4105,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/0f/26/29499f16b62220ce3b0bb75a8f8de921814e55c223e3263df7f2733eb5a7/ruptures-1.1.10-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:fea4d0049051530e73babc2f44e75e6ba520bb90fe5bfa60d59c4d054180893e", size = 1311189, upload-time = "2025-09-10T09:47:52.701Z" },
     { url = "https://files.pythonhosted.org/packages/f3/dc/f0a268190b233c4d4b9fa50cd7078bbc536bf319d724218087b2cb4a1138/ruptures-1.1.10-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:fada68f6617e26138151a1ce6f73932e84ae01119e48be005773a40363454e51", size = 1330363, upload-time = "2025-09-10T09:47:53.999Z" },
     { url = "https://files.pythonhosted.org/packages/bd/29/1fe6a1b1811f64bdd35b61300e9d57f68d630d271c92423553a30072d5c5/ruptures-1.1.10-cp313-cp313-win_amd64.whl", hash = "sha256:39f3ece91327440fbebca84155b39435970ccc0f52bd3e33878aaff157d04e01", size = 477215, upload-time = "2025-09-10T09:47:55.027Z" },
-]
-
-[[package]]
-name = "scikit-base"
-version = "0.13.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4a/47/7954094adee334012d7182c2f78bb5f134f6ec93e28a0fdc6856de5ed4f6/scikit_base-0.13.2.tar.gz", hash = "sha256:c78245064754781b17062ab183a03bc12b36163b9e5f2cfcb6f29f749be4b266", size = 135452, upload-time = "2026-04-13T21:14:50.269Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d8/2e/1488716735c31bf82c6898759d12771b3e0ff5daeb0f01b73b82a4462ad9/scikit_base-0.13.2-py3-none-any.whl", hash = "sha256:0a67063c0323b9521ede91cfcc87ce097126de5f9d5367abed6e76ff97a0eda5", size = 160792, upload-time = "2026-04-13T21:14:48.243Z" },
 ]
 
 [[package]]
@@ -4360,24 +4333,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c8/9f/46448c4e41a4c5ee4bdb74b3758af48e5ff0faeffe40f4e301bfc7594894/skops-0.14.0.tar.gz", hash = "sha256:6c8c0e047f691a3a582c3258943eecafcbfd79c8c7eef66260f3703e363254f0", size = 608084, upload-time = "2026-04-20T18:23:55.336Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e7/0e/3ae19fa941522cd98e119762e7181d371c8dba0b2d72bfaf9522692e329c/skops-0.14.0-py3-none-any.whl", hash = "sha256:60a5db78a9db46ccee2139a0ba13ab5afb1c96f4749b382e75a371291bbe3e36", size = 132198, upload-time = "2026-04-20T18:23:54.018Z" },
-]
-
-[[package]]
-name = "sktime"
-version = "0.40.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "joblib" },
-    { name = "numpy" },
-    { name = "packaging" },
-    { name = "pandas" },
-    { name = "scikit-base" },
-    { name = "scikit-learn" },
-    { name = "scipy" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/84/7a/22b99a00a7cabaa34c350f78f33ae89711cfc08deef06043daee3835dbb3/sktime-0.40.1.tar.gz", hash = "sha256:bbf3c2971c7ad388fbebc1d1fb573e20f730e6486c00935b336d8edf13bca04d", size = 35197759, upload-time = "2025-11-25T00:03:38.744Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7e/0d/3b2e5b51593009f72fb7fb6956e6c652da1450c8c5484c40a276113c2114/sktime-0.40.1-py3-none-any.whl", hash = "sha256:130bb0c39ca4377e491c4dfa64c8ac67c3de2660dd406dd7690db6a8ac349c4e", size = 36265753, upload-time = "2025-11-25T00:03:34.522Z" },
 ]
 
 [[package]]

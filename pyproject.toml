@@ -21,9 +21,7 @@ pipeline = [              # офлайн-конвейер: аналитика/ML
   "scikit-learn>=1.4",
   "scipy>=1.13",
   "statsmodels>=0.14",
-  "sktime>=0.30",
   "shap>=0.45",
-  "mapie>=0.8",
   "ruptures>=1.1",
   "mlflow>=2.13",
   "joblib>=1.4",
@@ -74,8 +72,8 @@ exclude = ["migrations/"]
 module = [
   "duckdb.*", "polars.*", "structlog.*", "environ.*", "yaml.*",
   "django.*", "rest_framework.*", "drf_spectacular.*",
-  "pandas.*", "sklearn.*", "scipy.*", "statsmodels.*", "sktime.*",
-  "shap.*", "mapie.*", "ruptures.*", "mlflow.*", "joblib.*", "pandera.*",
+  "pandas.*", "sklearn.*", "scipy.*", "statsmodels.*",
+  "shap.*", "ruptures.*", "mlflow.*", "joblib.*", "pandera.*",
   "openpyxl.*", "docx.*",
 ]
 ignore_missing_imports = true
