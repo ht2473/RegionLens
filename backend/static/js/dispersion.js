@@ -105,13 +105,12 @@
         "(нет содержательного нуля) — смотрите разброс по IQR и значениям P10/P90.</p>";
 
     root.innerHTML =
-      "<div class='card'>" +
       note +
       "<div class='table-wrap'><table class='table'><thead>" +
       head +
       "</thead><tbody>" +
       body +
-      "</tbody></table></div></div>";
+      "</tbody></table></div>";
   }
 
   select.addEventListener("change", function () {
