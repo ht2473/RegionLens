@@ -23,6 +23,7 @@ from ..serializers import (
     AnomalySerializer,
     ClusterProfileRowSerializer,
     CompareRowSerializer,
+    CorrelationRowSerializer,
     DispersionRowSerializer,
     GeoLayerPointSerializer,
     IndexRowSerializer,
@@ -471,3 +472,40 @@ class RankStability(APIView):
         data = queries.rank_stability_list(scheme=scheme)
         log.info("rank_stability", stage="api", scheme=scheme, rows=len(data))
         return Response(RankStabilityRowSerializer(data, many=True).data)
+
+
+class Correlations(APIView):
+    """GET /api/correlations/?year=&metric_id=&limit= — парные корреляции метрик (analyst-only).
+
+    Описание совместного движения метрик по регионам за год (по умолчанию последний),
+    отсортировано от сильнейших связей к слабым. metric_id — связи конкретной метрики (в любой
+    позиции пары). Это описательная мера: корреляция ≠ причинность, и это не прогноз.
+    """
+
+    permission_classes = [IsAnalyst]
+
+    @extend_schema(
+        operation_id="correlations",
+        parameters=[
+            P_YEAR,
+            OpenApiParameter(
+                "metric_id", OpenApiTypes.INT, description="Связи этой метрики (опц.)"
+            ),
+            OpenApiParameter("limit", OpenApiTypes.INT, description="Ограничить число пар (опц.)"),
+        ],
+        responses=CorrelationRowSerializer(many=True),
+        summary="Корреляции метрик",
+    )
+    def get(self, request: Request) -> Response:
+        try:
+            year = _optional_int(request.query_params.get("year"))
+            metric_id = _optional_int(request.query_params.get("metric_id"))
+            limit = _optional_int(request.query_params.get("limit"))
+        except ValueError:
+            return Response(
+                {"detail": "числовые параметры (year, metric_id, limit) должны быть целыми"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.correlations_list(year=year, metric_id=metric_id, limit=limit)
+        log.info("correlations", stage="api", year=year, metric_id=metric_id, rows=len(data))
+        return Response(CorrelationRowSerializer(data, many=True).data)

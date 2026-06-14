@@ -385,6 +385,36 @@ def rank_stability_list(scheme: str = MAP_INDEX_SCHEME) -> list[dict[str, Any]]:
     )
 
 
+def correlations_list(
+    *, year: int | None = None, metric_id: int | None = None, limit: int | None = None
+) -> list[dict[str, Any]]:
+    """Парные корреляции метрик по регионам за год (по умолчанию последний), сильнейшие первыми.
+
+    Если задан metric_id — только пары с этой метрикой (в любой позиции). Имена метрик —
+    LEFT JOIN из metric_dim. Описательная мера совместного движения метрик, НЕ причинность
+    и НЕ прогноз.
+    """
+    clauses = ["c.year = COALESCE(CAST(? AS INTEGER), (SELECT MAX(year) FROM correlations))"]
+    params: list[Any] = [year]
+    if metric_id is not None:
+        clauses.append("(c.metric_a = ? OR c.metric_b = ?)")
+        params.extend([metric_id, metric_id])
+    where = " WHERE " + " AND ".join(clauses)
+    limit_sql = ""
+    if limit is not None:
+        limit_sql = " LIMIT ?"
+        params.append(limit)
+    return q(
+        "SELECT c.year, c.metric_a, ma.metric_name AS metric_a_name, "
+        "c.metric_b, mb.metric_name AS metric_b_name, c.method, c.correlation, c.n_regions "
+        "FROM correlations c "
+        "LEFT JOIN metric_dim ma ON ma.metric_id = c.metric_a "
+        "LEFT JOIN metric_dim mb ON mb.metric_id = c.metric_b"
+        f"{where} ORDER BY ABS(c.correlation) DESC, c.metric_a, c.metric_b{limit_sql}",
+        params,
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Сводка по данным/методологии (Ф11-обогащение): фактические числа для страниц
 # «Данные» и «Методология». ВСЁ выводится запросом к уже посчитанным контрактным

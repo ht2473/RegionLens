@@ -641,3 +641,74 @@ def test_rank_stability_most_stable_first(rank_stability_duckdb: Path) -> None:
 def test_rank_stability_invalid_scheme_returns_400(rank_stability_duckdb: Path) -> None:
     """Неизвестная схема весов приводит к 400, а не к пустому/ошибочному ответу."""
     assert APIClient().get("/api/rank-stability/?scheme=bogus").status_code == 400
+
+
+@pytest.fixture
+def correlations_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с таблицами correlations и metric_dim; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "corr.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE correlations (year INTEGER, metric_a INTEGER, metric_b INTEGER, "
+        "method VARCHAR, correlation DOUBLE, n_regions INTEGER)"
+    )
+    con.execute(
+        "INSERT INTO correlations VALUES "
+        "(2020, 1, 2, 'spearman', 0.9, 80), "
+        "(2020, 1, 3, 'spearman', -0.8, 80), "
+        "(2020, 2, 3, 'spearman', 0.2, 80), "
+        "(2019, 1, 2, 'spearman', 0.5, 78)"
+    )
+    con.execute("CREATE TABLE metric_dim (metric_id INTEGER, metric_name VARCHAR)")
+    con.execute("INSERT INTO metric_dim VALUES (1, 'Доходы'), (2, 'Зарплата'), (3, 'Безработица')")
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_correlations_requires_authentication_anonymous() -> None:
+    """Аноним → 403 (эндпойнт корреляций под ролью analyst)."""
+    assert APIClient().get("/api/correlations/").status_code == 403
+
+
+@pytest.mark.django_db
+def test_correlations_forbidden_for_viewer(correlations_duckdb: Path) -> None:
+    """viewer не имеет доступа к корреляциям → 403."""
+    assert _client_with_role("viewer").get("/api/correlations/").status_code == 403
+
+
+@pytest.mark.django_db
+def test_correlations_default_latest_year_sorted(correlations_duckdb: Path) -> None:
+    """analyst, без года → последний год, пары отсортированы по |корреляции|, с именами метрик."""
+    rows = _client_with_role("analyst").get("/api/correlations/").json()
+    assert {r["year"] for r in rows} == {2020}
+    assert [abs(r["correlation"]) for r in rows] == [0.9, 0.8, 0.2]
+    assert rows[0]["metric_a_name"] == "Доходы"
+    assert rows[0]["metric_b_name"] == "Зарплата"
+
+
+@pytest.mark.django_db
+def test_correlations_filter_by_metric(correlations_duckdb: Path) -> None:
+    """Фильтр metric_id возвращает только пары с этой метрикой (в любой позиции)."""
+    rows = _client_with_role("analyst").get("/api/correlations/", {"metric_id": 3}).json()
+    assert all(r["metric_a"] == 3 or r["metric_b"] == 3 for r in rows)
+    assert [abs(r["correlation"]) for r in rows] == [0.8, 0.2]
+
+
+@pytest.mark.django_db
+def test_correlations_year_filter(correlations_duckdb: Path) -> None:
+    """Фильтр ?year= ограничивает год."""
+    rows = _client_with_role("analyst").get("/api/correlations/", {"year": 2019}).json()
+    assert {r["year"] for r in rows} == {2019}
+    assert len(rows) == 1
+
+
+@pytest.mark.django_db
+def test_correlations_limit_and_bad_param(correlations_duckdb: Path) -> None:
+    """limit ограничивает число пар; нечисловой параметр → 400."""
+    client = _client_with_role("analyst")
+    rows = client.get("/api/correlations/", {"limit": 1}).json()
+    assert len(rows) == 1 and abs(rows[0]["correlation"]) == 0.9
+    assert client.get("/api/correlations/", {"year": "abc"}).status_code == 400

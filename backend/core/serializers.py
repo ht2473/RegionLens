@@ -248,3 +248,20 @@ class RankStabilityRowSerializer(serializers.Serializer):
     rank_max = serializers.IntegerField()
     rank_range = serializers.IntegerField()
     mean_abs_change = serializers.FloatField(allow_null=True)
+
+
+class CorrelationRowSerializer(serializers.Serializer):
+    """Строка парной корреляции метрик по регионам за год.
+
+    metric_a/metric_b — пара метрик (a < b), correlation — выбранный метод (spearman/pearson).
+    Имена могут быть пусты (LEFT JOIN). Это описание совместного движения, НЕ причинность.
+    """
+
+    year = serializers.IntegerField()
+    metric_a = serializers.IntegerField()
+    metric_a_name = serializers.CharField(allow_null=True)
+    metric_b = serializers.IntegerField()
+    metric_b_name = serializers.CharField(allow_null=True)
+    method = serializers.CharField()
+    correlation = serializers.FloatField()
+    n_regions = serializers.IntegerField()

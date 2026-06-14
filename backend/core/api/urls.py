@@ -50,4 +50,6 @@ urlpatterns = [
     path("dispersion/", endpoints.Dispersion.as_view(), name="dispersion"),
     # Стабильность рейтинга: волатильность ранга регионов по годам (Ф14)
     path("rank-stability/", endpoints.RankStability.as_view(), name="rank_stability"),
+    # Парные корреляции метрик по регионам (Ф15, доступ analyst)
+    path("correlations/", endpoints.Correlations.as_view(), name="correlations"),
 ]
