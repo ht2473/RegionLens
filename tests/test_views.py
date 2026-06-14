@@ -238,3 +238,31 @@ def test_rankings_subnav_links_both_tabs(client: Client) -> None:
     html = client.get("/rankings/").content.decode()
     assert 'class="subnav"' in html
     assert "/rankings/stability/" in html
+
+
+def test_correlations_page_redirects_anonymous() -> None:
+    """Страница корреляций под ролью analyst: аноним → редирект на вход (302)."""
+    resp = Client().get("/correlations/")
+    assert resp.status_code == 302 and "login" in resp.headers["Location"]
+
+
+@pytest.mark.django_db
+def test_correlations_page_forbidden_for_viewer() -> None:
+    """viewer не имеет доступа к корреляциям → 403."""
+    assert _role_client("viewer").get("/correlations/").status_code == 403
+
+
+@pytest.mark.django_db
+def test_correlations_page_ok_for_analyst() -> None:
+    """analyst → 200; есть плашка про причинность, селектор, корень и подключение JS."""
+    html = _role_client("analyst").get("/correlations/").content.decode()
+    assert "причинность" in html  # плашка-предупреждение
+    assert 'id="metric-select"' in html and 'id="correlations-root"' in html
+    assert "js/correlations.js" in html
+
+
+@pytest.mark.django_db
+def test_correlations_menu_item_visible_only_to_analyst() -> None:
+    """Пункт меню «Корреляции» виден analyst и скрыт у viewer."""
+    assert "Корреляции" in _role_client("analyst").get("/").content.decode()
+    assert "Корреляции" not in _role_client("viewer").get("/").content.decode()

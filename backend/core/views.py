@@ -65,6 +65,12 @@ def anomalies_page(request: HttpRequest) -> HttpResponse:
     return _page(request, "pages/anomalies.html", active="anomalies", title="Аномалии")
 
 
+@role_required(ROLE_ANALYST)
+def correlations_page(request: HttpRequest) -> HttpResponse:
+    """Корреляции метрик (Ф15) — расширенная аналитика, только роль analyst."""
+    return _page(request, "pages/correlations.html", active="correlations", title="Корреляции")
+
+
 def rankings(request: HttpRequest) -> HttpResponse:
     """Рейтинг регионов по индексу."""
     return _page(

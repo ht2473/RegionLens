@@ -32,6 +32,7 @@
         <a href="{% url 'data' %}" class="{% if active == 'data' %}is-active{% endif %}">Данные</a>
         <a href="{% url 'dispersion_page' %}" class="{% if active == 'dispersion' %}is-active{% endif %}">Неравенство</a>
         {% if is_analyst %}<a href="{% url 'anomalies_page' %}" class="{% if active == 'anomalies' %}is-active{% endif %}">Аномалии</a>{% endif %}
+        {% if is_analyst %}<a href="{% url 'correlations_page' %}" class="{% if active == 'correlations' %}is-active{% endif %}">Корреляции</a>{% endif %}
         <a href="{% url 'help' %}" class="{% if active == 'help' %}is-active{% endif %}">Справка</a>
         <a href="{% url 'feedback' %}" class="{% if active == 'feedback' %}is-active{% endif %}">Обратная связь</a>
         <span class="nav-sep" aria-hidden="true"></span>
