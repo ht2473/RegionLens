@@ -133,6 +133,14 @@ def _stage_rank_stability(duckdb_path: str, sources_path: str, log_mlflow: bool)
     run_rank_stability(dev_index, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_correlations(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """Парные корреляции метрик по регионам на год."""
+    from pipeline.correlations import run_correlations
+
+    features_wide = read_table(duckdb_path, "features_wide")
+    run_correlations(features_wide, duckdb_path=duckdb_path, write=True)
+
+
 #: Линейный план конвейера в порядке зависимостей (вход каждой стадии произведён выше).
 STAGES: tuple[Stage, ...] = (
     Stage(
@@ -197,6 +205,13 @@ STAGES: tuple[Stage, ...] = (
         ("dev_index",),
         ("rank_stability",),
         "волатильность ранга регионов по индексу за годы",
+    ),
+    Stage(
+        "correlations",
+        _stage_correlations,
+        ("features_wide",),
+        ("correlations",),
+        "парные корреляции метрик по регионам на год",
     ),
 )
 

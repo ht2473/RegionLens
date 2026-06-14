@@ -57,6 +57,16 @@ RANK_STABILITY_SCHEMA = {
     "mean_abs_change": pl.Float64,
 }
 
+# Контракт correlations (Ф15): парные корреляции метрик по регионам на год.
+CORRELATIONS_SCHEMA = {
+    "year": pl.Int32,
+    "metric_a": pl.Int32,
+    "metric_b": pl.Int32,
+    "method": pl.Utf8,
+    "correlation": pl.Float64,
+    "n_regions": pl.Int32,
+}
+
 # Контракт fact_region (S2): типы + год в допустимом диапазоне. coerce приводит типы к схеме.
 FACT_REGION_SCHEMA = pa.DataFrameSchema(
     {
