@@ -9,6 +9,7 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("map/", views.map_page, name="map"),
     path("rankings/", views.rankings, name="rankings"),
+    path("rankings/stability/", views.rank_stability_page, name="rank_stability_page"),
     path("typology/", views.typology, name="typology"),
     path("compare/", views.compare, name="compare"),
     path("regions/", views.regions, name="regions"),

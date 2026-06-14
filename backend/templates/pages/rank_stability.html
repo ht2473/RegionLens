@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Стабильность рейтинга — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Ранжирование</p>
+  <h1>Стабильность рейтинга</h1>
+  <p class="lead">Насколько устойчиво место региона в рейтинге по годам: средний ранг, разброс
+    и средний модуль годового изменения. Регионы вверху — самые стабильные. Это описание
+    динамики ранга, <strong>не прогноз</strong>.</p>
+</section>
+
+{% include "pages/_rankings_tabs.html" %}
+
+<div class="map-controls">
+  <div class="year-control">
+    <label for="scheme-select">Схема весов</label>
+    <select id="scheme-select">
+      <option value="equal">Равные</option>
+      <option value="pca">PCA</option>
+      <option value="expert">Экспертные</option>
+    </select>
+  </div>
+</div>
+
+<div id="rank-stability-root">
+  <div class="shell"><p>Загрузка…</p></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/rank_stability.js' %}"></script>
+{% endblock %}

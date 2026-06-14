@@ -67,7 +67,24 @@ def anomalies_page(request: HttpRequest) -> HttpResponse:
 
 def rankings(request: HttpRequest) -> HttpResponse:
     """Рейтинг регионов по индексу."""
-    return _page(request, "pages/rankings.html", active="rankings", title="Рейтинг")
+    return _page(
+        request,
+        "pages/rankings.html",
+        active="rankings",
+        title="Рейтинг",
+        extra={"rankings_tab": "ranking"},
+    )
+
+
+def rank_stability_page(request: HttpRequest) -> HttpResponse:
+    """Стабильность рейтинга (Ф14): волатильность ранга регионов — вкладка раздела «Рейтинг»."""
+    return _page(
+        request,
+        "pages/rank_stability.html",
+        active="rankings",
+        title="Стабильность рейтинга",
+        extra={"rankings_tab": "stability"},
+    )
 
 
 def typology(request: HttpRequest) -> HttpResponse:

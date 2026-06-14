@@ -13,6 +13,7 @@ PAGES = [
     "/",
     "/map/",
     "/rankings/",
+    "/rankings/stability/",
     "/typology/",
     "/compare/",
     "/regions/",
@@ -221,3 +222,19 @@ def test_dispersion_nav_active(client: Client) -> None:
     html = client.get("/dispersion/").content.decode()
     assert "is-active" in html
     assert "Неравенство" in html
+
+
+def test_rank_stability_page_shell(client: Client) -> None:
+    """Вкладка «Стабильность» публична: содержит подвкладки рейтинга, селектор схемы и корень."""
+    html = client.get("/rankings/stability/").content.decode()
+    assert 'id="scheme-select"' in html
+    assert 'id="rank-stability-root"' in html
+    assert "js/rank_stability.js" in html
+    assert "Стабильность" in html  # подвкладка
+
+
+def test_rankings_subnav_links_both_tabs(client: Client) -> None:
+    """На странице рейтинга есть подвкладки на «Рейтинг» и «Стабильность»."""
+    html = client.get("/rankings/").content.decode()
+    assert 'class="subnav"' in html
+    assert "/rankings/stability/" in html
