@@ -141,6 +141,15 @@ def _stage_correlations(duckdb_path: str, sources_path: str, log_mlflow: bool) -
     run_correlations(features_wide, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_index_decomposition(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """Вклад доменов в годовое изменение индекса развития."""
+    from pipeline.index_decomposition import run_index_decomposition
+
+    features_wide = read_table(duckdb_path, "features_wide")
+    metric_dim = read_table(duckdb_path, "metric_dim")
+    run_index_decomposition(features_wide, metric_dim, duckdb_path=duckdb_path, write=True)
+
+
 #: Линейный план конвейера в порядке зависимостей (вход каждой стадии произведён выше).
 STAGES: tuple[Stage, ...] = (
     Stage(
@@ -212,6 +221,13 @@ STAGES: tuple[Stage, ...] = (
         ("features_wide",),
         ("correlations",),
         "парные корреляции метрик по регионам на год",
+    ),
+    Stage(
+        "index_decomposition",
+        _stage_index_decomposition,
+        ("features_wide", "metric_dim"),
+        ("index_decomposition",),
+        "вклад доменов в годовое изменение индекса",
     ),
 )
 

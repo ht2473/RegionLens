@@ -67,6 +67,18 @@ CORRELATIONS_SCHEMA = {
     "n_regions": pl.Int32,
 }
 
+# Контракт index_decomposition (Ф16): вклад доменов в годовое изменение индекса.
+INDEX_DECOMPOSITION_SCHEMA = {
+    "okato": pl.Utf8,
+    "year": pl.Int32,
+    "weighting_scheme": pl.Utf8,
+    "domain": pl.Utf8,
+    "delta_total_score": pl.Float64,
+    "domain_delta": pl.Float64,
+    "weight": pl.Float64,
+    "contribution": pl.Float64,
+}
+
 # Контракт fact_region (S2): типы + год в допустимом диапазоне. coerce приводит типы к схеме.
 FACT_REGION_SCHEMA = pa.DataFrameSchema(
     {
