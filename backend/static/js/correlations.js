@@ -8,6 +8,8 @@
 
   var root = document.getElementById("correlations-root");
   var select = document.getElementById("metric-select");
+  var slider = document.getElementById("year-slider");
+  var label = document.getElementById("year-label");
   if (!root || !select) return;
 
   function num(x, d) {
@@ -36,9 +38,9 @@
   function load() {
     shell("Загрузка…");
     var metricId = select.value;
-    var url = metricId
-      ? "/api/correlations/?metric_id=" + encodeURIComponent(metricId)
-      : "/api/correlations/?limit=50";
+    var year = slider ? slider.value : "";
+    var url = "/api/correlations/?year=" + encodeURIComponent(year);
+    if (metricId) url += "&metric_id=" + encodeURIComponent(metricId);
     fetch(url)
       .then(function (r) {
         if (!r.ok) throw new Error("Ошибка загрузки (" + r.status + ")");
@@ -54,7 +56,7 @@
 
   function render(rows, metricId) {
     if (!rows.length) {
-      shell("Нет данных корреляций. Пересоберите конвейер (стадия correlations).");
+      shell("Нет пар корреляций за выбранный год.");
       return;
     }
     // в режиме фильтра показываем выбранную метрику первой
@@ -93,6 +95,7 @@
 
     root.innerHTML =
       "<p class='chart-note'>Год: " + year + " · метод: " + method +
+      " · пар: " + rows.length +
       " · бар — |корреляция| (0…1), знак указан в числе. Сильнейшие связи — сверху. " +
       "Связь не означает причинности.</p>" +
       "<div class='table-wrap'><table class='table'><thead>" +
@@ -103,6 +106,12 @@
   }
 
   select.addEventListener("change", load);
+  if (slider) {
+    slider.addEventListener("input", function () {
+      if (label) label.textContent = slider.value;
+    });
+    slider.addEventListener("change", load);
+  }
 
   loadMetrics()
     .then(function () {

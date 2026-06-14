@@ -258,6 +258,7 @@ def test_correlations_page_ok_for_analyst() -> None:
     html = _role_client("analyst").get("/correlations/").content.decode()
     assert "причинность" in html  # плашка-предупреждение
     assert 'id="metric-select"' in html and 'id="correlations-root"' in html
+    assert 'id="year-slider"' in html  # выбор года (Ф15)
     assert "js/correlations.js" in html
 
 
