@@ -712,3 +712,75 @@ def test_correlations_limit_and_bad_param(correlations_duckdb: Path) -> None:
     rows = client.get("/api/correlations/", {"limit": 1}).json()
     assert len(rows) == 1 and abs(rows[0]["correlation"]) == 0.9
     assert client.get("/api/correlations/", {"year": "abc"}).status_code == 400
+
+
+@pytest.fixture
+def decomposition_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с index_decomposition и region_dim; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "dec.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE index_decomposition (okato VARCHAR, year INTEGER, weighting_scheme VARCHAR, "
+        "domain VARCHAR, delta_total_score DOUBLE, domain_delta DOUBLE, weight DOUBLE, "
+        "contribution DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO index_decomposition VALUES "
+        "('01', 2019, 'equal', 'economy', 3.0, 0.9, 0.333, 1.5), "
+        "('01', 2019, 'equal', 'income', 3.0, 0.6, 0.333, 1.0), "
+        "('01', 2019, 'equal', 'labor', 3.0, 0.3, 0.333, 0.5), "
+        "('01', 2020, 'equal', 'economy', 6.0, 1.5, 0.333, 5.0), "
+        "('01', 2020, 'equal', 'income', 6.0, 0.6, 0.333, 2.0), "
+        "('01', 2020, 'equal', 'labor', 6.0, -0.3, 0.333, -1.0), "
+        "('01', 2020, 'pca', 'economy', 4.0, 1.5, 0.5, 3.0), "
+        "('01', 2020, 'pca', 'income', 4.0, 0.6, 0.4, 1.0), "
+        "('01', 2020, 'pca', 'labor', 4.0, -0.3, 0.1, 0.0)"
+    )
+    con.execute("CREATE TABLE region_dim (okato VARCHAR, region_name VARCHAR)")
+    con.execute("INSERT INTO region_dim VALUES ('01', 'Москва')")
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_decomposition_requires_okato(decomposition_duckdb: Path) -> None:
+    """Без обязательного okato → 400."""
+    assert APIClient().get("/api/decomposition/").status_code == 400
+
+
+def test_decomposition_region_sorted_with_name(decomposition_duckdb: Path) -> None:
+    """okato + дефолт equal: строки по годам и убыванию |вклада|, с именем региона."""
+    rows = APIClient().get("/api/decomposition/", {"okato": "01"}).json()
+    assert {r["weighting_scheme"] for r in rows} == {"equal"}
+    assert rows[0]["region_name"] == "Москва"
+    order = [(r["year"], r["domain"]) for r in rows]
+    assert order == [
+        (2019, "economy"),
+        (2019, "income"),
+        (2019, "labor"),
+        (2020, "economy"),
+        (2020, "income"),
+        (2020, "labor"),
+    ]
+
+
+def test_decomposition_year_filter_sums_to_delta(decomposition_duckdb: Path) -> None:
+    """Фильтр года → строки этого года; сумма вкладов = delta_total_score."""
+    rows = APIClient().get("/api/decomposition/", {"okato": "01", "year": 2020}).json()
+    assert {r["year"] for r in rows} == {2020} and len(rows) == 3
+    assert sum(r["contribution"] for r in rows) == pytest.approx(rows[0]["delta_total_score"])
+
+
+def test_decomposition_scheme_filter(decomposition_duckdb: Path) -> None:
+    """Фильтр схемы весов возвращает строки только этой схемы."""
+    rows = APIClient().get("/api/decomposition/", {"okato": "01", "scheme": "pca"}).json()
+    assert {r["weighting_scheme"] for r in rows} == {"pca"}
+
+
+def test_decomposition_invalid_params_return_400(decomposition_duckdb: Path) -> None:
+    """Неизвестная схема и нечисловой год → 400."""
+    client = APIClient()
+    assert client.get("/api/decomposition/", {"okato": "01", "scheme": "x"}).status_code == 400
+    assert client.get("/api/decomposition/", {"okato": "01", "year": "abc"}).status_code == 400

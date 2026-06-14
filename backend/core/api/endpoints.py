@@ -24,6 +24,7 @@ from ..serializers import (
     ClusterProfileRowSerializer,
     CompareRowSerializer,
     CorrelationRowSerializer,
+    DecompositionRowSerializer,
     DispersionRowSerializer,
     GeoLayerPointSerializer,
     IndexRowSerializer,
@@ -509,3 +510,43 @@ class Correlations(APIView):
         data = queries.correlations_list(year=year, metric_id=metric_id, limit=limit)
         log.info("correlations", stage="api", year=year, metric_id=metric_id, rows=len(data))
         return Response(CorrelationRowSerializer(data, many=True).data)
+
+
+class Decomposition(APIView):
+    """GET /api/decomposition/?okato=&scheme=&year= — вклад доменов в изменение индекса региона.
+
+    Для региона и схемы весов (по умолчанию equal): по годам — на какой домен пришёлся прирост
+    или спад индекса (вклады в сумме дают годовое изменение). year — конкретный год, иначе все
+    годы. Сортировка по году и |вкладу|. Описательное разложение индекса, не прогноз.
+    """
+
+    @extend_schema(
+        operation_id="decomposition",
+        parameters=[P_OKATO, P_SCHEME, P_YEAR],
+        responses=DecompositionRowSerializer(many=True),
+        summary="Декомпозиция изменения индекса",
+    )
+    def get(self, request: Request) -> Response:
+        okato = request.query_params.get("okato")
+        if not okato:
+            return Response(
+                {"detail": "параметр okato обязателен"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        scheme = request.query_params.get("scheme", queries.MAP_INDEX_SCHEME)
+        if scheme not in INDEX_SCHEMES:
+            return Response(
+                {"detail": f"'scheme' должна быть одной из {', '.join(INDEX_SCHEMES)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            year = _optional_int(request.query_params.get("year"))
+        except ValueError:
+            return Response(
+                {"detail": "year должен быть целым"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        data = queries.decomposition_list(okato=okato, scheme=scheme, year=year)
+        log.info(
+            "decomposition", stage="api", okato=okato, scheme=scheme, year=year, rows=len(data)
+        )
+        return Response(DecompositionRowSerializer(data, many=True).data)

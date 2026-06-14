@@ -265,3 +265,22 @@ class CorrelationRowSerializer(serializers.Serializer):
     method = serializers.CharField()
     correlation = serializers.FloatField()
     n_regions = serializers.IntegerField()
+
+
+class DecompositionRowSerializer(serializers.Serializer):
+    """Строка вклада домена в годовое изменение индекса региона.
+
+    contribution — вклад домена в delta_total_score (в сумме по доменам дают изменение индекса);
+    domain_delta — изменение доменного балла, weight — его вес в схеме. region_name может быть
+    пуст (LEFT JOIN). Описательное разложение, не прогноз.
+    """
+
+    okato = serializers.CharField()
+    region_name = serializers.CharField(allow_null=True)
+    year = serializers.IntegerField()
+    weighting_scheme = serializers.CharField()
+    domain = serializers.CharField()
+    delta_total_score = serializers.FloatField()
+    domain_delta = serializers.FloatField()
+    weight = serializers.FloatField()
+    contribution = serializers.FloatField()

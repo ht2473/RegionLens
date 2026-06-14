@@ -415,6 +415,29 @@ def correlations_list(
     )
 
 
+def decomposition_list(
+    *, okato: str, scheme: str = MAP_INDEX_SCHEME, year: int | None = None
+) -> list[dict[str, Any]]:
+    """Вклад доменов в годовое изменение индекса региона для схемы весов (по умолчанию equal).
+
+    Если задан year — только этот год; иначе все годы. Сортировка по году и убыванию |вклада|.
+    Имя региона — LEFT JOIN из region_dim. Описательное разложение индекса, не прогноз.
+    """
+    clauses = ["d.okato = ?", "d.weighting_scheme = ?"]
+    params: list[Any] = [okato, scheme]
+    if year is not None:
+        clauses.append("d.year = ?")
+        params.append(year)
+    where = " WHERE " + " AND ".join(clauses)
+    return q(
+        "SELECT d.okato, r.region_name, d.year, d.weighting_scheme, d.domain, "
+        "d.delta_total_score, d.domain_delta, d.weight, d.contribution "
+        "FROM index_decomposition d LEFT JOIN region_dim r ON r.okato = d.okato"
+        f"{where} ORDER BY d.year, ABS(d.contribution) DESC",
+        params,
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Сводка по данным/методологии (Ф11-обогащение): фактические числа для страниц
 # «Данные» и «Методология». ВСЁ выводится запросом к уже посчитанным контрактным

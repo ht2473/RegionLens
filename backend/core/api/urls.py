@@ -52,4 +52,6 @@ urlpatterns = [
     path("rank-stability/", endpoints.RankStability.as_view(), name="rank_stability"),
     # Парные корреляции метрик по регионам (Ф15, доступ analyst)
     path("correlations/", endpoints.Correlations.as_view(), name="correlations"),
+    # Вклад доменов в годовое изменение индекса региона (Ф16)
+    path("decomposition/", endpoints.Decomposition.as_view(), name="decomposition"),
 ]
