@@ -125,6 +125,14 @@ def _stage_dispersion(duckdb_path: str, sources_path: str, log_mlflow: bool) -> 
     run_dispersion(features_wide, metric_dim, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_rank_stability(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """Волатильность ранга регионов по индексу за годы (по схемам весов)."""
+    from pipeline.rank_stability import run_rank_stability
+
+    dev_index = read_table(duckdb_path, "dev_index")
+    run_rank_stability(dev_index, duckdb_path=duckdb_path, write=True)
+
+
 #: Линейный план конвейера в порядке зависимостей (вход каждой стадии произведён выше).
 STAGES: tuple[Stage, ...] = (
     Stage(
@@ -182,6 +190,13 @@ STAGES: tuple[Stage, ...] = (
         ("features_wide", "metric_dim"),
         ("dispersion",),
         "разброс/неравенство регионов на метрику-год",
+    ),
+    Stage(
+        "rank_stability",
+        _stage_rank_stability,
+        ("dev_index",),
+        ("rank_stability",),
+        "волатильность ранга регионов по индексу за годы",
     ),
 )
 

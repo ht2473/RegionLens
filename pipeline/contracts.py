@@ -44,6 +44,19 @@ DISPERSION_SCHEMA = {
     "p90_p10_ratio": pl.Float64,
 }
 
+# Контракт rank_stability (Ф14): волатильность ранга региона по индексу за годы.
+RANK_STABILITY_SCHEMA = {
+    "okato": pl.Utf8,
+    "weighting_scheme": pl.Utf8,
+    "n_years": pl.Int32,
+    "rank_mean": pl.Float64,
+    "rank_std": pl.Float64,
+    "rank_min": pl.Int32,
+    "rank_max": pl.Int32,
+    "rank_range": pl.Int32,
+    "mean_abs_change": pl.Float64,
+}
+
 # Контракт fact_region (S2): типы + год в допустимом диапазоне. coerce приводит типы к схеме.
 FACT_REGION_SCHEMA = pa.DataFrameSchema(
     {
