@@ -229,3 +229,22 @@ class DispersionRowSerializer(serializers.Serializer):
     value_range = serializers.FloatField(allow_null=True)
     cv = serializers.FloatField(allow_null=True)
     p90_p10_ratio = serializers.FloatField(allow_null=True)
+
+
+class RankStabilityRowSerializer(serializers.Serializer):
+    """Строка стабильности ранга региона за окно для одной схемы весов.
+
+    rank_std и mean_abs_change характеризуют «дёрганность» траектории ранга (0 — регион в
+    рейтинге не двигался). region_name может быть пуст (LEFT JOIN). Описательная мера, не прогноз.
+    """
+
+    okato = serializers.CharField()
+    region_name = serializers.CharField(allow_null=True)
+    weighting_scheme = serializers.CharField()
+    n_years = serializers.IntegerField()
+    rank_mean = serializers.FloatField()
+    rank_std = serializers.FloatField(allow_null=True)
+    rank_min = serializers.IntegerField()
+    rank_max = serializers.IntegerField()
+    rank_range = serializers.IntegerField()
+    mean_abs_change = serializers.FloatField(allow_null=True)

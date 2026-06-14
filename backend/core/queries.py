@@ -369,6 +369,22 @@ def dispersion_list(
     )
 
 
+def rank_stability_list(scheme: str = MAP_INDEX_SCHEME) -> list[dict[str, Any]]:
+    """Стабильность ранга регионов за окно для схемы весов (по умолчанию equal).
+
+    По региону: средний ранг, разброс ранга (std), диапазон и средний модуль годового
+    изменения ранга. Сортировка по rank_std — самые стабильные первыми. Имя региона —
+    LEFT JOIN из region_dim. Описательная мера волатильности ранга, не прогноз.
+    """
+    return q(
+        "SELECT s.okato, r.region_name, s.weighting_scheme, s.n_years, "
+        "s.rank_mean, s.rank_std, s.rank_min, s.rank_max, s.rank_range, s.mean_abs_change "
+        "FROM rank_stability s LEFT JOIN region_dim r ON r.okato = s.okato "
+        "WHERE s.weighting_scheme = ? ORDER BY s.rank_std, s.okato",
+        [scheme],
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Сводка по данным/методологии (Ф11-обогащение): фактические числа для страниц
 # «Данные» и «Методология». ВСЁ выводится запросом к уже посчитанным контрактным

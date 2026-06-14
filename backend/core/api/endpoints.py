@@ -28,6 +28,7 @@ from ..serializers import (
     IndexRowSerializer,
     MetricSerializer,
     MetricSeriesPointSerializer,
+    RankStabilityRowSerializer,
     RegionDashboardSerializer,
     RegionSerializer,
     RegionTwinSerializer,
@@ -444,3 +445,29 @@ class Dispersion(APIView):
         )
         log.info("dispersion", stage="api", metric_id=metric_id, year=year, rows=len(data))
         return Response(DispersionRowSerializer(data, many=True).data)
+
+
+class RankStability(APIView):
+    """GET /api/rank-stability/?scheme=equal|pca|expert — волатильность ранга регионов.
+
+    Для выбранной схемы весов (по умолчанию equal): по региону за окно — средний ранг,
+    разброс ранга (std), диапазон и средний модуль годового изменения ранга. Отсортировано
+    от самых стабильных к самым «дёрганным». Это описание, не прогноз.
+    """
+
+    @extend_schema(
+        operation_id="rank_stability",
+        parameters=[P_SCHEME],
+        responses=RankStabilityRowSerializer(many=True),
+        summary="Стабильность рейтинга регионов",
+    )
+    def get(self, request: Request) -> Response:
+        scheme = request.query_params.get("scheme", queries.MAP_INDEX_SCHEME)
+        if scheme not in INDEX_SCHEMES:
+            return Response(
+                {"detail": f"'scheme' должна быть одной из {', '.join(INDEX_SCHEMES)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.rank_stability_list(scheme=scheme)
+        log.info("rank_stability", stage="api", scheme=scheme, rows=len(data))
+        return Response(RankStabilityRowSerializer(data, many=True).data)

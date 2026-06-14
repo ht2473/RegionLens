@@ -589,3 +589,55 @@ def test_dispersion_cv_null_for_non_ratio_metric(dispersion_duckdb: Path) -> Non
 def test_dispersion_bad_numeric_param_returns_400(dispersion_duckdb: Path) -> None:
     """Нечисловой числовой параметр приводит к 400, а не к 500."""
     assert APIClient().get("/api/dispersion/?year=abc").status_code == 400
+
+
+@pytest.fixture
+def rank_stability_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с таблицами rank_stability и region_dim; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "rs.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE rank_stability (okato VARCHAR, weighting_scheme VARCHAR, n_years INTEGER, "
+        "rank_mean DOUBLE, rank_std DOUBLE, rank_min INTEGER, rank_max INTEGER, "
+        "rank_range INTEGER, mean_abs_change DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO rank_stability VALUES "
+        "('01', 'equal', 5, 1.0, 0.0, 1, 1, 0, 0.0), "  # стабильный лидер
+        "('02', 'equal', 5, 8.0, 1.5, 6, 10, 4, 1.2), "  # дёрганый
+        "('01', 'pca', 5, 3.0, 0.7, 2, 4, 2, 0.5)"  # другая схема весов
+    )
+    con.execute("CREATE TABLE region_dim (okato VARCHAR, region_name VARCHAR)")
+    con.execute("INSERT INTO region_dim VALUES ('01', 'Регион А'), ('02', 'Регион Б')")
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_rank_stability_default_scheme(rank_stability_duckdb: Path) -> None:
+    """Без параметра отдаётся схема equal, строки отсортированы по rank_std, с именем региона."""
+    rows = APIClient().get("/api/rank-stability/").json()
+    assert {r["weighting_scheme"] for r in rows} == {"equal"}
+    assert [r["okato"] for r in rows] == ["01", "02"]
+    assert rows[0]["region_name"] == "Регион А"
+
+
+def test_rank_stability_scheme_filter(rank_stability_duckdb: Path) -> None:
+    """Фильтр ?scheme= возвращает строки только этой схемы весов."""
+    rows = APIClient().get("/api/rank-stability/?scheme=pca").json()
+    assert {r["weighting_scheme"] for r in rows} == {"pca"}
+    assert [r["okato"] for r in rows] == ["01"]
+
+
+def test_rank_stability_most_stable_first(rank_stability_duckdb: Path) -> None:
+    """Самый стабильный регион (минимальный rank_std) идёт первым."""
+    rows = APIClient().get("/api/rank-stability/").json()
+    assert rows[0]["okato"] == "01"
+    assert rows[0]["rank_std"] <= rows[-1]["rank_std"]
+
+
+def test_rank_stability_invalid_scheme_returns_400(rank_stability_duckdb: Path) -> None:
+    """Неизвестная схема весов приводит к 400, а не к пустому/ошибочному ответу."""
+    assert APIClient().get("/api/rank-stability/?scheme=bogus").status_code == 400

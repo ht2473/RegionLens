@@ -48,4 +48,6 @@ urlpatterns = [
     path("anomalies/", endpoints.Anomalies.as_view(), name="anomalies"),
     # Разброс/неравенство регионов на метрику-год (Ф13)
     path("dispersion/", endpoints.Dispersion.as_view(), name="dispersion"),
+    # Стабильность рейтинга: волатильность ранга регионов по годам (Ф14)
+    path("rank-stability/", endpoints.RankStability.as_view(), name="rank_stability"),
 ]
