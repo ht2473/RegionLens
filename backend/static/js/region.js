@@ -52,10 +52,12 @@
   function load() {
     var u = "/api/regions/" + encodeURIComponent(OKATO) + "/?year=" + state.year;
     var tw = "/api/regions/" + encodeURIComponent(OKATO) + "/twins/?year=" + state.year;
+    var dc = "/api/decomposition/?okato=" + encodeURIComponent(OKATO) + "&year=" + state.year;
     Promise.all([
       fetch(u),
       fetch("/api/transitions/?okato=" + encodeURIComponent(OKATO)),
       fetch(tw),
+      fetch(dc),
     ])
       .then(function (rs) {
         if (rs[0].status === 404) throw new Error("Регион не найден или нет данных за год.");
@@ -64,17 +66,18 @@
           rs[0].json(),
           rs[1].ok ? rs[1].json() : [],
           rs[2].ok ? rs[2].json() : [],
+          rs[3].ok ? rs[3].json() : [],
         ]);
       })
       .then(function (out) {
         show("region-error", false);
         show("region-body", true);
-        render(out[0], out[1], out[2]);
+        render(out[0], out[1], out[2], out[3]);
       })
       .catch(function (err) { fail(err.message); });
   }
 
-  function render(d, transitions, twins) {
+  function render(d, transitions, twins, decomp) {
     // Заголовок
     document.getElementById("region-title").textContent = d.region_name || OKATO;
     var typeLabel = d.cluster ? d.cluster.cluster_label : "—";
@@ -106,6 +109,7 @@
     drawShap(d.shap_top || []);
     drawTrajectory(transitions);
     drawTwins(twins || []);
+    drawDecomp(decomp || []);
   }
 
   function drawRadar(domains) {
@@ -158,6 +162,17 @@
     var labels = withDelta.map(function (x) { return DOMAIN_RU[x.domain] || x.domain; });
     var values = withDelta.map(function (x) { return x.delta; });
     divergeBars("chart-b4", labels, values);
+  }
+
+  function drawDecomp(rows) {
+    if (!rows.length) {
+      document.getElementById("chart-decomp").innerHTML =
+        '<p class="chart-note">Нет предыдущего года для разложения индекса.</p>';
+      return;
+    }
+    var labels = rows.map(function (x) { return DOMAIN_RU[x.domain] || x.domain; });
+    var values = rows.map(function (x) { return x.contribution; });
+    divergeBars("chart-decomp", labels, values);
   }
 
   function drawShap(shap) {
