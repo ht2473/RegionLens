@@ -438,6 +438,45 @@ def decomposition_list(
     )
 
 
+def data_quality_list(
+    *,
+    metric_id: int | None = None,
+    year: int | None = None,
+    year_from: int | None = None,
+    year_to: int | None = None,
+) -> list[dict[str, Any]]:
+    """Полнота/импутации аналитической сетки на (метрику, год) из таблицы data_quality.
+
+    Необязательные фильтры: metric_id, year и диапазон year_from..year_to. Имя/домен/тип метрики
+    и оконное покрытие сырья (coverage) подтягиваются LEFT JOIN из metric_dim. Две полноты
+    разведены: completeness_raw — доступность сырья по году; impute_share — доля достроенных
+    ячеек гармонизированной сетки (для absolute расходятся, см. предрасчёт data_quality). Это
+    описательная сводка качества, не прогноз.
+    """
+    clauses: list[str] = []
+    params: list[Any] = []
+    if metric_id is not None:
+        clauses.append("d.metric_id = ?")
+        params.append(metric_id)
+    if year is not None:
+        clauses.append("d.year = ?")
+        params.append(year)
+    if year_from is not None:
+        clauses.append("d.year >= ?")
+        params.append(year_from)
+    if year_to is not None:
+        clauses.append("d.year <= ?")
+        params.append(year_to)
+    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    return q(
+        "SELECT d.metric_id, m.metric_name, m.domain, m.value_type, m.coverage, "
+        "d.year, d.n_regions, d.n_present_raw, d.n_imputed, d.completeness_raw, d.impute_share "
+        "FROM data_quality d LEFT JOIN metric_dim m ON m.metric_id = d.metric_id"
+        f"{where} ORDER BY d.metric_id, d.year",
+        params,
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Сводка по данным/методологии (Ф11-обогащение): фактические числа для страниц
 # «Данные» и «Методология». ВСЁ выводится запросом к уже посчитанным контрактным

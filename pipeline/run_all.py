@@ -150,6 +150,15 @@ def _stage_index_decomposition(duckdb_path: str, sources_path: str, log_mlflow: 
     run_index_decomposition(features_wide, metric_dim, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_data_quality(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """Полнота и доля импутаций аналитической сетки на (метрику, год)."""
+    from pipeline.data_quality import run_data_quality
+
+    features_wide = read_table(duckdb_path, "features_wide")
+    fact_region = read_table(duckdb_path, "fact_region")
+    run_data_quality(features_wide, fact_region, duckdb_path=duckdb_path, write=True)
+
+
 #: Линейный план конвейера в порядке зависимостей (вход каждой стадии произведён выше).
 STAGES: tuple[Stage, ...] = (
     Stage(
@@ -228,6 +237,13 @@ STAGES: tuple[Stage, ...] = (
         ("features_wide", "metric_dim"),
         ("index_decomposition",),
         "вклад доменов в годовое изменение индекса",
+    ),
+    Stage(
+        "data_quality",
+        _stage_data_quality,
+        ("features_wide", "fact_region"),
+        ("data_quality",),
+        "полнота/импутации аналитической сетки на метрику-год",
     ),
 )
 

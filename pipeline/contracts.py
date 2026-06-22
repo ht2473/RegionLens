@@ -79,6 +79,21 @@ INDEX_DECOMPOSITION_SCHEMA = {
     "contribution": pl.Float64,
 }
 
+# Контракт data_quality (Ф17): полнота/импутации аналитической сетки на (метрику, год).
+# Грань — (metric_id, year) по сетке ядра. n_regions — число ячеек сетки (включённые регионы);
+# n_present_raw — из них с непустым СЫРЫМ значением (доступность источника, до гармонизации);
+# n_imputed — достроенные ячейки ГАРМОНИЗИРОВАННОЙ сетки. Для absolute-метрик raw-полнота может
+# превышать (1 − impute_share): сырьё было, но гармонизация (деление на население) дала пропуск.
+DATA_QUALITY_SCHEMA = {
+    "metric_id": pl.Int32,
+    "year": pl.Int32,
+    "n_regions": pl.Int32,
+    "n_present_raw": pl.Int32,
+    "n_imputed": pl.Int32,
+    "completeness_raw": pl.Float64,
+    "impute_share": pl.Float64,
+}
+
 # Контракт fact_region (S2): типы + год в допустимом диапазоне. coerce приводит типы к схеме.
 FACT_REGION_SCHEMA = pa.DataFrameSchema(
     {

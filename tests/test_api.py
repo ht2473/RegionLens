@@ -784,3 +784,72 @@ def test_decomposition_invalid_params_return_400(decomposition_duckdb: Path) -> 
     client = APIClient()
     assert client.get("/api/decomposition/", {"okato": "01", "scheme": "x"}).status_code == 400
     assert client.get("/api/decomposition/", {"okato": "01", "year": "abc"}).status_code == 400
+
+
+@pytest.fixture
+def data_quality_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с таблицами data_quality и metric_dim; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "dq.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE data_quality (metric_id INTEGER, year INTEGER, n_regions INTEGER, "
+        "n_present_raw INTEGER, n_imputed INTEGER, completeness_raw DOUBLE, impute_share DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO data_quality VALUES "
+        "(1, 2019, 80, 80, 0, 1.0, 0.0), "
+        "(1, 2020, 80, 76, 4, 0.95, 0.05), "
+        # absolute-метрика: сырьё полнее, чем гармонизированное (impute_share>0 при полном сырье)
+        "(2, 2020, 80, 80, 8, 1.0, 0.10)"
+    )
+    con.execute(
+        "CREATE TABLE metric_dim (metric_id INTEGER, metric_name VARCHAR, domain VARCHAR, "
+        "value_type VARCHAR, coverage DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO metric_dim VALUES "
+        "(1, 'Уровень безработицы', 'labor', 'share', 0.975), "
+        "(2, 'ВРП', 'economy', 'absolute', 1.0)"
+    )
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_data_quality_returns_all_rows(data_quality_duckdb: Path) -> None:
+    """GET /api/data-quality/ без фильтров отдаёт все строки с метаданными метрики."""
+    resp = APIClient().get("/api/data-quality/")
+    assert resp.status_code == 200
+    rows = resp.json()
+    assert len(rows) == 3
+    assert {r["metric_name"] for r in rows} == {"Уровень безработицы", "ВРП"}
+    assert {r["value_type"] for r in rows} == {"share", "absolute"}
+
+
+def test_data_quality_filter_by_metric(data_quality_duckdb: Path) -> None:
+    """Фильтр ?metric_id= возвращает ряд по годам только этой метрики."""
+    rows = APIClient().get("/api/data-quality/?metric_id=1").json()
+    assert {r["metric_id"] for r in rows} == {1}
+    assert sorted(r["year"] for r in rows) == [2019, 2020]
+
+
+def test_data_quality_filter_by_year_and_range(data_quality_duckdb: Path) -> None:
+    """Фильтры ?year= и диапазон ?from=&to= ограничивают годы (границы включительно)."""
+    assert {r["year"] for r in APIClient().get("/api/data-quality/?year=2020").json()} == {2020}
+    rows = APIClient().get("/api/data-quality/?metric_id=1&from=2020&to=2020").json()
+    assert [r["year"] for r in rows] == [2020]
+
+
+def test_data_quality_two_completeness_diverge_for_absolute(data_quality_duckdb: Path) -> None:
+    """Для absolute-метрики сырьё полное, но доля импутаций > 0 (две полноты расходятся)."""
+    rows = APIClient().get("/api/data-quality/?metric_id=2").json()
+    assert rows[0]["completeness_raw"] == 1.0
+    assert rows[0]["impute_share"] == 0.10
+    assert rows[0]["coverage"] == 1.0  # оконное покрытие сырья из metric_dim
+
+
+def test_data_quality_bad_numeric_param_returns_400(data_quality_duckdb: Path) -> None:
+    """Нечисловой числовой параметр приводит к 400, а не к 500."""
+    assert APIClient().get("/api/data-quality/?year=abc").status_code == 400

@@ -54,4 +54,6 @@ urlpatterns = [
     path("correlations/", endpoints.Correlations.as_view(), name="correlations"),
     # Вклад доменов в годовое изменение индекса региона (Ф16)
     path("decomposition/", endpoints.Decomposition.as_view(), name="decomposition"),
+    # Качество данных: полнота/импутации аналитической сетки на метрику-год (Ф17)
+    path("data-quality/", endpoints.DataQuality.as_view(), name="data_quality"),
 ]

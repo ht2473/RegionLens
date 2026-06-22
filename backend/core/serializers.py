@@ -284,3 +284,26 @@ class DecompositionRowSerializer(serializers.Serializer):
     domain_delta = serializers.FloatField()
     weight = serializers.FloatField()
     contribution = serializers.FloatField()
+
+
+class DataQualityRowSerializer(serializers.Serializer):
+    """Строка качества данных на (метрику, год) из таблицы data_quality.
+
+    Две полноты разведены: completeness_raw — доля ячеек сетки с непустым сырьём (доступность
+    источника по году), impute_share — доля достроенных ячеек гармонизированной сетки. Для
+    absolute-метрик completeness_raw ≥ 1 − impute_share (гармонизация делит на население).
+    metric_name/domain/value_type/coverage — из metric_dim (LEFT JOIN), могут быть пусты.
+    coverage — оконное покрытие сырья по метрике. Описательная сводка, не прогноз.
+    """
+
+    metric_id = serializers.IntegerField()
+    metric_name = serializers.CharField(allow_null=True)
+    domain = serializers.CharField(allow_null=True)
+    value_type = serializers.CharField(allow_null=True)
+    coverage = serializers.FloatField(allow_null=True)
+    year = serializers.IntegerField()
+    n_regions = serializers.IntegerField()
+    n_present_raw = serializers.IntegerField()
+    n_imputed = serializers.IntegerField()
+    completeness_raw = serializers.FloatField()
+    impute_share = serializers.FloatField()

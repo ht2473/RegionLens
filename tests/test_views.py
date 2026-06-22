@@ -19,6 +19,7 @@ PAGES = [
     "/regions/",
     "/methodology/",
     "/data/",
+    "/data/quality/",
     "/dispersion/",
     "/help/",
     "/feedback/",
@@ -238,6 +239,29 @@ def test_rankings_subnav_links_both_tabs(client: Client) -> None:
     html = client.get("/rankings/").content.decode()
     assert 'class="subnav"' in html
     assert "/rankings/stability/" in html
+
+
+def test_data_quality_page_shell(client: Client) -> None:
+    """Вкладка «Качество данных» публична: содержит подвкладки данных, корень и подключает JS."""
+    html = client.get("/data/quality/").content.decode()
+    assert 'class="subnav"' in html
+    assert 'id="data-quality-root"' in html
+    assert "js/data_quality.js" in html
+    assert "Качество" in html  # подвкладка
+
+
+def test_data_subnav_links_both_tabs(client: Client) -> None:
+    """На странице «Данные» есть подвкладки на «Источник и охват» и «Качество»."""
+    html = client.get("/data/").content.decode()
+    assert 'class="subnav"' in html
+    assert "/data/quality/" in html
+
+
+def test_data_quality_nav_active_data(client: Client) -> None:
+    """На вкладке качества подсвечен пункт верхнего меню «Данные» (active='data')."""
+    html = client.get("/data/quality/").content.decode()
+    assert "is-active" in html
+    assert "Данные" in html
 
 
 def test_correlations_page_redirects_anonymous() -> None:

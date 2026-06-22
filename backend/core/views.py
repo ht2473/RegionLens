@@ -187,7 +187,18 @@ def data_page(request: HttpRequest) -> HttpResponse:
         "pages/data.html",
         active="data",
         title="Данные",
-        extra={"profile": queries.data_profile()},
+        extra={"profile": queries.data_profile(), "data_tab": "source"},
+    )
+
+
+def data_quality_page(request: HttpRequest) -> HttpResponse:
+    """Качество данных (Ф17): полнота/импутации сетки — вкладка «Данные» (оболочка под JS)."""
+    return _page(
+        request,
+        "pages/data_quality.html",
+        active="data",
+        title="Качество данных",
+        extra={"data_tab": "quality"},
     )
 
 

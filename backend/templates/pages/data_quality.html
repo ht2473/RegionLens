@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Качество данных — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Полнота и импутации</p>
+  <h1>Качество данных</h1>
+  <p class="lead">Насколько полна аналитическая матрица и какую её долю пришлось достроить.
+    Различаем <strong>доступность сырья</strong> (отчитался ли Росстат) и
+    <strong>долю импутаций</strong> готовой сетки. Для абсолютных показателей они расходятся:
+    при пересчёте на душу нужна численность населения, и её пропуск даёт импутацию даже там,
+    где сырьё было. Это описательная сводка, <strong>не прогноз</strong>.</p>
+</section>
+
+{% include "pages/_data_tabs.html" %}
+
+<div id="data-quality-root">
+  <div class="shell"><p>Загрузка…</p></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/data_quality.js' %}"></script>
+{% endblock %}

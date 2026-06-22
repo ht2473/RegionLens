@@ -24,6 +24,7 @@ from ..serializers import (
     ClusterProfileRowSerializer,
     CompareRowSerializer,
     CorrelationRowSerializer,
+    DataQualityRowSerializer,
     DecompositionRowSerializer,
     DispersionRowSerializer,
     GeoLayerPointSerializer,
@@ -550,3 +551,42 @@ class Decomposition(APIView):
             "decomposition", stage="api", okato=okato, scheme=scheme, year=year, rows=len(data)
         )
         return Response(DecompositionRowSerializer(data, many=True).data)
+
+
+class DataQuality(APIView):
+    """GET /api/data-quality/?metric_id=&year=&from=&to= — полнота/импутации сетки на метрику-год.
+
+    Описательная сводка качества аналитической матрицы: число регионов в группе, сколько ячеек с
+    непустым сырьём (completeness_raw — доступность источника по году) и сколько достроено
+    (impute_share — доля импутаций гармонизированной сетки). Для absolute-метрик две полноты
+    расходятся (гармонизация делит на население). coverage — оконное покрытие сырья. Все фильтры
+    необязательны; ряд по годам показывает динамику полноты. Это описание, не прогноз.
+    """
+
+    @extend_schema(
+        operation_id="data_quality",
+        parameters=[
+            OpenApiParameter("metric_id", OpenApiTypes.INT, description="Метрика (опц.)"),
+            OpenApiParameter("year", OpenApiTypes.INT, description="Год (опц.)"),
+            P_FROM,
+            P_TO,
+        ],
+        responses=DataQualityRowSerializer(many=True),
+        summary="Качество данных (полнота/импутации)",
+    )
+    def get(self, request: Request) -> Response:
+        try:
+            metric_id = _optional_int(request.query_params.get("metric_id"))
+            year = _optional_int(request.query_params.get("year"))
+            year_from = _optional_int(request.query_params.get("from"))
+            year_to = _optional_int(request.query_params.get("to"))
+        except ValueError:
+            return Response(
+                {"detail": "числовые параметры (metric_id, year, from, to) должны быть целыми"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.data_quality_list(
+            metric_id=metric_id, year=year, year_from=year_from, year_to=year_to
+        )
+        log.info("data_quality", stage="api", metric_id=metric_id, year=year, rows=len(data))
+        return Response(DataQualityRowSerializer(data, many=True).data)
