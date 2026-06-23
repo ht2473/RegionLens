@@ -105,16 +105,62 @@
       "</tbody></table></div>";
   }
 
-  select.addEventListener("change", load);
+  function readUrlState() {
+    var p = new URLSearchParams(window.location.search);
+    return { year: p.get("year"), metric: p.get("metric") || "" };
+  }
+
+  function writeUrlState() {
+    var p = new URLSearchParams(window.location.search);
+    if (slider) p.set("year", slider.value);
+    if (select.value) p.set("metric", select.value);
+    else p.delete("metric");
+    window.history.replaceState(null, "", window.location.pathname + "?" + p.toString());
+  }
+
+  select.addEventListener("change", function () {
+    writeUrlState();
+    load();
+  });
   if (slider) {
     slider.addEventListener("input", function () {
       if (label) label.textContent = slider.value;
     });
-    slider.addEventListener("change", load);
+    slider.addEventListener("change", function () {
+      writeUrlState();
+      load();
+    });
   }
 
+  var copyBtn = document.getElementById("corr-copy-link");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", function () {
+      var flash = function () {
+        var prev = copyBtn.textContent;
+        copyBtn.textContent = "Ссылка скопирована";
+        setTimeout(function () {
+          copyBtn.textContent = prev;
+        }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(flash, flash);
+      } else {
+        flash();
+      }
+    });
+  }
+
+  var initial = readUrlState();
   loadMetrics()
     .then(function () {
+      if (slider && /^\d{4}$/.test(initial.year || "")) {
+        var lo = parseInt(slider.min, 10),
+          hi = parseInt(slider.max, 10);
+        slider.value = Math.min(hi, Math.max(lo, parseInt(initial.year, 10)));
+      }
+      if (label && slider) label.textContent = slider.value;
+      if (initial.metric) select.value = initial.metric; // приживётся, только если опция есть
+      writeUrlState();
       load();
     })
     .catch(function (e) {

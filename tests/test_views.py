@@ -130,6 +130,12 @@ def test_region_dashboard_passes_okato(client: Client) -> None:
     assert 'data-okato="77000000"' in client.get("/regions/77000000/").content.decode()
 
 
+def test_region_dashboard_has_share_link(client: Client) -> None:
+    """Дашборд региона несёт кнопку шаринга вида (deep-link: год кодируется в URL)."""
+    html = client.get("/regions/45000000/").content.decode()
+    assert 'id="region-copy-link"' in html
+
+
 def test_rankings_page_wiring(client: Client) -> None:
     """Рейтинг: rankings.js, контейнер, контролы год/схема."""
     html = client.get("/rankings/").content.decode()
@@ -290,6 +296,13 @@ def test_correlations_page_ok_for_analyst() -> None:
     assert 'id="metric-select"' in html and 'id="correlations-root"' in html
     assert 'id="year-slider"' in html  # выбор года (Ф15)
     assert "js/correlations.js" in html
+
+
+@pytest.mark.django_db
+def test_correlations_has_share_link() -> None:
+    """Корреляции несут кнопку шаринга вида (deep-link: год и метрика кодируются в URL)."""
+    html = _role_client("analyst").get("/correlations/").content.decode()
+    assert 'id="corr-copy-link"' in html
 
 
 @pytest.mark.django_db

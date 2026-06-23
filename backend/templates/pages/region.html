@@ -13,6 +13,7 @@
       <label for="year-slider">Год: <strong id="year-label">2024</strong></label>
       <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
     </div>
+    <button type="button" id="region-copy-link" class="map-share" style="margin-top:8px;">Скопировать ссылку</button>
     {% if user.is_authenticated %}
       <div class="export-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
         <a class="btn ghost" id="export-xlsx"

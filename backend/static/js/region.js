@@ -15,6 +15,12 @@
   var initYear = qy && /^\d{4}$/.test(qy) ? parseInt(qy, 10) : parseInt(root.dataset.year || "2024", 10);
   var state = { year: Math.min(2024, Math.max(2010, initYear)) };
 
+  function writeUrlState() {
+    var p = new URLSearchParams(window.location.search);
+    p.set("year", state.year);
+    window.history.replaceState(null, "", window.location.pathname + "?" + p.toString());
+  }
+
   var DOMAIN_RU = {
     economy: "Экономика",
     income: "Доходы",
@@ -253,7 +259,7 @@
     });
   }
 
-  // Ползунок года
+  // Ползунок года (синхронизирован с URL: вид восстановим и шарится)
   var slider = document.getElementById("year-slider");
   var label = document.getElementById("year-label");
   if (slider) {
@@ -263,8 +269,30 @@
       state.year = parseInt(slider.value, 10);
       if (label) label.textContent = state.year;
     });
-    slider.addEventListener("change", load);
+    slider.addEventListener("change", function () {
+      writeUrlState();
+      load();
+    });
   }
 
+  var copyBtn = document.getElementById("region-copy-link");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", function () {
+      var flash = function () {
+        var prev = copyBtn.textContent;
+        copyBtn.textContent = "Ссылка скопирована";
+        setTimeout(function () {
+          copyBtn.textContent = prev;
+        }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(flash, flash);
+      } else {
+        flash();
+      }
+    });
+  }
+
+  writeUrlState();
   load();
 })();
