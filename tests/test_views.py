@@ -100,6 +100,12 @@ def test_map_page_wiring(client: Client) -> None:
     assert 'data-measure="cluster"' in html and 'data-measure="index"' in html
 
 
+def test_map_page_has_share_link(client: Client) -> None:
+    """Карта несёт кнопку шаринга вида (deep-link: состояние карты кодируется в URL)."""
+    html = client.get("/map/").content.decode()
+    assert 'id="map-copy-link"' in html
+
+
 def test_regions_list_wiring(client: Client) -> None:
     """Список регионов подключает Alpine-компонент на /api/regions/."""
     html = client.get("/regions/").content.decode()

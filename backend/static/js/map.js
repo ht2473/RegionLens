@@ -16,7 +16,32 @@
   var root = document.getElementById("map");
   if (!root || typeof maplibregl === "undefined") return;
 
-  var state = { year: parseInt(root.dataset.year || "2020", 10), measure: "cluster" };
+  // ── Deep-link: состояние карты (мера + год) кодируется в URL — вид восстановим и шарится ──
+  var MEASURES = ["cluster", "index"];
+  var slider = document.getElementById("year-slider");
+  var yearLabel = document.getElementById("year-label");
+  var yMin = slider ? parseInt(slider.min, 10) || 2010 : 2010;
+  var yMax = slider ? parseInt(slider.max, 10) || 2024 : 2024;
+
+  function readUrlState() {
+    var p = new URLSearchParams(window.location.search);
+    var y = parseInt(p.get("year") || root.dataset.year || "2020", 10);
+    if (isNaN(y)) y = parseInt(root.dataset.year || "2020", 10);
+    var m = p.get("measure");
+    return {
+      year: Math.min(yMax, Math.max(yMin, y)),
+      measure: MEASURES.indexOf(m) === -1 ? "cluster" : m,
+    };
+  }
+
+  function writeUrlState() {
+    var p = new URLSearchParams(window.location.search);
+    p.set("year", state.year);
+    p.set("measure", state.measure);
+    window.history.replaceState(null, "", window.location.pathname + "?" + p.toString());
+  }
+
+  var state = readUrlState();
   var geo = null; // загруженный FeatureCollection (мутируем properties при обновлении)
 
   var map = new maplibregl.Map({
@@ -185,9 +210,7 @@
     }
   }
 
-  // ── Контролы ───────────────────────────────────────────────────────────
-  var slider = document.getElementById("year-slider");
-  var yearLabel = document.getElementById("year-label");
+  // ── Контролы (синхронизированы с URL; изменения пишутся в адресную строку) ──────────────
   if (slider) {
     slider.value = state.year;
     if (yearLabel) yearLabel.textContent = state.year;
@@ -196,16 +219,41 @@
       if (yearLabel) yearLabel.textContent = state.year;
     });
     slider.addEventListener("change", function () {
+      writeUrlState();
       if (geo) update();
     });
   }
   document.querySelectorAll("[data-measure]").forEach(function (btn) {
+    btn.classList.toggle("is-active", btn.dataset.measure === state.measure);
     btn.addEventListener("click", function () {
       state.measure = btn.dataset.measure;
       document.querySelectorAll("[data-measure]").forEach(function (b) {
         b.classList.toggle("is-active", b === btn);
       });
+      writeUrlState();
       if (geo) update();
     });
   });
+
+  // Кнопка «скопировать ссылку» на текущий вид карты.
+  var copyBtn = document.getElementById("map-copy-link");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", function () {
+      var flash = function () {
+        var prev = copyBtn.textContent;
+        copyBtn.textContent = "Ссылка скопирована";
+        setTimeout(function () {
+          copyBtn.textContent = prev;
+        }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(flash, flash);
+      } else {
+        flash();
+      }
+    });
+  }
+
+  // Нормализовать URL под стартовое состояние, чтобы ссылку можно было сразу скопировать.
+  writeUrlState();
 })();
