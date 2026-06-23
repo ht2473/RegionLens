@@ -24,6 +24,10 @@ jobs:
         run: ruff format --check .
       - name: Mypy
         run: mypy pipeline backend
+      - name: OpenAPI (schema lint)
+        # Линт OpenAPI-схемы ловит битую
+        # генерацию и расхождение эндпойнтов со схемой.
+        run: PYTHONPATH=backend:. python backend/manage.py spectacular --validate --fail-on-warn --file /tmp/schema.yml
       - name: Pytest
         run: pytest
 
