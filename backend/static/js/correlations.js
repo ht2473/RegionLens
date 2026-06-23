@@ -50,7 +50,7 @@
         render(rows, metricId);
       })
       .catch(function (e) {
-        shell(e.message);
+        shell(RL.errText(e));
       });
   }
 
@@ -164,6 +164,6 @@
       load();
     })
     .catch(function (e) {
-      shell(e.message);
+      shell(RL.errText(e));
     });
 })();

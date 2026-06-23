@@ -96,6 +96,7 @@
     var url = API + "?year=" + encodeURIComponent(state.year) + "&measure=" + state.measure;
     fetch(url)
       .then(function (r) {
+        if (!r.ok) throw new Error("Ошибка загрузки слоя (" + r.status + ").");
         return r.json();
       })
       .then(function (rows) {
@@ -134,6 +135,14 @@
         map.getSource("regions").setData(geo);
         applyPaint();
         renderLegend(rows);
+      })
+      .catch(function (e) {
+        var el = document.getElementById("map-legend");
+        if (el) {
+          el.innerHTML =
+            "<div class='legend-title'>Слой не загрузился</div>" +
+            "<div class='legend-note'>" + RL.errText(e) + "</div>";
+        }
       });
   }
 

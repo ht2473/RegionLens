@@ -171,6 +171,6 @@
     })
     .then(render)
     .catch(function (e) {
-      shell(e.message);
+      shell(RL.errText(e));
     });
 })();

@@ -67,7 +67,7 @@
         return r.json();
       })
       .then(render)
-      .catch(function (e) { setMsg(e.message); });
+      .catch(function (e) { setMsg(RL.errText(e)); });
   }
 
   function render(rows) {

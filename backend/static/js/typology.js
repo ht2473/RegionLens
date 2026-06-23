@@ -36,7 +36,7 @@
       }),
     ])
       .then(function (out) { render(out[1]); })
-      .catch(function (e) { root.innerHTML = '<div class="shell"><p>' + e.message + "</p></div>"; });
+      .catch(function (e) { root.innerHTML = '<div class="shell"><p>' + RL.errText(e) + "</p></div>"; });
   }
 
   function render(rows) {

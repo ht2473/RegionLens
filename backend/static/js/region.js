@@ -80,7 +80,7 @@
         show("region-body", true);
         render(out[0], out[1], out[2], out[3]);
       })
-      .catch(function (err) { fail(err.message); });
+      .catch(function (err) { fail(RL.errText(err)); });
   }
 
   function render(d, transitions, twins, decomp) {

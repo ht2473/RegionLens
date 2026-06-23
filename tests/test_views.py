@@ -106,6 +106,12 @@ def test_map_page_has_share_link(client: Client) -> None:
     assert 'id="map-copy-link"' in html
 
 
+def test_shared_js_helper_loaded(client: Client) -> None:
+    """Общий клиентский помощник (единый текст ошибок) подключается на каждой странице."""
+    for path in ("/", "/map/", "/regions/45000000/"):
+        assert "js/rl-common.js" in client.get(path).content.decode()
+
+
 def test_regions_list_wiring(client: Client) -> None:
     """Список регионов подключает Alpine-компонент на /api/regions/."""
     html = client.get("/regions/").content.decode()
