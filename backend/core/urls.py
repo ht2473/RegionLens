@@ -8,6 +8,7 @@ from . import cabinet, views
 urlpatterns = [
     path("", views.home, name="home"),
     path("map/", views.map_page, name="map"),
+    path("views/<str:token>/", views.public_saved_view, name="public_saved_view"),
     path("rankings/", views.rankings, name="rankings"),
     path("rankings/stability/", views.rank_stability_page, name="rank_stability_page"),
     path("typology/", views.typology, name="typology"),
@@ -43,6 +44,7 @@ urlpatterns = [
     path("account/profile/", cabinet.profile_edit, name="account_profile"),
     path("account/views/", cabinet.saved_views, name="account_views"),
     path("account/views/<int:pk>/open/", cabinet.saved_view_open, name="account_view_open"),
+    path("account/views/<int:pk>/share/", cabinet.saved_view_share, name="account_view_share"),
     path("account/views/<int:pk>/delete/", cabinet.saved_view_delete, name="account_view_delete"),
     path("account/exports/", cabinet.export_history, name="account_exports"),
     path(

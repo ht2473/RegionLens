@@ -16,8 +16,11 @@
 
 from __future__ import annotations
 
+import secrets
+
 from django.contrib.auth.models import User
 from django.db import models
+from django.urls import reverse
 
 
 class UserProfile(models.Model):
@@ -63,6 +66,14 @@ class SavedView(models.Model):
     name = models.CharField("Название", max_length=200)
     config = models.JSONField("Параметры экрана", default=dict)
     created = models.DateTimeField("Создан", auto_now_add=True)
+    share_token = models.CharField(
+        "Токен публичной ссылки",
+        max_length=43,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text="Непустой = вид открыт по публичной ссылке без входа (read-only).",
+    )
 
     class Meta:
         verbose_name = "Сохранённый вид"
@@ -74,6 +85,41 @@ class SavedView(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name} ({self.user.get_username()})"
+
+    @property
+    def is_shared(self) -> bool:
+        """Открыт ли вид по публичной ссылке."""
+        return bool(self.share_token)
+
+    def enable_sharing(self) -> None:
+        """Включить публичную ссылку: сгенерировать непредсказуемый токен (если ещё нет)."""
+        if not self.share_token:
+            self.share_token = secrets.token_urlsafe(32)
+            self.save(update_fields=["share_token"])
+
+    def disable_sharing(self) -> None:
+        """Отозвать публичную ссылку: очистить токен."""
+        if self.share_token:
+            self.share_token = ""
+            self.save(update_fields=["share_token"])
+
+    def target_url(self) -> str:
+        """Экран, восстановленный из конфига, как deep-link на публичную страницу.
+
+        Регион (если задан okato) → дашборд региона с годом; иначе → карта с годом и мерой.
+        Аналитика перечитывается из DuckDB по этим параметрам — инвариант «двух миров».
+        """
+        config = self.config or {}
+        year = config.get("year", 2024)
+        okato = config.get("okato")
+        if okato:
+            return f"{reverse('region-dashboard-page', args=[okato])}?year={year}"
+        measure = config.get("measure", "cluster")
+        return f"{reverse('map')}?year={year}&measure={measure}"
+
+    def public_url(self) -> str:
+        """Относительный путь публичной ссылки на вид (валиден, только если расшарен)."""
+        return reverse("public_saved_view", args=[self.share_token])
 
 
 class FeedbackMessage(models.Model):

@@ -12,13 +12,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
 from django.core.files.base import ContentFile
 from django.http import FileResponse, Http404, HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from . import queries, reports
 from .audit import record
 from .forms import RegistrationForm
-from .models import ExportJob, FeedbackMessage
+from .models import ExportJob, FeedbackMessage, SavedView
 from .permissions import ROLE_ANALYST, ROLE_VIEWER, role_required
 
 
@@ -57,6 +57,19 @@ def home(request: HttpRequest) -> HttpResponse:
 def map_page(request: HttpRequest) -> HttpResponse:
     """Карта регионов (оболочка под MapLibre)."""
     return _page(request, "pages/map.html", active="map", title="Карта")
+
+
+def public_saved_view(request: HttpRequest, token: str) -> HttpResponse:
+    """Публичная ссылка на сохранённый вид (без входа): редирект на восстановленный экран.
+
+    Резолвится в deep-link уже публичных страниц (карта/регион), поэтому ничего приватного
+    не раскрывается — это read-only вход в общедоступную аналитику. Токен непустой по маршруту;
+    несуществующий или отозванный токен → 404.
+    """
+    if not token:
+        raise Http404
+    view = get_object_or_404(SavedView, share_token=token)
+    return redirect(view.target_url())
 
 
 @role_required(ROLE_ANALYST)

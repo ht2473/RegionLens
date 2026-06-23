@@ -44,6 +44,13 @@
             <td>{{ v.created|date:"d.m.Y H:i" }}</td>
             <td style="white-space:nowrap;">
               <a class="btn ghost" href="{% url 'account_view_open' v.pk %}">Открыть</a>
+              <form method="post" action="{% url 'account_view_share' v.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="btn ghost" type="submit">{% if v.is_shared %}Закрыть доступ{% else %}Открыть доступ{% endif %}</button>
+              </form>
+              {% if v.is_shared %}
+                <button type="button" class="btn ghost" data-share-path="{{ v.public_url }}">Скопировать ссылку</button>
+              {% endif %}
               <form method="post" action="{% url 'account_view_delete' v.pk %}" style="display:inline;">
                 {% csrf_token %}
                 <button class="btn ghost" type="submit">Удалить</button>
@@ -57,4 +64,25 @@
 {% else %}
   <p style="color:var(--ink-faint);">Пока нет сохранённых видов.</p>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Копирование публичной ссылки на вид: относительный путь + текущий origin.
+  document.querySelectorAll("[data-share-path]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var url = window.location.origin + btn.getAttribute("data-share-path");
+      var done = function () {
+        var prev = btn.textContent;
+        btn.textContent = "Скопировано";
+        setTimeout(function () { btn.textContent = prev; }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(done, done);
+      } else {
+        done();
+      }
+    });
+  });
+</script>
 {% endblock %}

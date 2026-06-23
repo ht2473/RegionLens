@@ -116,6 +116,76 @@ def test_cannot_touch_other_users_view(client_alice: Client) -> None:
     assert SavedView.objects.filter(pk=sv.pk).exists()
 
 
+# --- Публичный шаринг сохранённых видов (Фаза 3) -------------------------------------
+
+
+def test_saved_view_share_toggle(client_alice: Client, alice: User) -> None:
+    """Кнопка доступа включает публичную ссылку (токен), повторное нажатие — отзывает."""
+    sv = SavedView.objects.create(user=alice, name="s", config={"year": 2020})
+    client_alice.post(reverse("account_view_share", args=[sv.pk]))
+    sv.refresh_from_db()
+    assert sv.is_shared and sv.share_token
+    client_alice.post(reverse("account_view_share", args=[sv.pk]))
+    sv.refresh_from_db()
+    assert not sv.is_shared and sv.share_token == ""
+
+
+def test_saved_view_share_requires_login(client: Client, alice: User) -> None:
+    """Аноним не может менять доступ к виду — редирект на вход."""
+    sv = SavedView.objects.create(user=alice, name="s", config={})
+    resp = client.post(reverse("account_view_share", args=[sv.pk]))
+    assert resp.status_code == 302 and "/accounts/login/" in resp["Location"]
+
+
+def test_cannot_share_other_users_view(client_alice: Client) -> None:
+    """Нельзя открыть доступ к чужому виду (404), вид остаётся закрытым."""
+    bob = User.objects.create_user("bob", password=_PW)
+    sv = SavedView.objects.create(user=bob, name="bobview", config={})
+    assert client_alice.post(reverse("account_view_share", args=[sv.pk])).status_code == 404
+    sv.refresh_from_db()
+    assert not sv.is_shared
+
+
+def test_public_view_redirects_to_region(client: Client, alice: User) -> None:
+    """Публичная ссылка (регион) → 302 на дашборд региона с годом, без входа."""
+    sv = SavedView.objects.create(user=alice, name="r", config={"year": 2020, "okato": "45000000"})
+    sv.enable_sharing()
+    resp = client.get(reverse("public_saved_view", args=[sv.share_token]))
+    assert resp.status_code == 302
+    assert resp["Location"] == "/regions/45000000/?year=2020"
+
+
+def test_public_view_redirects_to_map(client: Client, alice: User) -> None:
+    """Публичная ссылка (карта) → 302 на карту с годом и мерой."""
+    sv = SavedView.objects.create(user=alice, name="m", config={"year": 2018, "measure": "index"})
+    sv.enable_sharing()
+    resp = client.get(reverse("public_saved_view", args=[sv.share_token]))
+    assert resp["Location"] == "/map/?year=2018&measure=index"
+
+
+def test_public_view_unknown_token_404(client: Client) -> None:
+    """Несуществующий токен публичной ссылки → 404."""
+    assert client.get("/views/nope-not-a-real-token/").status_code == 404
+
+
+def test_public_view_revoked_token_404(client: Client, alice: User) -> None:
+    """После отзыва доступа прежний токен больше не открывается (404)."""
+    sv = SavedView.objects.create(user=alice, name="x", config={"year": 2021})
+    sv.enable_sharing()
+    token = sv.share_token
+    sv.disable_sharing()
+    assert client.get(reverse("public_saved_view", args=[token])).status_code == 404
+
+
+def test_enable_sharing_is_idempotent(alice: User) -> None:
+    """enable_sharing генерирует токен один раз; повторный вызов его не меняет."""
+    sv = SavedView.objects.create(user=alice, name="i", config={})
+    sv.enable_sharing()
+    first = sv.share_token
+    sv.enable_sharing()
+    assert sv.share_token == first and len(first) >= 32
+
+
 def test_export_history_isolated(client_alice: Client, alice: User) -> None:
     """История экспортов показывает только задания текущего пользователя."""
     bob = User.objects.create_user("bob2", password=_PW)

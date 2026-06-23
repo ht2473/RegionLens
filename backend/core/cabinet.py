@@ -102,13 +102,21 @@ def saved_views(request: HttpRequest) -> HttpResponse:
 def saved_view_open(request: HttpRequest, pk: int) -> HttpResponse:
     """Открыть сохранённый вид: реконструировать экран из конфига и перенаправить туда."""
     view = get_object_or_404(SavedView, pk=pk, user=request.user)
-    config = view.config or {}
-    year = config.get("year", 2024)
-    okato = config.get("okato")
-    if okato:
-        return redirect(f"{reverse('region-dashboard-page', args=[okato])}?year={year}")
-    measure = config.get("measure", "cluster")
-    return redirect(f"{reverse('map')}?year={year}&measure={measure}")
+    return redirect(view.target_url())
+
+
+@login_required
+def saved_view_share(request: HttpRequest, pk: int) -> HttpResponse:
+    """Включить или отозвать публичную ссылку на свой вид (только POST, только владелец)."""
+    view = get_object_or_404(SavedView, pk=pk, user=request.user)
+    if request.method == "POST":
+        if view.is_shared:
+            view.disable_sharing()
+            record(request.user, f"saved_view:unshare {view.name}")
+        else:
+            view.enable_sharing()
+            record(request.user, f"saved_view:share {view.name}")
+    return redirect("account_views")
 
 
 @login_required
