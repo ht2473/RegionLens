@@ -853,3 +853,40 @@ def test_data_quality_two_completeness_diverge_for_absolute(data_quality_duckdb:
 def test_data_quality_bad_numeric_param_returns_400(data_quality_duckdb: Path) -> None:
     """Нечисловой числовой параметр приводит к 400, а не к 500."""
     assert APIClient().get("/api/data-quality/?year=abc").status_code == 400
+
+
+# --- Фаза 2 (зрелость API): корреляция запросов + единый обработчик ошибок ------------
+
+
+def test_request_id_header_generated() -> None:
+    """Без входящего X-Request-ID middleware генерирует свой и возвращает его в ответе."""
+    resp = APIClient().get("/api/schema/")
+    rid = resp.headers.get("X-Request-ID")
+    assert rid and len(rid) >= 8
+
+
+def test_request_id_header_echoed_when_safe() -> None:
+    """Безопасный входящий X-Request-ID отражается в ответе (сквозная корреляция)."""
+    resp = APIClient().get("/api/schema/", HTTP_X_REQUEST_ID="abc-123_DEF")
+    assert resp.headers.get("X-Request-ID") == "abc-123_DEF"
+
+
+def test_request_id_rejects_unsafe_incoming() -> None:
+    """Небезопасный входящий id (пробелы/управляющие символы) игнорируется — генерируется свой."""
+    resp = APIClient().get("/api/schema/", HTTP_X_REQUEST_ID="bad id\r\ninjected")
+    rid = resp.headers.get("X-Request-ID")
+    assert rid and rid != "bad id\r\ninjected"
+    assert "\n" not in rid and " " not in rid
+
+
+def test_unhandled_error_returns_clean_500(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Зарегистрированный обработчик: исключение во вьюхе → чистый 500 + заголовок корреляции."""
+
+    def boom(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr("core.queries.geo_layer", boom)
+    resp = APIClient().get("/api/geo/layer/", {"year": 2020, "measure": "index"})
+    assert resp.status_code == 500
+    assert resp.json() == {"detail": "внутренняя ошибка сервера"}
+    assert resp.headers.get("X-Request-ID")
