@@ -1095,3 +1095,36 @@ def test_rank_robustness_returns_corridor_for_year(rank_robustness_duckdb: Path)
 def test_rank_robustness_missing_year_returns_400(rank_robustness_duckdb: Path) -> None:
     """Без обязательного year → 400."""
     assert APIClient().get("/api/index/robustness/").status_code == 400
+
+
+# --- Согласованность схем весов по годам (тренд лаборатории) --------------------------
+
+
+@pytest.fixture
+def scheme_agreement_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с таблицей scheme_agreement; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "sa.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE scheme_agreement (year INTEGER, scheme_a VARCHAR, scheme_b VARCHAR, "
+        "spearman DOUBLE, n_regions INTEGER)"
+    )
+    con.execute(
+        "INSERT INTO scheme_agreement VALUES "
+        "(2023, 'equal', 'pca', 0.95, 85), (2024, 'equal', 'pca', 0.97, 85), "
+        "(2023, 'equal', 'expert', 0.98, 85), (2024, 'equal', 'expert', 0.99, 85)"
+    )
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_scheme_agreement_returns_pairs(scheme_agreement_duckdb: Path) -> None:
+    """Эндпойнт отдаёт корреляцию по парам схем и годам."""
+    rows = APIClient().get("/api/index/scheme-agreement/").json()
+    assert len(rows) == 4
+    pair = {(r["scheme_a"], r["scheme_b"], r["year"]): r["spearman"] for r in rows}
+    assert pair[("equal", "pca", 2024)] == 0.97
+    assert pair[("equal", "expert", 2023)] == 0.98

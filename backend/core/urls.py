@@ -11,6 +11,7 @@ urlpatterns = [
     path("explore/", views.explore_page, name="explore"),
     path("views/<str:token>/", views.public_saved_view, name="public_saved_view"),
     path("rankings/", views.rankings, name="rankings"),
+    path("index-lab/", views.index_lab_page, name="index_lab"),
     path("rankings/stability/", views.rank_stability_page, name="rank_stability_page"),
     path("typology/", views.typology, name="typology"),
     path("compare/", views.compare, name="compare"),

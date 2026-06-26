@@ -294,6 +294,20 @@ class MetricValuePointSerializer(serializers.Serializer):
     value = serializers.FloatField(allow_null=True)
 
 
+class SchemeAgreementRowSerializer(serializers.Serializer):
+    """Согласованность двух схем весов в году: ранговая корреляция Спирмена их рейтингов.
+
+    spearman близко к 1 ⇒ выбор между схемами почти не меняет порядок регионов; ниже ⇒
+    рейтинг чувствителен к весам. Питает тренд согласованности в лаборатории индекса.
+    """
+
+    year = serializers.IntegerField()
+    scheme_a = serializers.CharField()
+    scheme_b = serializers.CharField()
+    spearman = serializers.FloatField(allow_null=True)
+    n_regions = serializers.IntegerField()
+
+
 class RankRobustnessRowSerializer(serializers.Serializer):
     """Коридор ранга региона по схемам весов в году (чувствительность к выбору весов).
 

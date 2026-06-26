@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Лаборатория индекса — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Прозрачность индекса</p>
+  <h1>Лаборатория индекса</h1>
+  <p class="lead">Композитный индекс зависит от выбора схемы взвешивания доменов. Здесь видно,
+    насколько выводы устойчивы: согласованность рейтингов разных схем во времени и какие регионы
+    расходятся сильнее всего.</p>
+</section>
+
+<section class="lab-block">
+  <h2>Согласованность схем во времени</h2>
+  <p class="lab-note">Ранговая корреляция Спирмена между рейтингами пар схем по годам. Ближе к 1 —
+    порядок регионов почти не зависит от выбора схемы; ниже — рейтинг чувствителен к весам.</p>
+  <div id="lab-agreement"><div class="shell"><p>Загрузка…</p></div></div>
+</section>
+
+<section class="lab-block">
+  <h2>Сравнение схем: кто расходится</h2>
+  <div class="map-controls">
+    <div class="year-control">
+      <label for="lab-year">Год: <strong id="lab-year-label">2024</strong></label>
+      <input type="range" id="lab-year" min="2010" max="2024" step="1" value="2024">
+    </div>
+    <div class="year-control">
+      <label for="lab-a">Схема X</label>
+      <select id="lab-a">
+        <option value="equal">Равные</option>
+        <option value="pca">PCA</option>
+        <option value="expert">Экспертные</option>
+      </select>
+    </div>
+    <div class="year-control">
+      <label for="lab-b">Схема Y</label>
+      <select id="lab-b">
+        <option value="pca">PCA</option>
+        <option value="equal">Равные</option>
+        <option value="expert">Экспертные</option>
+      </select>
+    </div>
+  </div>
+  <p class="lab-note">Каждая точка — регион: место по схеме X против места по схеме Y. На диагонали —
+    схемы согласны; чем дальше точка от диагонали, тем сильнее место региона зависит от весов
+    (такие выделены цветом).</p>
+  <div id="lab-scatter"><div class="shell"><p>Загрузка…</p></div></div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<script src="{% static 'js/index_lab.js' %}"></script>
+{% endblock %}

@@ -128,6 +128,19 @@ def test_explore_in_nav(client: Client) -> None:
     assert "Показатели" in client.get("/").content.decode()
 
 
+def test_index_lab_page_wiring(client: Client) -> None:
+    """Лаборатория индекса: 200, два блока (согласованность + scatter), Plotly и index_lab.js."""
+    html = client.get("/index-lab/").content.decode()
+    assert "js/index_lab.js" in html
+    assert 'id="lab-agreement"' in html and 'id="lab-scatter"' in html
+    assert "plot.ly" in html
+
+
+def test_index_lab_in_nav(client: Client) -> None:
+    """Пункт «Лаборатория индекса» присутствует в навигации."""
+    assert "Лаборатория индекса" in client.get("/").content.decode()
+
+
 def test_shared_js_helper_loaded(client: Client) -> None:
     """Общий клиентский помощник (единый текст ошибок) подключается на каждой странице."""
     for path in ("/", "/map/", "/regions/45000000/"):

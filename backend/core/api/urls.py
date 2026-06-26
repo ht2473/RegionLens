@@ -34,6 +34,11 @@ urlpatterns = [
     # Индекс / переходы
     path("index/", endpoints.IndexRanking.as_view(), name="index"),
     path("index/robustness/", endpoints.RankRobustness.as_view(), name="rank_robustness"),
+    path(
+        "index/scheme-agreement/",
+        endpoints.SchemeAgreement.as_view(),
+        name="scheme_agreement",
+    ),
     path("transitions/", endpoints.Transitions.as_view(), name="transitions"),
     # Типология (profile — до <okato>/explain, чтобы не перехватился как okato)
     path("typology/", endpoints.Typology.as_view(), name="typology"),

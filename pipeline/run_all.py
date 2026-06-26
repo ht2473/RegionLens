@@ -141,6 +141,14 @@ def _stage_rank_robustness(duckdb_path: str, sources_path: str, log_mlflow: bool
     run_rank_robustness(dev_index, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_scheme_agreement(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """Согласованность рейтингов между схемами весов по годам (Спирмен)."""
+    from pipeline.scheme_agreement import run_scheme_agreement
+
+    dev_index = read_table(duckdb_path, "dev_index")
+    run_scheme_agreement(dev_index, duckdb_path=duckdb_path, write=True)
+
+
 def _stage_correlations(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
     """Парные корреляции метрик по регионам на год."""
     from pipeline.correlations import run_correlations
@@ -247,6 +255,13 @@ STAGES: tuple[Stage, ...] = (
         ("dev_index",),
         ("rank_robustness",),
         "коридор ранга по схемам весов в году (чувствительность к весам)",
+    ),
+    Stage(
+        "scheme_agreement",
+        _stage_scheme_agreement,
+        ("dev_index",),
+        ("scheme_agreement",),
+        "согласованность рейтингов между схемами весов по годам (Спирмен)",
     ),
     Stage(
         "correlations",

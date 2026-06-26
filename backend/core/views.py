@@ -64,6 +64,11 @@ def explore_page(request: HttpRequest) -> HttpResponse:
     return _page(request, "pages/explore.html", active="explore", title="Показатели")
 
 
+def index_lab_page(request: HttpRequest) -> HttpResponse:
+    """Лаборатория индекса: согласованность схем весов и расхождение рейтингов (прозрачность)."""
+    return _page(request, "pages/index_lab.html", active="index_lab", title="Лаборатория индекса")
+
+
 def public_saved_view(request: HttpRequest, token: str) -> HttpResponse:
     """Публичная ссылка на сохранённый вид (без входа): редирект на восстановленный экран.
 

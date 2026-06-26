@@ -138,6 +138,18 @@ def rank_robustness_list(year: int) -> list[dict[str, Any]]:
     )
 
 
+def scheme_agreement_list() -> list[dict[str, Any]]:
+    """Согласованность рейтингов между схемами весов по годам (таблица scheme_agreement).
+
+    Все пары схем за все годы: ранговая корреляция Спирмена между рейтингами. Питает тренд
+    согласованности в лаборатории индекса. Сортировка по паре и году (для непрерывных линий).
+    """
+    return q(
+        "SELECT year, scheme_a, scheme_b, spearman, n_regions "
+        "FROM scheme_agreement ORDER BY scheme_a, scheme_b, year"
+    )
+
+
 def _domain_breakdown(cur: dict[str, Any], prev: dict[str, Any] | None) -> list[dict[str, Any]]:
     """Поддоменная разбивка балла: значение в году, в предыдущем году и дельта (B4).
 

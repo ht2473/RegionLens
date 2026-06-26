@@ -38,6 +38,7 @@ from ..serializers import (
     RegionDashboardSerializer,
     RegionSerializer,
     RegionTwinSerializer,
+    SchemeAgreementRowSerializer,
     TransitionSerializer,
     TypologyExplainSerializer,
     TypologyRowSerializer,
@@ -272,6 +273,24 @@ class RankRobustness(APIView):
         data = queries.rank_robustness_list(year)
         log.info("rank_robustness", stage="api", year=year, rows=len(data))
         return Response(RankRobustnessRowSerializer(data, many=True).data)
+
+
+class SchemeAgreement(APIView):
+    """GET /api/index/scheme-agreement/ — согласованность рейтингов между схемами весов по годам.
+
+    Для каждой пары схем (равные/PCA/экспертные) и года — ранговая корреляция Спирмена их
+    рейтингов. Сводно показывает, насколько порядок регионов зависит от выбора весов и как это
+    менялось во времени. Питает тренд согласованности в лаборатории индекса. Описание данных.
+    """
+
+    @extend_schema(
+        responses=SchemeAgreementRowSerializer(many=True),
+        summary="Согласованность схем весов по годам",
+    )
+    def get(self, request: Request) -> Response:
+        data = queries.scheme_agreement_list()
+        log.info("scheme_agreement", stage="api", rows=len(data))
+        return Response(SchemeAgreementRowSerializer(data, many=True).data)
 
 
 class Transitions(APIView):
