@@ -79,6 +79,27 @@ INDEX_DECOMPOSITION_SCHEMA = {
     "contribution": pl.Float64,
 }
 
+# Контракт metric_catalog: тиринг и профиль ВСЕХ метрик каталога (а не только ядра).
+# Грань — metric_id. tier: core (ядро индекса/типологии) / extended (вне ядра, но хорошо покрыты —
+# доступны для explore) / sparse (слишком разрежены). year_min/max/n_years/n_regions — фактический
+# охват по сырью (полное окно 2001–2025), coverage — оконное покрытие из metric_dim. Основа explore
+# и будущего расширения ядра; ничего не считает заново — агрегирует уже готовые таблицы.
+METRIC_CATALOG_SCHEMA = {
+    "metric_id": pl.Int32,
+    "indicator_code": pl.Utf8,
+    "metric_name": pl.Utf8,
+    "domain": pl.Utf8,
+    "value_type": pl.Utf8,
+    "unit": pl.Utf8,
+    "coverage": pl.Float64,
+    "year_min": pl.Int32,
+    "year_max": pl.Int32,
+    "n_years": pl.Int32,
+    "n_regions": pl.Int32,
+    "is_core": pl.Boolean,
+    "tier": pl.Utf8,
+}
+
 # Контракт data_quality (Ф17): полнота/импутации аналитической сетки на (метрику, год).
 # Грань — (metric_id, year) по сетке ядра. n_regions — число ячеек сетки (включённые регионы);
 # n_present_raw — из них с непустым СЫРЫМ значением (доступность источника, до гармонизации);

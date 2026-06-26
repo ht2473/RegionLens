@@ -286,6 +286,29 @@ class DecompositionRowSerializer(serializers.Serializer):
     contribution = serializers.FloatField()
 
 
+class MetricCatalogRowSerializer(serializers.Serializer):
+    """Строка каталога метрик: тир пригодности + профиль охвата.
+
+    tier: core (ядро индекса) / extended (вне ядра, но пригодна для explore) / sparse (разрежена).
+    coverage — оконное покрытие (Ф2); year_min/max/n_years/n_regions — фактический охват по сырью
+    (полное окно). is_core — входит ли в курируемое ядро. Справочник доступного для анализа.
+    """
+
+    metric_id = serializers.IntegerField()
+    indicator_code = serializers.CharField()
+    metric_name = serializers.CharField()
+    domain = serializers.CharField(allow_null=True)
+    value_type = serializers.CharField(allow_null=True)
+    unit = serializers.CharField(allow_null=True)
+    coverage = serializers.FloatField(allow_null=True)
+    year_min = serializers.IntegerField(allow_null=True)
+    year_max = serializers.IntegerField(allow_null=True)
+    n_years = serializers.IntegerField()
+    n_regions = serializers.IntegerField()
+    is_core = serializers.BooleanField()
+    tier = serializers.CharField()
+
+
 class DataQualityRowSerializer(serializers.Serializer):
     """Строка качества данных на (метрику, год) из таблицы data_quality.
 

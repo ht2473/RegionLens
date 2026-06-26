@@ -18,3 +18,5 @@ twins: {top_n: 5}                                                         # C2: 
 dispersion: {min_regions: 5}     # межрегиональный разброс: мин. число регионов в группе (метрика, год)
 rank_stability: {min_years: 3}   # волатильность ранга: мин. число лет с рангом у региона
 correlations: {method: spearman, min_regions: 30}   # парные корреляции метрик: метод и мин. число регионов
+metric_catalog:                  # каталог метрик: тиринг всех метрик для explore/курирования
+  extended_min_coverage: 0.70    # порог покрытия для тира "extended" (вне ядра, но пригодны для explore)

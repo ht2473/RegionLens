@@ -56,4 +56,6 @@ urlpatterns = [
     path("decomposition/", endpoints.Decomposition.as_view(), name="decomposition"),
     # Качество данных: полнота/импутации аналитической сетки на метрику-год (Ф17)
     path("data-quality/", endpoints.DataQuality.as_view(), name="data_quality"),
+    # Каталог метрик: тиринг (core/extended/sparse) и профиль всего справочника
+    path("metric-catalog/", endpoints.MetricCatalog.as_view(), name="metric_catalog"),
 ]

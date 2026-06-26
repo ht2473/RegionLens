@@ -29,6 +29,7 @@ from ..serializers import (
     DispersionRowSerializer,
     GeoLayerPointSerializer,
     IndexRowSerializer,
+    MetricCatalogRowSerializer,
     MetricSerializer,
     MetricSeriesPointSerializer,
     RankStabilityRowSerializer,
@@ -590,3 +591,39 @@ class DataQuality(APIView):
         )
         log.info("data_quality", stage="api", metric_id=metric_id, year=year, rows=len(data))
         return Response(DataQualityRowSerializer(data, many=True).data)
+
+
+class MetricCatalog(APIView):
+    """GET /api/metric-catalog/?tier=&domain=&search=&limit= — каталог метрик с тирингом.
+
+    Справочник того, что доступно для анализа: каждая метрика отнесена к тиру core (ядро индекса) /
+    extended (вне ядра, но пригодна для explore) / sparse (разрежена) и снабжена профилем (домен,
+    тип, покрытие, годовой охват по сырью). Основа explore-режима. Фильтры опциональны; limit
+    ограничивает выдачу (каталог большой). Описание данных, не пересчёт аналитики.
+    """
+
+    @extend_schema(
+        operation_id="metric_catalog",
+        parameters=[
+            OpenApiParameter("tier", OpenApiTypes.STR, description="core / extended / sparse"),
+            OpenApiParameter("domain", OpenApiTypes.STR, description="Домен (опц.)"),
+            OpenApiParameter("search", OpenApiTypes.STR, description="Поиск по имени метрики"),
+            OpenApiParameter("limit", OpenApiTypes.INT, description="Лимит выдачи (1..1000)"),
+        ],
+        responses=MetricCatalogRowSerializer(many=True),
+        summary="Каталог метрик (тиринг и профиль)",
+    )
+    def get(self, request: Request) -> Response:
+        tier = request.query_params.get("tier") or None
+        domain = request.query_params.get("domain") or None
+        search = request.query_params.get("search") or None
+        try:
+            limit = int(request.query_params.get("limit", 200))
+        except ValueError:
+            return Response(
+                {"detail": "limit должен быть целым числом"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        limit = max(1, min(limit, 1000))
+        data = queries.metric_catalog_list(tier=tier, domain=domain, search=search, limit=limit)
+        log.info("metric_catalog", stage="api", tier=tier, domain=domain, rows=len(data))
+        return Response(MetricCatalogRowSerializer(data, many=True).data)

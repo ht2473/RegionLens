@@ -890,3 +890,64 @@ def test_unhandled_error_returns_clean_500(monkeypatch: pytest.MonkeyPatch) -> N
     assert resp.status_code == 500
     assert resp.json() == {"detail": "внутренняя ошибка сервера"}
     assert resp.headers.get("X-Request-ID")
+
+
+# --- Каталог метрик (тиринг core/extended/sparse) ------------------------------------
+
+
+@pytest.fixture
+def metric_catalog_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с таблицей metric_catalog; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "cat.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE metric_catalog (metric_id INTEGER, indicator_code VARCHAR, "
+        "metric_name VARCHAR, domain VARCHAR, value_type VARCHAR, unit VARCHAR, coverage DOUBLE, "
+        "year_min INTEGER, year_max INTEGER, n_years INTEGER, n_regions INTEGER, "
+        "is_core BOOLEAN, tier VARCHAR)"
+    )
+    con.execute(
+        "INSERT INTO metric_catalog VALUES "
+        "(1, 'Y1', 'Индекс развития', 'economy', 'index', 'ед.', "
+        "0.99, 2010, 2024, 15, 85, true, 'core'), "
+        "(2, 'Y2', 'Ввод жилья', 'infrastructure', 'absolute', 'кв.м', "
+        "0.95, 2001, 2024, 24, 85, false, 'extended'), "
+        "(3, 'Y3', 'Редкий показатель', 'income', 'share', '%', "
+        "0.20, 2015, 2018, 4, 40, false, 'sparse')"
+    )
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_metric_catalog_returns_all(metric_catalog_duckdb: Path) -> None:
+    """Без фильтров — весь каталог; ядро идёт первым (сортировка по тиру)."""
+    rows = APIClient().get("/api/metric-catalog/").json()
+    assert len(rows) == 3
+    assert rows[0]["tier"] == "core"  # core первым
+    assert {r["tier"] for r in rows} == {"core", "extended", "sparse"}
+
+
+def test_metric_catalog_filter_by_tier(metric_catalog_duckdb: Path) -> None:
+    """Фильтр ?tier=extended возвращает только метрики этого тира."""
+    rows = APIClient().get("/api/metric-catalog/?tier=extended").json()
+    assert [r["metric_name"] for r in rows] == ["Ввод жилья"]
+
+
+def test_metric_catalog_filter_by_domain_and_search(metric_catalog_duckdb: Path) -> None:
+    """Фильтр по домену и текстовый поиск по имени (ILIKE)."""
+    assert len(APIClient().get("/api/metric-catalog/?domain=economy").json()) == 1
+    rows = APIClient().get("/api/metric-catalog/?search=жил").json()
+    assert [r["metric_id"] for r in rows] == [2]
+
+
+def test_metric_catalog_limit(metric_catalog_duckdb: Path) -> None:
+    """limit ограничивает выдачу."""
+    assert len(APIClient().get("/api/metric-catalog/?limit=1").json()) == 1
+
+
+def test_metric_catalog_bad_limit_returns_400(metric_catalog_duckdb: Path) -> None:
+    """Нечисловой limit → 400, а не 500."""
+    assert APIClient().get("/api/metric-catalog/?limit=abc").status_code == 400

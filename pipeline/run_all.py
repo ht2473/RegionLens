@@ -159,6 +159,15 @@ def _stage_data_quality(duckdb_path: str, sources_path: str, log_mlflow: bool) -
     run_data_quality(features_wide, fact_region, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_metric_catalog(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """Тиринг и профиль всего справочника метрик (основа explore/курирования)."""
+    from pipeline.metric_catalog import run_metric_catalog
+
+    metric_dim = read_table(duckdb_path, "metric_dim")
+    fact_region = read_table(duckdb_path, "fact_region")
+    run_metric_catalog(metric_dim, fact_region, duckdb_path=duckdb_path, write=True)
+
+
 #: Линейный план конвейера в порядке зависимостей (вход каждой стадии произведён выше).
 STAGES: tuple[Stage, ...] = (
     Stage(
@@ -244,6 +253,13 @@ STAGES: tuple[Stage, ...] = (
         ("features_wide", "fact_region"),
         ("data_quality",),
         "полнота/импутации аналитической сетки на метрику-год",
+    ),
+    Stage(
+        "metric_catalog",
+        _stage_metric_catalog,
+        ("metric_dim", "fact_region"),
+        ("metric_catalog",),
+        "тиринг и профиль всего справочника метрик (explore/курирование)",
     ),
 )
 

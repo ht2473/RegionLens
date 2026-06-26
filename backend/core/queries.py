@@ -477,6 +477,42 @@ def data_quality_list(
     )
 
 
+def metric_catalog_list(
+    *,
+    tier: str | None = None,
+    domain: str | None = None,
+    search: str | None = None,
+    limit: int = 200,
+) -> list[dict[str, Any]]:
+    """Каталог метрик с тирингом и профилем (таблица metric_catalog).
+
+    Фильтры (все опциональны): tier (core/extended/sparse), domain, текстовый поиск по имени
+    (search → ILIKE). Сортировка: сначала ядро, затем extended, затем sparse; внутри тира — по
+    убыванию покрытия. limit ограничивает выдачу (каталог большой). Это справочник того, что
+    доступно для анализа/explore — не пересчитывает аналитику, читает готовую таблицу.
+    """
+    clauses: list[str] = []
+    params: list[Any] = []
+    if tier is not None:
+        clauses.append("tier = ?")
+        params.append(tier)
+    if domain is not None:
+        clauses.append("domain = ?")
+        params.append(domain)
+    if search is not None:
+        clauses.append("metric_name ILIKE ?")
+        params.append(f"%{search}%")
+    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    return q(
+        "SELECT metric_id, indicator_code, metric_name, domain, value_type, unit, coverage, "
+        "year_min, year_max, n_years, n_regions, is_core, tier "
+        f"FROM metric_catalog{where} "
+        "ORDER BY CASE tier WHEN 'core' THEN 0 WHEN 'extended' THEN 1 ELSE 2 END, coverage DESC "
+        "LIMIT ?",
+        [*params, limit],
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Сводка по данным/методологии (Ф11-обогащение): фактические числа для страниц
 # «Данные» и «Методология». ВСЁ выводится запросом к уже посчитанным контрактным
