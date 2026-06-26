@@ -33,6 +33,7 @@ from ..serializers import (
     MetricSerializer,
     MetricSeriesPointSerializer,
     MetricValuePointSerializer,
+    RankRobustnessRowSerializer,
     RankStabilityRowSerializer,
     RegionDashboardSerializer,
     RegionSerializer,
@@ -248,6 +249,29 @@ class IndexRanking(APIView):
         data = queries.index_ranking(year, scheme)
         log.info("index_ranking", stage="api", year=year, scheme=scheme, rows=len(data))
         return Response(IndexRowSerializer(data, many=True).data)
+
+
+class RankRobustness(APIView):
+    """GET /api/index/robustness/?year=<int> — коридор ранга по схемам весов на год.
+
+    Для каждого региона — лучшая и худшая позиция среди схем весов (равные/PCA/экспертные)
+    и ширина коридора. Делает видимой зависимость места региона от произвольного выбора весов
+    (научное ядро «прозрачного индекса»). Описание данных, не пересчёт.
+    """
+
+    @extend_schema(
+        parameters=[P_YEAR],
+        responses=RankRobustnessRowSerializer(many=True),
+        summary="Коридор ранга по схемам весов",
+    )
+    def get(self, request: Request) -> Response:
+        year, err = _parse_year(request)
+        if err is not None:
+            return err
+        assert year is not None
+        data = queries.rank_robustness_list(year)
+        log.info("rank_robustness", stage="api", year=year, rows=len(data))
+        return Response(RankRobustnessRowSerializer(data, many=True).data)
 
 
 class Transitions(APIView):

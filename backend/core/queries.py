@@ -122,6 +122,22 @@ def index_ranking(year: int, scheme: str = MAP_INDEX_SCHEME) -> list[dict[str, A
     return rows
 
 
+def rank_robustness_list(year: int) -> list[dict[str, Any]]:
+    """Коридор ранга по схемам весов на год: для каждого региона лучшая/худшая позиция.
+
+    Из таблицы rank_robustness (грань okato-year): rank_best — лучшая позиция среди схем весов,
+    rank_worst — худшая, rank_range — ширина коридора. Показывает, насколько место региона
+    зависит от произвольного выбора схемы весов. Сортировка по лучшей позиции. Read-only.
+    """
+    return q(
+        "SELECT rr.okato, r.region_name, rr.n_schemes, rr.rank_best, rr.rank_worst, "
+        "rr.rank_range, rr.rank_mean, rr.score_min, rr.score_max "
+        "FROM rank_robustness rr LEFT JOIN region_dim r ON r.okato = rr.okato "
+        "WHERE rr.year = ? ORDER BY rr.rank_best",
+        [year],
+    )
+
+
 def _domain_breakdown(cur: dict[str, Any], prev: dict[str, Any] | None) -> list[dict[str, Any]]:
     """Поддоменная разбивка балла: значение в году, в предыдущем году и дельта (B4).
 

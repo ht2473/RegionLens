@@ -40,19 +40,28 @@
         if (!r.ok) throw new Error("Ошибка загрузки рейтинга (" + r.status + ")");
         return r.json();
       }),
+      // коридор ранга по схемам — необязателен: если недоступен, рейтинг работает как прежде
+      fetch("/api/index/robustness/?year=" + state.year)
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .catch(function () { return null; }),
     ])
-      .then(function (out) { render(out[1]); })
+      .then(function (out) { render(out[1], out[2]); })
       .catch(function (e) { root.innerHTML = '<div class="shell"><p>' + RL.errText(e) + "</p></div>"; });
   }
 
-  function render(rows) {
+  function render(rows, robustness) {
     if (!rows.length) {
       root.innerHTML = '<div class="shell"><p>Нет данных за выбранный год.</p></div>';
       return;
     }
+    var hasCorr = Array.isArray(robustness);
+    var corrMap = {};
+    if (hasCorr) robustness.forEach(function (c) { corrMap[c.okato] = c; });
+
     var head =
       "<tr><th>#</th><th>Регион</th><th class='num'>Индекс</th>" +
       DOMAINS.map(function (d) { return "<th class='num' title='" + d[0] + "'>" + d[1] + "</th>"; }).join("") +
+      (hasCorr ? "<th class='num' title='Разброс места по всем схемам весов'>Коридор</th>" : "") +
       "</tr>";
     var body = rows
       .map(function (r) {
@@ -63,17 +72,36 @@
         var domains = DOMAINS.map(function (d) {
           return "<td class='num'>" + num(r[d[0]]) + "</td>";
         }).join("");
+        var corrCell = "";
+        if (hasCorr) {
+          var c = corrMap[r.okato];
+          if (c) {
+            var txt =
+              c.rank_best === c.rank_worst ? String(c.rank_best) : c.rank_best + "–" + c.rank_worst;
+            var cls = c.rank_range >= 10 ? "num rank-wide" : "num";
+            corrCell =
+              "<td class='" + cls + "' title='По схемам весов: с " + c.rank_best + " по " +
+              c.rank_worst + " место (коридор " + c.rank_range + ")'>" + txt + "</td>";
+          } else {
+            corrCell = "<td class='num'>—</td>";
+          }
+        }
         return (
           "<tr data-okato='" + r.okato + "'><td class='num'>" + r.rank + "</td>" +
           "<td>" + nm + "</td>" +
           "<td class='num'><strong>" + num(r.total_score, 1) + "</strong>" + bar + "</td>" +
-          domains + "</tr>"
+          domains + corrCell + "</tr>"
         );
       })
       .join("");
+    var note = hasCorr
+      ? "<p class='chart-note'>«Коридор» — место региона по разным схемам весов " +
+        "(равные / PCA / экспертные): чем шире, тем сильнее ранг зависит от выбора весов, " +
+        "а не от самих данных.</p>"
+      : "";
     root.innerHTML =
       "<div class='table-wrap'><table class='table rankings'><thead>" +
-      head + "</thead><tbody>" + body + "</tbody></table></div>";
+      head + "</thead><tbody>" + body + "</tbody></table></div>" + note;
     root.querySelectorAll("tr[data-okato]").forEach(function (tr) {
       tr.addEventListener("click", function () {
         window.location.href = "/regions/" + tr.dataset.okato + "/?year=" + state.year;

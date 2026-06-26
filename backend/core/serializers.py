@@ -294,6 +294,25 @@ class MetricValuePointSerializer(serializers.Serializer):
     value = serializers.FloatField(allow_null=True)
 
 
+class RankRobustnessRowSerializer(serializers.Serializer):
+    """Коридор ранга региона по схемам весов в году (чувствительность к выбору весов).
+
+    rank_best — лучшая позиция среди схем (1 — выше всех), rank_worst — худшая, rank_range —
+    ширина коридора. score_min/max — диапазон балла по схемам. Чем шире коридор, тем сильнее
+    место региона зависит от произвольного выбора весов.
+    """
+
+    okato = serializers.CharField()
+    region_name = serializers.CharField(allow_null=True)
+    n_schemes = serializers.IntegerField()
+    rank_best = serializers.IntegerField()
+    rank_worst = serializers.IntegerField()
+    rank_range = serializers.IntegerField()
+    rank_mean = serializers.FloatField(allow_null=True)
+    score_min = serializers.FloatField(allow_null=True)
+    score_max = serializers.FloatField(allow_null=True)
+
+
 class MetricCatalogRowSerializer(serializers.Serializer):
     """Строка каталога метрик: тир пригодности + профиль охвата.
 

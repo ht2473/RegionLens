@@ -1053,3 +1053,45 @@ def test_metric_series_noncore_metric_has_null_harmonized(api_duckdb: Path) -> N
 def test_metric_series_missing_okato_returns_400(api_duckdb: Path) -> None:
     """Без обязательного okato → 400."""
     assert APIClient().get("/api/metrics/1/series/").status_code == 400
+
+
+# --- Коридор ранга по схемам весов (чувствительность к выбору весов) -----------------
+
+
+@pytest.fixture
+def rank_robustness_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с rank_robustness + region_dim; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "rr.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute("CREATE TABLE region_dim (okato VARCHAR, region_name VARCHAR)")
+    con.execute("INSERT INTO region_dim VALUES ('A','Регион А'), ('B','Регион Б')")
+    con.execute(
+        "CREATE TABLE rank_robustness (okato VARCHAR, year INTEGER, n_schemes INTEGER, "
+        "rank_best INTEGER, rank_worst INTEGER, rank_range INTEGER, rank_mean DOUBLE, "
+        "score_min DOUBLE, score_max DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO rank_robustness VALUES "
+        "('A', 2020, 3, 1, 3, 2, 2.0, 10.0, 90.0), "
+        "('B', 2020, 3, 1, 2, 1, 1.5, 50.0, 90.0), "
+        "('A', 2019, 3, 5, 5, 0, 5.0, 40.0, 45.0)"  # другой год — не должен попасть в 2020
+    )
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_rank_robustness_returns_corridor_for_year(rank_robustness_duckdb: Path) -> None:
+    """Срез за год: per-регион коридор (best/worst/range) с именем, сортировка по best."""
+    rows = APIClient().get("/api/index/robustness/?year=2020").json()
+    assert [r["okato"] for r in rows] == ["A", "B"]  # оба best=1; 2019 отсеян
+    a = next(r for r in rows if r["okato"] == "A")
+    assert a["region_name"] == "Регион А"
+    assert a["rank_best"] == 1 and a["rank_worst"] == 3 and a["rank_range"] == 2
+
+
+def test_rank_robustness_missing_year_returns_400(rank_robustness_duckdb: Path) -> None:
+    """Без обязательного year → 400."""
+    assert APIClient().get("/api/index/robustness/").status_code == 400

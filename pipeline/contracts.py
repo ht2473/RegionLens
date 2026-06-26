@@ -57,6 +57,23 @@ RANK_STABILITY_SCHEMA = {
     "mean_abs_change": pl.Float64,
 }
 
+# Контракт rank_robustness: чувствительность ранга региона к ВЫБОРУ схемы весов (в году).
+# Грань — (okato, year). Ранг считается внутри (схема, год) по убыванию total_score (как в
+# выдаче рейтинга), затем агрегируется по схемам: rank_best — лучшая позиция среди схем (min),
+# rank_worst — худшая (max), rank_range = worst−best («коридор»). Большой коридор ⇒ место региона
+# сильно зависит от произвольного выбора весов — научное ядро «прозрачного индекса».
+RANK_ROBUSTNESS_SCHEMA = {
+    "okato": pl.Utf8,
+    "year": pl.Int32,
+    "n_schemes": pl.Int32,
+    "rank_best": pl.Int32,
+    "rank_worst": pl.Int32,
+    "rank_range": pl.Int32,
+    "rank_mean": pl.Float64,
+    "score_min": pl.Float64,
+    "score_max": pl.Float64,
+}
+
 # Контракт correlations (Ф15): парные корреляции метрик по регионам на год.
 CORRELATIONS_SCHEMA = {
     "year": pl.Int32,

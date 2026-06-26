@@ -239,6 +239,7 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
   font-size: 1.2rem; line-height: 1; color: var(--ink-faint);
 }
 .explore-series-close:hover { color: var(--clay); }
+.rankings .rank-wide { color: var(--clay); font-weight: 600; }
 @media (max-width: 760px) {
   .explore { grid-template-columns: 1fr; }
   .explore-catalog { position: static; }
