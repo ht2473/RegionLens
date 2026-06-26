@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import polars as pl
 
+from pipeline.config import load_config
 from pipeline.features import (
     add_zscore,
     classify_value_type,
@@ -32,6 +33,25 @@ def test_classify_value_type_order_and_default() -> None:
     assert classify_value_type("Миллионов рублей", *_VT) == "absolute"
     assert classify_value_type("ND", *_VT) == "absolute"
     assert classify_value_type(None, *_VT) == "absolute"
+
+
+def test_value_types_config_tail_patterns() -> None:
+    """Реальный value_types.yaml: точечные правила «хвоста» работают, а временные уточнения
+    («на начало/конец года», «на 1 января») остаются absolute (без ложных срабатываний)."""
+    cfg = load_config("value_types")
+    args = (cfg["rules"], cfg["default"], cfg.get("nodata_marker"))
+
+    assert classify_value_type("В среднем на потребителя в год, килограммов", *args) == "per_capita"
+    assert classify_value_type("..., на 100 домохозяйств, штук", *args) == "per_capita"
+    assert classify_value_type("В расчете на 1 работника, л. с", *args) == "per_capita"
+    assert classify_value_type("приходится мест на 1000 детей", *args) == "per_capita"
+    assert classify_value_type("км путей на 10000 км2 территории", *args) == "rate"
+    assert classify_value_type("На 1000 браков приходится разводов", *args) == "rate"
+    assert classify_value_type("на 1000 мужчин приходится женщин", *args) == "index"
+    assert classify_value_type("копеек на один рубль выполненных работ", *args) == "index"
+    # временные уточнения НЕ должны стать нормировками
+    assert classify_value_type("На начало года, миллионов рублей", *args) == "absolute"
+    assert classify_value_type("Оценка на 1 января, тысяч человек", *args) == "absolute"
 
 
 def _region_dim() -> pl.DataFrame:
