@@ -116,6 +116,13 @@ def test_explore_page_wiring(client: Client) -> None:
     assert 'id="ex-series"' in html
 
 
+def test_explore_page_has_map_view(client: Client) -> None:
+    """Explore несёт вид «Карта»: MapLibre, контейнер карты и переключатель Таблица/Карта."""
+    html = client.get("/explore/").content.decode()
+    assert "maplibre-gl" in html
+    assert 'id="ex-map"' in html and 'id="ex-view-toggle"' in html
+
+
 def test_explore_in_nav(client: Client) -> None:
     """Пункт «Показатели» присутствует в основной навигации."""
     assert "Показатели" in client.get("/").content.decode()

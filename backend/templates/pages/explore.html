@@ -2,6 +2,10 @@
 {% load static %}
 {% block title %}Показатели — RegionLens{% endblock %}
 
+{% block head %}
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <section class="hero">
   <p class="eyebrow">Обзор показателей</p>
@@ -29,6 +33,10 @@
   <main class="explore-main">
     <div id="ex-meta" class="explore-meta"></div>
     <div class="year-control" id="ex-year-control" hidden>
+      <div class="seg" id="ex-view-toggle">
+        <button type="button" data-view="table" class="is-active">Таблица</button>
+        <button type="button" data-view="map">Карта</button>
+      </div>
       <label for="ex-year">Год: <strong id="ex-year-label"></strong></label>
       <input type="range" id="ex-year" step="1">
       <button type="button" id="ex-copy-link" class="map-share">Скопировать ссылку</button>
@@ -37,11 +45,16 @@
     <div id="ex-values">
       <div class="shell"><p>Выберите показатель в каталоге слева.</p></div>
     </div>
+    <div id="ex-map-wrap" class="map-wrap" hidden>
+      <div id="ex-map"></div>
+      <div id="ex-map-legend" class="map-legend"></div>
+    </div>
   </main>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <script src="{% static 'js/explore.js' %}"></script>
 {% endblock %}

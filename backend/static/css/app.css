@@ -247,7 +247,7 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 }
 
 .map-wrap { position: relative; }
-#map {
+#map, #ex-map {
   width: 100%; height: 600px; max-height: 72vh;
   border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
 }

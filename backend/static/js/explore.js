@@ -30,8 +30,10 @@
   var $copy = document.getElementById("ex-copy-link");
   var $values = document.getElementById("ex-values");
   var $series = document.getElementById("ex-series");
+  var $viewToggle = document.getElementById("ex-view-toggle");
+  var $mapWrap = document.getElementById("ex-map-wrap");
 
-  var state = { metric: null, year: null };
+  var state = { metric: null, year: null, view: "table", lastValues: null };
 
   // ── Утилиты ──────────────────────────────────────────────────────────────
   function esc(s) {
@@ -59,6 +61,7 @@
     if ($search.value.trim()) p.set("q", $search.value.trim());
     if (state.metric) p.set("metric", state.metric.metric_id);
     if (state.year != null) p.set("year", state.year);
+    if (state.view === "map") p.set("view", "map");
     window.history.replaceState(null, "", window.location.pathname + "?" + p.toString());
   }
 
@@ -133,6 +136,7 @@
     $year.value = y;
     $yearLabel.textContent = y;
     $yearWrap.hidden = false;
+    applyViewVisibility();
     writeUrl();
     loadValues();
   }
@@ -182,14 +186,29 @@
 
   function loadValues() {
     if (!state.metric) return;
-    shell($values, "Загрузка…");
+    if (state.view !== "map") shell($values, "Загрузка…");
     fetch("/api/metric-values/?metric_id=" + state.metric.metric_id + "&year=" + state.year)
       .then(function (r) {
         if (!r.ok) throw new Error("Ошибка значений (" + r.status + ")");
         return r.json();
       })
-      .then(renderValues)
-      .catch(function (e) { shell($values, RL.errText(e)); });
+      .then(function (rows) {
+        state.lastValues = rows;
+        renderActiveView(rows);
+      })
+      .catch(function (e) {
+        if (state.view === "map") {
+          var el = document.getElementById("ex-map-legend");
+          if (el) el.innerHTML = "<div class='legend-note'>" + RL.errText(e) + "</div>";
+        } else {
+          shell($values, RL.errText(e));
+        }
+      });
+  }
+
+  function renderActiveView(rows) {
+    if (state.view === "map") exmap.render(rows);
+    else renderValues(rows);
   }
 
   // ── Drill-down: ряд региона по выбранной метрике (клик по строке) ─────────
@@ -250,6 +269,162 @@
     if (close) close.addEventListener("click", clearSeries);
   }
 
+  // ── Карта-хороплет (вид «Карта») ─────────────────────────────────────────
+  // Те же значения, что в таблице, на карте субъектов. Последовательная шкала min→max
+  // (для произвольной метрики «выше=лучше» неизвестно). Клик по региону — тот же drill-down ряда.
+  var exmap = (function () {
+    var GEOJSON_URL = "/static/geo/regions.geojson";
+    var NODATA = "#dcdcdc";
+    var map = null;
+    var geo = null;
+    var ready = false;
+    var pending = null;
+    var popup = null;
+
+    function ensureInit() {
+      if (map || typeof maplibregl === "undefined") return;
+      map = new maplibregl.Map({
+        container: "ex-map",
+        style: {
+          version: 8,
+          sources: {},
+          layers: [{ id: "bg", type: "background", paint: { "background-color": "#eaf0f1" } }],
+        },
+        center: [99, 66],
+        zoom: 2,
+        renderWorldCopies: false,
+        attributionControl: false,
+      });
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+      popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
+      map.on("load", function () {
+        fetch(GEOJSON_URL)
+          .then(function (r) {
+            if (!r.ok) throw new Error("geojson " + r.status);
+            return r.json();
+          })
+          .then(function (fc) {
+            geo = fc;
+            map.addSource("regions", { type: "geojson", data: geo });
+            map.addLayer({
+              id: "fill",
+              type: "fill",
+              source: "regions",
+              paint: { "fill-color": NODATA, "fill-opacity": 0.85 },
+            });
+            map.addLayer({
+              id: "line",
+              type: "line",
+              source: "regions",
+              paint: { "line-color": "#ffffff", "line-width": 0.6 },
+            });
+            wire();
+            ready = true;
+            if (pending) {
+              render(pending);
+              pending = null;
+            }
+          })
+          .catch(function () {
+            var el = document.getElementById("ex-map");
+            if (el) {
+              el.innerHTML = '<div class="shell"><p>Не удалось загрузить границы регионов.</p></div>';
+            }
+          });
+      });
+    }
+
+    function wire() {
+      map.on("mousemove", "fill", function (e) {
+        map.getCanvas().style.cursor = "pointer";
+        var p = e.features[0].properties;
+        var v = p.exdisp != null && p.exdisp !== "" ? p.exdisp : "нет данных";
+        popup
+          .setLngLat(e.lngLat)
+          .setHTML("<strong>" + (p.name || p.okato) + "</strong><br>" + v)
+          .addTo(map);
+      });
+      map.on("mouseleave", "fill", function () {
+        map.getCanvas().style.cursor = "";
+        popup.remove();
+      });
+      map.on("click", "fill", function (e) {
+        var p = e.features[0].properties;
+        if (p.okato) selectRegion(p.okato, p.name || p.okato);
+      });
+    }
+
+    function applyPaint(lo, hi) {
+      var color;
+      if (hi <= lo) {
+        color = "#5fa896"; // все значения равны — один цвет
+      } else {
+        color = [
+          "interpolate", ["linear"], ["get", "exval"],
+          lo, "#e7f0ee", (lo + hi) / 2, "#5fa896", hi, "#0c5c4f",
+        ];
+      }
+      map.setPaintProperty("fill", "fill-color", [
+        "case", ["==", ["get", "exval"], null], NODATA, color,
+      ]);
+      map.setPaintProperty("fill", "fill-opacity", 0.88);
+    }
+
+    function renderLegend(lo, hi) {
+      var el = document.getElementById("ex-map-legend");
+      if (!el) return;
+      var unit = state.metric && state.metric.unit ? " · " + esc(state.metric.unit) : "";
+      el.innerHTML =
+        "<div class='legend-title'>Значение" + unit + "</div>" +
+        "<div class='legend-gradient'></div>" +
+        "<div class='legend-scale'><span>" + fmt(lo) + "</span><span>" + fmt(hi) + "</span></div>" +
+        "<div class='legend-note'>Светлее — меньше, темнее — больше. Серый — нет данных.</div>";
+    }
+
+    function render(rows) {
+      if (typeof maplibregl === "undefined") return;
+      ensureInit();
+      if (!ready) {
+        pending = rows;
+        return;
+      }
+      var byOkato = {};
+      rows.forEach(function (d) { byOkato[d.okato] = d; });
+      var vals = rows
+        .map(function (d) { return Number(d.value); })
+        .filter(function (v) { return !isNaN(v); });
+      var lo = vals.length ? Math.min.apply(null, vals) : 0;
+      var hi = vals.length ? Math.max.apply(null, vals) : 1;
+      geo.features.forEach(function (f) {
+        var d = byOkato[f.properties.okato];
+        f.properties.exval = d && d.value != null ? Number(d.value) : null;
+        f.properties.exdisp = d && d.value != null ? fmt(d.value) : null;
+      });
+      map.getSource("regions").setData(geo);
+      applyPaint(lo, hi);
+      renderLegend(lo, hi);
+      map.resize();
+    }
+
+    return { render: render };
+  })();
+
+  // ── Переключение вида (Таблица / Карта) ──────────────────────────────────
+  function applyViewVisibility() {
+    Array.prototype.forEach.call($viewToggle.querySelectorAll("[data-view]"), function (b) {
+      b.classList.toggle("is-active", b.dataset.view === state.view);
+    });
+    $values.hidden = state.view === "map";
+    $mapWrap.hidden = state.view !== "map";
+  }
+
+  function setView(view) {
+    state.view = view === "map" ? "map" : "table";
+    applyViewVisibility();
+    writeUrl();
+    if (state.lastValues) renderActiveView(state.lastValues);
+  }
+
   // ── События ──────────────────────────────────────────────────────────────
   var searchTimer = null;
   $search.addEventListener("input", function () {
@@ -288,6 +463,12 @@
     writeUrl();
     loadValues();
   });
+  if ($viewToggle) {
+    $viewToggle.addEventListener("click", function (e) {
+      var btn = e.target.closest("[data-view]");
+      if (btn) setView(btn.dataset.view);
+    });
+  }
   if ($copy) {
     $copy.addEventListener("click", function () {
       var flash = function () {
@@ -318,6 +499,7 @@
   if (p.get("q")) $search.value = p.get("q");
   var urlYear = parseInt(p.get("year"), 10);
   if (!isNaN(urlYear)) state.year = urlYear;
+  if (p.get("view") === "map") state.view = "map";
   var urlMetric = parseInt(p.get("metric"), 10);
 
   loadCatalog();
