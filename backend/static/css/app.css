@@ -223,6 +223,22 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .explore-muted { padding: 12px; color: var(--ink-faint); font-size: 0.88rem; }
 .explore-meta h2 { margin: 0 0 4px; font-size: 1.3rem; }
 .explore-meta-line { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 12px; }
+.explore-row { cursor: pointer; }
+.explore-row:hover { background: var(--accent-soft); }
+.explore-series {
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+  padding: 12px 14px; margin-bottom: 16px;
+}
+.explore-series-head {
+  font-size: 0.92rem; color: var(--ink-soft); margin-bottom: 4px;
+  position: relative; padding-right: 24px;
+}
+.explore-series-head strong { color: var(--ink); }
+.explore-series-close {
+  position: absolute; top: -2px; right: 0; border: none; background: none; cursor: pointer;
+  font-size: 1.2rem; line-height: 1; color: var(--ink-faint);
+}
+.explore-series-close:hover { color: var(--clay); }
 @media (max-width: 760px) {
   .explore { grid-template-columns: 1fr; }
   .explore-catalog { position: static; }

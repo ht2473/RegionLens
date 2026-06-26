@@ -74,24 +74,29 @@ def metrics(domain: str | None = None) -> list[dict[str, Any]]:
 def metric_series(
     metric_id: int, okato: str, year_from: int | None = None, year_to: int | None = None
 ) -> list[dict[str, Any]]:
-    """Временной ряд метрики по региону из fact_region (полный диапазон годов).
+    """Временной ряд метрики по региону: сырое значение + гармонизация (если есть).
 
-    Полный диапазон (а не окно 2010–2024) — потому что для отображения рядов на
-    дашбордах допустимы все годы; окно ограничивает только расчёт аналитики (Хартия §3).
-    Параметры from/to — необязательные границы по году. Значения параметризованы (?).
+    Сырое value — из fact_region (полный диапазон годов 2001–2025, любая метрика). Гармонизованное
+    значение и флаг импутации — из features_wide через LEFT JOIN: они существуют только для метрик
+    ЯДРА в окне анализа, поэтому для не-ядровых/внеоконных точек будут NULL (это норма). Полный
+    диапазон — потому что для рядов на дашбордах допустимы все годы; окно ограничивает только
+    расчёт аналитики (Хартия §3). Параметры from/to — необязательные границы по году.
     """
     sql = (
-        "SELECT year, value, value_harmonized, is_imputed "
-        "FROM fact_region WHERE metric_id = ? AND okato = ?"
+        "SELECT f.year, f.value, w.value_harmonized, w.is_imputed "
+        "FROM fact_region f "
+        "LEFT JOIN features_wide w "
+        "ON w.metric_id = f.metric_id AND w.okato = f.okato AND w.year = f.year "
+        "WHERE f.metric_id = ? AND f.okato = ?"
     )
     params: list[Any] = [metric_id, okato]
     if year_from is not None:
-        sql += " AND year >= ?"
+        sql += " AND f.year >= ?"
         params.append(year_from)
     if year_to is not None:
-        sql += " AND year <= ?"
+        sql += " AND f.year <= ?"
         params.append(year_to)
-    sql += " ORDER BY year"
+    sql += " ORDER BY f.year"
     return q(sql, params)
 
 

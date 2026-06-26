@@ -29,6 +29,7 @@
   var $yearLabel = document.getElementById("ex-year-label");
   var $copy = document.getElementById("ex-copy-link");
   var $values = document.getElementById("ex-values");
+  var $series = document.getElementById("ex-series");
 
   var state = { metric: null, year: null };
 
@@ -111,6 +112,7 @@
   // ── Выбор показателя ─────────────────────────────────────────────────────
   function selectMetric(m) {
     state.metric = m;
+    clearSeries();
     // подсветка в списке
     Array.prototype.forEach.call($list.querySelectorAll(".explore-item"), function (li) {
       li.classList.toggle("is-active", Number(li.dataset.id) === m.metric_id);
@@ -161,7 +163,9 @@
       .map(function (r, i) {
         var w = Math.round((Math.abs(Number(r.value) || 0) / maxAbs) * 100);
         return (
-          "<tr><td class='num'>" + (i + 1) + "</td>" +
+          "<tr class='explore-row' data-okato='" + esc(r.okato) +
+          "' data-name='" + esc(r.region_name) + "'>" +
+          "<td class='num'>" + (i + 1) + "</td>" +
           "<td>" + esc(r.region_name) + "</td>" +
           "<td class='num'><strong>" + fmt(r.value) + "</strong>" +
           "<div class='score-bar'><span style='width:" + w + "%'></span></div></td></tr>"
@@ -173,7 +177,7 @@
       "<tr><th class='num'>#</th><th>Регион</th><th class='num'>Значение</th></tr>" +
       "</thead><tbody>" + body + "</tbody></table></div>" +
       "<p class='chart-note'>" + rows.length + " регионов · " + state.year +
-      " год · бар нормирован по максимуму ряда.</p>";
+      " год · бар нормирован по максимуму ряда · кликните регион — его динамика по годам.</p>";
   }
 
   function loadValues() {
@@ -186,6 +190,64 @@
       })
       .then(renderValues)
       .catch(function (e) { shell($values, RL.errText(e)); });
+  }
+
+  // ── Drill-down: ряд региона по выбранной метрике (клик по строке) ─────────
+  function clearSeries() {
+    $series.hidden = true;
+    $series.innerHTML = "";
+  }
+
+  function selectRegion(okato, name) {
+    if (!state.metric) return;
+    $series.hidden = false;
+    $series.innerHTML = '<div class="shell"><p>Загрузка ряда…</p></div>';
+    fetch("/api/metrics/" + state.metric.metric_id + "/series/?okato=" + encodeURIComponent(okato))
+      .then(function (r) {
+        if (!r.ok) throw new Error("Ошибка ряда (" + r.status + ")");
+        return r.json();
+      })
+      .then(function (rows) { renderSeries(rows, name); })
+      .catch(function (e) { shell($series, RL.errText(e)); });
+  }
+
+  function renderSeries(rows, name) {
+    var pts = rows.filter(function (r) { return r.value != null; });
+    if (!pts.length) {
+      shell($series, "У региона нет ряда по этому показателю.");
+      return;
+    }
+    $series.innerHTML =
+      '<div class="explore-series-head"><strong>' + esc(name) + "</strong> · " +
+      esc(state.metric.metric_name) +
+      '<button type="button" class="explore-series-close" aria-label="Закрыть">×</button></div>' +
+      '<div id="ex-series-chart"></div>';
+    Plotly.newPlot(
+      "ex-series-chart",
+      [
+        {
+          x: pts.map(function (r) { return r.year; }),
+          y: pts.map(function (r) { return r.value; }),
+          type: "scatter",
+          mode: "lines+markers",
+          line: { color: "#1f6f63", width: 2 },
+          marker: { size: 5, color: "#1f6f63" },
+          hovertemplate: "%{x}: %{y}<extra></extra>",
+        },
+      ],
+      {
+        margin: { l: 54, r: 16, t: 6, b: 34 },
+        height: 260,
+        xaxis: { dtick: 2, gridcolor: "#e9e3d6" },
+        yaxis: { title: state.metric.unit || "", gridcolor: "#e9e3d6" },
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        font: { family: "Golos Text, sans-serif", color: "#51606e" },
+      },
+      { responsive: true, displayModeBar: false }
+    );
+    var close = $series.querySelector(".explore-series-close");
+    if (close) close.addEventListener("click", clearSeries);
   }
 
   // ── События ──────────────────────────────────────────────────────────────
@@ -213,6 +275,10 @@
     if (e.key !== "Enter") return;
     var li = e.target.closest(".explore-item");
     if (li && $list._rows) selectMetric($list._rows[Number(li.dataset.id)]);
+  });
+  $values.addEventListener("click", function (e) {
+    var tr = e.target.closest(".explore-row");
+    if (tr) selectRegion(tr.dataset.okato, tr.dataset.name);
   });
   $year.addEventListener("input", function () {
     state.year = parseInt($year.value, 10);

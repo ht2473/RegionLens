@@ -33,6 +33,7 @@
       <input type="range" id="ex-year" step="1">
       <button type="button" id="ex-copy-link" class="map-share">Скопировать ссылку</button>
     </div>
+    <div id="ex-series" class="explore-series" hidden></div>
     <div id="ex-values">
       <div class="shell"><p>Выберите показатель в каталоге слева.</p></div>
     </div>
@@ -41,5 +42,6 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <script src="{% static 'js/explore.js' %}"></script>
 {% endblock %}

@@ -107,11 +107,13 @@ def test_map_page_has_share_link(client: Client) -> None:
 
 
 def test_explore_page_wiring(client: Client) -> None:
-    """Страница «Показатели» (explore): 200, каталог-браузер, контролы и подключение explore.js."""
+    """Страница «Показатели» (explore): 200, каталог, контролы, ряд (Plotly), explore.js."""
     html = client.get("/explore/").content.decode()
     assert "js/explore.js" in html
     assert 'id="ex-search"' in html and 'id="ex-list"' in html
     assert 'id="explore-root"' in html
+    assert "plot.ly" in html  # Plotly для ряда региона
+    assert 'id="ex-series"' in html
 
 
 def test_explore_in_nav(client: Client) -> None:

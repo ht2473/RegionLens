@@ -79,17 +79,31 @@ def api_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-u
         "'excluded', 'index', NULL, 0.80)"
     )
 
-    # fact_region: ряд метрики 1 по региону 45000000 (полный диапазон, есть импутация).
+    # fact_region: сырые значения (РЕАЛЬНАЯ схема — без harmonized/imputed; они в features_wide).
     con.execute(
         "CREATE TABLE fact_region (okato VARCHAR, metric_id INTEGER, year INTEGER, "
-        "value DOUBLE, value_harmonized DOUBLE, source VARCHAR, is_imputed BOOLEAN)"
+        "value DOUBLE, source VARCHAR)"
     )
     con.execute(
         "INSERT INTO fact_region VALUES "
-        "('45000000', 1, 2019, 50000.0, 50000.0, 's2020', FALSE), "
-        "('45000000', 1, 2020, 55000.0, 55000.0, 's2021', FALSE), "
-        "('45000000', 1, 2021, 60000.0, NULL, 's2022', TRUE), "
-        "('46000000', 1, 2020, 20000.0, 20000.0, 's2021', FALSE)"
+        "('45000000', 1, 2019, 50000.0, 's2020'), "
+        "('45000000', 1, 2020, 55000.0, 's2021'), "
+        "('45000000', 1, 2021, 60000.0, 's2022'), "
+        "('46000000', 1, 2020, 20000.0, 's2021'), "
+        "('45000000', 3, 2020, 105.0, 's2021')"  # не-ядровая метрика: гармонизации не будет
+    )
+
+    # features_wide: гармонизованная сетка (только метрики ЯДРА в окне; здесь — метрика 1).
+    con.execute(
+        "CREATE TABLE features_wide (okato VARCHAR, year INTEGER, metric_id INTEGER, "
+        "value_harmonized DOUBLE, z_value DOUBLE, is_imputed BOOLEAN)"
+    )
+    con.execute(
+        "INSERT INTO features_wide VALUES "
+        "('45000000', 2019, 1, 50000.0, 0.5, FALSE), "
+        "('45000000', 2020, 1, 55000.0, 0.8, FALSE), "
+        "('45000000', 2021, 1, NULL, NULL, TRUE), "  # точка импутирована
+        "('46000000', 2020, 1, 20000.0, -0.5, FALSE)"
     )
 
     # cluster_shap: вклад метрик в принадлежность 45000000 к типу в 2020.
@@ -1014,3 +1028,28 @@ def test_metric_values_missing_params_returns_400(metric_values_duckdb: Path) ->
 def test_metric_values_bad_params_returns_400(metric_values_duckdb: Path) -> None:
     """Нечисловые параметры → 400, а не 500."""
     assert APIClient().get("/api/metric-values/?metric_id=abc&year=2020").status_code == 400
+
+
+# --- Временной ряд метрики по региону (drill-down: сырое + гармонизация из features_wide) ---
+
+
+def test_metric_series_core_metric(api_duckdb: Path) -> None:
+    """Ряд метрики ядра: сырое value из fact_region + harmonized из features_wide (LEFT JOIN)."""
+    rows = APIClient().get("/api/metrics/1/series/?okato=45000000").json()
+    assert [r["year"] for r in rows] == [2019, 2020, 2021]
+    assert [r["value"] for r in rows] == [50000.0, 55000.0, 60000.0]
+    by_year = {r["year"]: r for r in rows}
+    assert by_year[2019]["value_harmonized"] == 50000.0
+    assert by_year[2021]["value_harmonized"] is None and by_year[2021]["is_imputed"] is True
+
+
+def test_metric_series_noncore_metric_has_null_harmonized(api_duckdb: Path) -> None:
+    """Не-ядровая метрика: сырое value есть, гармонизации нет (NULL) — её нет в features_wide."""
+    rows = APIClient().get("/api/metrics/3/series/?okato=45000000").json()
+    assert [(r["year"], r["value"]) for r in rows] == [(2020, 105.0)]
+    assert rows[0]["value_harmonized"] is None and rows[0]["is_imputed"] is None
+
+
+def test_metric_series_missing_okato_returns_400(api_duckdb: Path) -> None:
+    """Без обязательного okato → 400."""
+    assert APIClient().get("/api/metrics/1/series/").status_code == 400
