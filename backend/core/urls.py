@@ -8,6 +8,7 @@ from . import cabinet, views
 urlpatterns = [
     path("", views.home, name="home"),
     path("map/", views.map_page, name="map"),
+    path("explore/", views.explore_page, name="explore"),
     path("views/<str:token>/", views.public_saved_view, name="public_saved_view"),
     path("rankings/", views.rankings, name="rankings"),
     path("rankings/stability/", views.rank_stability_page, name="rank_stability_page"),

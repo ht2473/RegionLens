@@ -59,6 +59,11 @@ def map_page(request: HttpRequest) -> HttpResponse:
     return _page(request, "pages/map.html", active="map", title="Карта")
 
 
+def explore_page(request: HttpRequest) -> HttpResponse:
+    """Обзор показателей: любой показатель каталога по регионам за выбранный год (explore)."""
+    return _page(request, "pages/explore.html", active="explore", title="Показатели")
+
+
 def public_saved_view(request: HttpRequest, token: str) -> HttpResponse:
     """Публичная ссылка на сохранённый вид (без входа): редирект на восстановленный экран.
 

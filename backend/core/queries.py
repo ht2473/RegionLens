@@ -482,14 +482,15 @@ def metric_catalog_list(
     tier: str | None = None,
     domain: str | None = None,
     search: str | None = None,
+    metric_id: int | None = None,
     limit: int = 200,
 ) -> list[dict[str, Any]]:
     """Каталог метрик с тирингом и профилем (таблица metric_catalog).
 
     Фильтры (все опциональны): tier (core/extended/sparse), domain, текстовый поиск по имени
-    (search → ILIKE). Сортировка: сначала ядро, затем extended, затем sparse; внутри тира — по
-    убыванию покрытия. limit ограничивает выдачу (каталог большой). Это справочник того, что
-    доступно для анализа/explore — не пересчитывает аналитику, читает готовую таблицу.
+    (search → ILIKE), metric_id (одна метрика — для восстановления выбора по ссылке). Сортировка:
+    сначала ядро, затем extended, затем sparse; внутри тира — по убыванию покрытия. limit
+    ограничивает выдачу. Справочник доступного для анализа; читает готовую таблицу.
     """
     clauses: list[str] = []
     params: list[Any] = []
@@ -502,6 +503,9 @@ def metric_catalog_list(
     if search is not None:
         clauses.append("metric_name ILIKE ?")
         params.append(f"%{search}%")
+    if metric_id is not None:
+        clauses.append("metric_id = ?")
+        params.append(metric_id)
     where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
     return q(
         "SELECT metric_id, indicator_code, metric_name, domain, value_type, unit, coverage, "
@@ -510,6 +514,22 @@ def metric_catalog_list(
         "ORDER BY CASE tier WHEN 'core' THEN 0 WHEN 'extended' THEN 1 ELSE 2 END, coverage DESC "
         "LIMIT ?",
         [*params, limit],
+    )
+
+
+def metric_values(metric_id: int, year: int) -> list[dict[str, Any]]:
+    """Поперечный срез: значения метрики по всем включённым регионам за год (из fact_region).
+
+    Возвращает (okato, region_name, value) только для канонических регионов (included_flag) с
+    непустым значением, отсортированные по убыванию значения. Основа explore-режима: показать
+    любой показатель по регионам за выбранный год.
+    """
+    return q(
+        "SELECT f.okato, r.region_name, f.value "
+        "FROM fact_region f JOIN region_dim r ON r.okato = f.okato "
+        "WHERE f.metric_id = ? AND f.year = ? AND r.included_flag AND f.value IS NOT NULL "
+        "ORDER BY f.value DESC",
+        [metric_id, year],
     )
 
 

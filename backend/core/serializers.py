@@ -286,6 +286,14 @@ class DecompositionRowSerializer(serializers.Serializer):
     contribution = serializers.FloatField()
 
 
+class MetricValuePointSerializer(serializers.Serializer):
+    """Значение метрики по региону за год (поперечный срез explore)."""
+
+    okato = serializers.CharField()
+    region_name = serializers.CharField(allow_null=True)
+    value = serializers.FloatField(allow_null=True)
+
+
 class MetricCatalogRowSerializer(serializers.Serializer):
     """Строка каталога метрик: тир пригодности + профиль охвата.
 

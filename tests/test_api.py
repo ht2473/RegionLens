@@ -951,3 +951,66 @@ def test_metric_catalog_limit(metric_catalog_duckdb: Path) -> None:
 def test_metric_catalog_bad_limit_returns_400(metric_catalog_duckdb: Path) -> None:
     """Нечисловой limit → 400, а не 500."""
     assert APIClient().get("/api/metric-catalog/?limit=abc").status_code == 400
+
+
+def test_metric_catalog_filter_by_metric_id(metric_catalog_duckdb: Path) -> None:
+    """Фильтр ?metric_id=N возвращает одну метрику (для восстановления выбора по ссылке)."""
+    rows = APIClient().get("/api/metric-catalog/?metric_id=2").json()
+    assert [r["metric_id"] for r in rows] == [2]
+
+
+# --- Значения метрики по регионам за год (explore: поперечный срез) -------------------
+
+
+@pytest.fixture
+def metric_values_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с region_dim + fact_region; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "mv.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE region_dim (okato VARCHAR, region_name VARCHAR, included_flag BOOLEAN)"
+    )
+    con.execute(
+        "INSERT INTO region_dim VALUES "
+        "('01', 'Регион А', true), ('02', 'Регион Б', true), ('99', 'Исключён', false)"
+    )
+    con.execute(
+        "CREATE TABLE fact_region "
+        "(okato VARCHAR, metric_id INTEGER, year INTEGER, value DOUBLE, source VARCHAR)"
+    )
+    con.execute(
+        "INSERT INTO fact_region VALUES "
+        "('01', 1, 2020, 30.0, 's'), ('02', 1, 2020, 50.0, 's'), "
+        "('99', 1, 2020, 99.0, 's'), "  # исключённый регион — не должен попасть
+        "('01', 1, 2020, NULL, 's'), "  # NULL — не должен попасть
+        "('01', 1, 2019, 10.0, 's')"  # другой год
+    )
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_metric_values_returns_sorted_included(metric_values_duckdb: Path) -> None:
+    """Срез за год: только включённые регионы с непустым значением, по убыванию значения."""
+    rows = APIClient().get("/api/metric-values/?metric_id=1&year=2020").json()
+    assert [r["okato"] for r in rows] == ["02", "01"]  # 50 > 30; 99 (исключён) и NULL отсеяны
+    assert rows[0]["region_name"] == "Регион Б" and rows[0]["value"] == 50.0
+
+
+def test_metric_values_other_year(metric_values_duckdb: Path) -> None:
+    """Срез за другой год возвращает данные именно этого года."""
+    rows = APIClient().get("/api/metric-values/?metric_id=1&year=2019").json()
+    assert [(r["okato"], r["value"]) for r in rows] == [("01", 10.0)]
+
+
+def test_metric_values_missing_params_returns_400(metric_values_duckdb: Path) -> None:
+    """Без обязательных metric_id/year → 400."""
+    assert APIClient().get("/api/metric-values/?metric_id=1").status_code == 400
+    assert APIClient().get("/api/metric-values/").status_code == 400
+
+
+def test_metric_values_bad_params_returns_400(metric_values_duckdb: Path) -> None:
+    """Нечисловые параметры → 400, а не 500."""
+    assert APIClient().get("/api/metric-values/?metric_id=abc&year=2020").status_code == 400

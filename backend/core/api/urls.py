@@ -58,4 +58,6 @@ urlpatterns = [
     path("data-quality/", endpoints.DataQuality.as_view(), name="data_quality"),
     # Каталог метрик: тиринг (core/extended/sparse) и профиль всего справочника
     path("metric-catalog/", endpoints.MetricCatalog.as_view(), name="metric_catalog"),
+    # Значения произвольной метрики по регионам за год (explore)
+    path("metric-values/", endpoints.MetricValues.as_view(), name="metric_values"),
 ]

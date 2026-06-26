@@ -32,6 +32,7 @@ from ..serializers import (
     MetricCatalogRowSerializer,
     MetricSerializer,
     MetricSeriesPointSerializer,
+    MetricValuePointSerializer,
     RankStabilityRowSerializer,
     RegionDashboardSerializer,
     RegionSerializer,
@@ -608,6 +609,7 @@ class MetricCatalog(APIView):
             OpenApiParameter("tier", OpenApiTypes.STR, description="core / extended / sparse"),
             OpenApiParameter("domain", OpenApiTypes.STR, description="Домен (опц.)"),
             OpenApiParameter("search", OpenApiTypes.STR, description="Поиск по имени метрики"),
+            OpenApiParameter("metric_id", OpenApiTypes.INT, description="Одна метрика (опц.)"),
             OpenApiParameter("limit", OpenApiTypes.INT, description="Лимит выдачи (1..1000)"),
         ],
         responses=MetricCatalogRowSerializer(many=True),
@@ -617,13 +619,49 @@ class MetricCatalog(APIView):
         tier = request.query_params.get("tier") or None
         domain = request.query_params.get("domain") or None
         search = request.query_params.get("search") or None
+        metric_id_raw = request.query_params.get("metric_id")
         try:
             limit = int(request.query_params.get("limit", 200))
+            metric_id = int(metric_id_raw) if metric_id_raw else None
         except ValueError:
             return Response(
-                {"detail": "limit должен быть целым числом"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "limit и metric_id должны быть целыми числами"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         limit = max(1, min(limit, 1000))
-        data = queries.metric_catalog_list(tier=tier, domain=domain, search=search, limit=limit)
+        data = queries.metric_catalog_list(
+            tier=tier, domain=domain, search=search, metric_id=metric_id, limit=limit
+        )
         log.info("metric_catalog", stage="api", tier=tier, domain=domain, rows=len(data))
         return Response(MetricCatalogRowSerializer(data, many=True).data)
+
+
+class MetricValues(APIView):
+    """GET /api/metric-values/?metric_id=&year= — значения метрики по регионам за год.
+
+    Поперечный срез произвольной метрики каталога: для выбранного года значения по всем
+    включённым регионам (отсортированы по убыванию). Ядро explore-режима. Описание данных
+    (read-only из fact_region), не пересчёт аналитики.
+    """
+
+    @extend_schema(
+        operation_id="metric_values",
+        parameters=[
+            OpenApiParameter("metric_id", OpenApiTypes.INT, required=True),
+            OpenApiParameter("year", OpenApiTypes.INT, required=True),
+        ],
+        responses=MetricValuePointSerializer(many=True),
+        summary="Значения метрики по регионам за год",
+    )
+    def get(self, request: Request) -> Response:
+        try:
+            metric_id = int(request.query_params["metric_id"])
+            year = int(request.query_params["year"])
+        except (KeyError, ValueError):
+            return Response(
+                {"detail": "Нужны числовые параметры metric_id и year"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.metric_values(metric_id, year)
+        log.info("metric_values", stage="api", metric_id=metric_id, year=year, rows=len(data))
+        return Response(MetricValuePointSerializer(data, many=True).data)

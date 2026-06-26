@@ -106,6 +106,19 @@ def test_map_page_has_share_link(client: Client) -> None:
     assert 'id="map-copy-link"' in html
 
 
+def test_explore_page_wiring(client: Client) -> None:
+    """Страница «Показатели» (explore): 200, каталог-браузер, контролы и подключение explore.js."""
+    html = client.get("/explore/").content.decode()
+    assert "js/explore.js" in html
+    assert 'id="ex-search"' in html and 'id="ex-list"' in html
+    assert 'id="explore-root"' in html
+
+
+def test_explore_in_nav(client: Client) -> None:
+    """Пункт «Показатели» присутствует в основной навигации."""
+    assert "Показатели" in client.get("/").content.decode()
+
+
 def test_shared_js_helper_loaded(client: Client) -> None:
     """Общий клиентский помощник (единый текст ошибок) подключается на каждой странице."""
     for path in ("/", "/map/", "/regions/45000000/"):
