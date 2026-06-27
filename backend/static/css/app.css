@@ -243,7 +243,10 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .lab-block { margin: 26px 0; }
 .lab-block h2 { font-size: 1.3rem; margin: 0 0 6px; }
 .lab-note { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 12px; max-width: 72ch; }
-#lab-agreement, #lab-scatter { width: 100%; }
+#lab-agreement, #lab-scatter, #cv-chart { width: 100%; }
+#lab-agreement { min-height: 300px; }
+#lab-scatter { min-height: 460px; }
+#cv-chart { min-height: 360px; }
 @media (max-width: 760px) {
   .explore { grid-template-columns: 1fr; }
   .explore-catalog { position: static; }

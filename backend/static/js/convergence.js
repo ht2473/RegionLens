@@ -41,6 +41,7 @@
     }
     var years = pts.map(function (p) { return p.year; });
     var vals = pts.map(function (p) { return p[measure]; });
+    $chart.innerHTML = ""; // убрать «Загрузка…»/старый график, иначе Plotly дорисует поверх
     Plotly.newPlot(
       "cv-chart",
       [

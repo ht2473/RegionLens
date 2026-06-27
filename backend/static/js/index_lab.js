@@ -49,6 +49,13 @@
     Object.keys(extra || {}).forEach(function (k) { l[k] = extra[k]; });
     return l;
   }
+  // Plotly не удаляет прежнее содержимое контейнера (заглушку «Загрузка…»/старый график) —
+  // очищаем сами перед отрисовкой, иначе заглушка остаётся рядом с графиком.
+  function plot(id, traces, layout, config) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = "";
+    Plotly.newPlot(id, traces, layout, config);
+  }
 
   // ── Тренд согласованности схем ───────────────────────────────────────────
   function renderTrend(rows) {
@@ -74,7 +81,7 @@
         marker: { size: 5 },
       };
     });
-    Plotly.newPlot(
+    plot(
       "lab-agreement",
       traces,
       baseLayout({
@@ -107,7 +114,7 @@
       );
       colors.push(Math.abs(ra - rb) >= WIDE_GAP ? WIDE : GOOD);
     });
-    Plotly.newPlot(
+    plot(
       "lab-scatter",
       [
         {
