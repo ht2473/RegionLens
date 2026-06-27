@@ -149,6 +149,14 @@ def _stage_scheme_agreement(duckdb_path: str, sources_path: str, log_mlflow: boo
     run_scheme_agreement(dev_index, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_index_dispersion(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """Межрегиональный разброс индекса по годам (σ-сходимость, неравенство)."""
+    from pipeline.index_dispersion import run_index_dispersion
+
+    dev_index = read_table(duckdb_path, "dev_index")
+    run_index_dispersion(dev_index, duckdb_path=duckdb_path, write=True)
+
+
 def _stage_correlations(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
     """Парные корреляции метрик по регионам на год."""
     from pipeline.correlations import run_correlations
@@ -262,6 +270,13 @@ STAGES: tuple[Stage, ...] = (
         ("dev_index",),
         ("scheme_agreement",),
         "согласованность рейтингов между схемами весов по годам (Спирмен)",
+    ),
+    Stage(
+        "index_dispersion",
+        _stage_index_dispersion,
+        ("dev_index",),
+        ("index_dispersion",),
+        "разброс индекса по регионам по годам (σ-сходимость, неравенство)",
     ),
     Stage(
         "correlations",

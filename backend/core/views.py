@@ -69,6 +69,11 @@ def index_lab_page(request: HttpRequest) -> HttpResponse:
     return _page(request, "pages/index_lab.html", active="index_lab", title="Лаборатория индекса")
 
 
+def convergence_page(request: HttpRequest) -> HttpResponse:
+    """Конвергенция регионов: σ-сходимость индекса и динамика неравенства во времени."""
+    return _page(request, "pages/convergence.html", active="convergence", title="Конвергенция")
+
+
 def public_saved_view(request: HttpRequest, token: str) -> HttpResponse:
     """Публичная ссылка на сохранённый вид (без входа): редирект на восстановленный экран.
 

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Конвергенция — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Динамика неравенства</p>
+  <h1>Конвергенция регионов</h1>
+  <p class="lead">Сближаются ли регионы по уровню развития во времени? σ-сходимость измеряет, сужается
+    ли разброс композитного индекса по регионам. Падение меры разброса — регионы становятся более
+    похожими; рост — разрыв усиливается.</p>
+</section>
+
+<section class="lab-block">
+  <div class="map-controls">
+    <div class="year-control">
+      <label for="cv-measure">Мера разброса</label>
+      <select id="cv-measure">
+        <option value="cv">Коэффициент вариации</option>
+        <option value="gini">Индекс Джини</option>
+        <option value="p90_p10">Отношение P90/P10</option>
+        <option value="std">Стандартное отклонение</option>
+      </select>
+    </div>
+    <div class="year-control">
+      <label for="cv-scheme">Схема весов</label>
+      <select id="cv-scheme">
+        <option value="equal">Равные</option>
+        <option value="pca">PCA</option>
+        <option value="expert">Экспертные</option>
+      </select>
+    </div>
+  </div>
+  <div id="cv-chart"><div class="shell"><p>Загрузка…</p></div></div>
+  <p class="lab-note" id="cv-readout"></p>
+  <p class="lab-note">Индекс z-нормирован, поэтому отражает относительные позиции регионов; меры
+    разброса инвариантны к шкале и сопоставимы между годами. Это описательная динамика, не прогноз.</p>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<script src="{% static 'js/convergence.js' %}"></script>
+{% endblock %}

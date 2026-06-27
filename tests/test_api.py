@@ -1128,3 +1128,37 @@ def test_scheme_agreement_returns_pairs(scheme_agreement_duckdb: Path) -> None:
     pair = {(r["scheme_a"], r["scheme_b"], r["year"]): r["spearman"] for r in rows}
     assert pair[("equal", "pca", 2024)] == 0.97
     assert pair[("equal", "expert", 2023)] == 0.98
+
+
+# --- Разброс индекса по годам (σ-сходимость) ------------------------------------------
+
+
+@pytest.fixture
+def index_dispersion_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с таблицей index_dispersion; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "idp.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE index_dispersion (year INTEGER, weighting_scheme VARCHAR, n_regions INTEGER, "
+        "mean DOUBLE, std DOUBLE, cv DOUBLE, p10 DOUBLE, p90 DOUBLE, p90_p10 DOUBLE, gini DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO index_dispersion VALUES "
+        "(2023, 'equal', 85, 43.5, 13.3, 0.306, 30.0, 60.0, 1.96, 0.153), "
+        "(2024, 'equal', 85, 43.5, 10.8, 0.248, 33.0, 55.0, 1.66, 0.128), "
+        "(2024, 'pca', 85, 43.5, 12.0, 0.276, 32.0, 58.0, 1.81, 0.140)"
+    )
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_index_dispersion_returns_series(index_dispersion_duckdb: Path) -> None:
+    """Эндпойнт отдаёт меры разброса индекса по (схема, год)."""
+    rows = APIClient().get("/api/index/dispersion/").json()
+    assert len(rows) == 3
+    eq = {r["year"]: r for r in rows if r["weighting_scheme"] == "equal"}
+    assert eq[2024]["cv"] == 0.248 and eq[2024]["gini"] == 0.128
+    assert eq[2024]["cv"] < eq[2023]["cv"]  # σ-сходимость: разброс сузился

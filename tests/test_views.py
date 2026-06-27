@@ -141,6 +141,19 @@ def test_index_lab_in_nav(client: Client) -> None:
     assert "Лаборатория индекса" in client.get("/").content.decode()
 
 
+def test_convergence_page_wiring(client: Client) -> None:
+    """Конвергенция: 200, контролы меры/схемы, график и convergence.js."""
+    html = client.get("/convergence/").content.decode()
+    assert "js/convergence.js" in html
+    assert 'id="cv-chart"' in html and 'id="cv-measure"' in html
+    assert "plot.ly" in html
+
+
+def test_convergence_in_nav(client: Client) -> None:
+    """Пункт «Конвергенция» присутствует в навигации."""
+    assert "Конвергенция" in client.get("/").content.decode()
+
+
 def test_shared_js_helper_loaded(client: Client) -> None:
     """Общий клиентский помощник (единый текст ошибок) подключается на каждой странице."""
     for path in ("/", "/map/", "/regions/45000000/"):

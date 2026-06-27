@@ -28,6 +28,7 @@ from ..serializers import (
     DecompositionRowSerializer,
     DispersionRowSerializer,
     GeoLayerPointSerializer,
+    IndexDispersionRowSerializer,
     IndexRowSerializer,
     MetricCatalogRowSerializer,
     MetricSerializer,
@@ -291,6 +292,24 @@ class SchemeAgreement(APIView):
         data = queries.scheme_agreement_list()
         log.info("scheme_agreement", stage="api", rows=len(data))
         return Response(SchemeAgreementRowSerializer(data, many=True).data)
+
+
+class IndexDispersion(APIView):
+    """GET /api/index/dispersion/ — межрегиональный разброс индекса по годам и схемам.
+
+    Меры σ-сходимости/неравенства композитного индекса (cv, gini, p90/p10, std) по (схема, год).
+    Падение cv во времени — признак сближения регионов; рост — расхождения. Питает страницу
+    конвергенции. Описание данных, не пересчёт.
+    """
+
+    @extend_schema(
+        responses=IndexDispersionRowSerializer(many=True),
+        summary="Разброс индекса по годам (σ-сходимость)",
+    )
+    def get(self, request: Request) -> Response:
+        data = queries.index_dispersion_list()
+        log.info("index_dispersion", stage="api", rows=len(data))
+        return Response(IndexDispersionRowSerializer(data, many=True).data)
 
 
 class Transitions(APIView):

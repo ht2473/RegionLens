@@ -150,6 +150,18 @@ def scheme_agreement_list() -> list[dict[str, Any]]:
     )
 
 
+def index_dispersion_list() -> list[dict[str, Any]]:
+    """Межрегиональный разброс индекса по годам и схемам весов (таблица index_dispersion).
+
+    Меры σ-сходимости/неравенства индекса (cv, gini, p90/p10, std) по (схема, год). Питает
+    страницу конвергенции: падение cv во времени — признак сближения регионов. Read-only.
+    """
+    return q(
+        "SELECT year, weighting_scheme, n_regions, mean, std, cv, p10, p90, p90_p10, gini "
+        "FROM index_dispersion ORDER BY weighting_scheme, year"
+    )
+
+
 def _domain_breakdown(cur: dict[str, Any], prev: dict[str, Any] | None) -> list[dict[str, Any]]:
     """Поддоменная разбивка балла: значение в году, в предыдущем году и дельта (B4).
 

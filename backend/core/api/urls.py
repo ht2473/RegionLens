@@ -39,6 +39,7 @@ urlpatterns = [
         endpoints.SchemeAgreement.as_view(),
         name="scheme_agreement",
     ),
+    path("index/dispersion/", endpoints.IndexDispersion.as_view(), name="index_dispersion"),
     path("transitions/", endpoints.Transitions.as_view(), name="transitions"),
     # Типология (profile — до <okato>/explain, чтобы не перехватился как okato)
     path("typology/", endpoints.Typology.as_view(), name="typology"),

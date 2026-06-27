@@ -294,6 +294,25 @@ class MetricValuePointSerializer(serializers.Serializer):
     value = serializers.FloatField(allow_null=True)
 
 
+class IndexDispersionRowSerializer(serializers.Serializer):
+    """Разброс композитного индекса по регионам в году (σ-сходимость, неравенство).
+
+    cv — коэффициент вариации (падение во времени = σ-сходимость), gini и p90_p10 —
+    неравенство, std — абсолютный разброс. По схеме весов и году.
+    """
+
+    year = serializers.IntegerField()
+    weighting_scheme = serializers.CharField()
+    n_regions = serializers.IntegerField()
+    mean = serializers.FloatField(allow_null=True)
+    std = serializers.FloatField(allow_null=True)
+    cv = serializers.FloatField(allow_null=True)
+    p10 = serializers.FloatField(allow_null=True)
+    p90 = serializers.FloatField(allow_null=True)
+    p90_p10 = serializers.FloatField(allow_null=True)
+    gini = serializers.FloatField(allow_null=True)
+
+
 class SchemeAgreementRowSerializer(serializers.Serializer):
     """Согласованность двух схем весов в году: ранговая корреляция Спирмена их рейтингов.
 
