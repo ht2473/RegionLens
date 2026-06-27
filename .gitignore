@@ -50,3 +50,6 @@ schema.yml
 # Скрипты для дампов
 scripts/
 dump/
+
+# Мониторинг проекта 
+.VSCodeCounter/
