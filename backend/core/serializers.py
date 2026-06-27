@@ -294,6 +294,23 @@ class MetricValuePointSerializer(serializers.Serializer):
     value = serializers.FloatField(allow_null=True)
 
 
+class BetaConvergenceRowSerializer(serializers.Serializer):
+    """β-сходимость индекса по схеме весов: регрессия роста на стартовый уровень.
+
+    beta — наклон (отрицательный = отстающие догоняли), correlation/r_squared — сила связи,
+    year_start/year_end — период. Индекс относительный, поэтому это мобильность, не абсолютный рост.
+    """
+
+    weighting_scheme = serializers.CharField()
+    year_start = serializers.IntegerField()
+    year_end = serializers.IntegerField()
+    n_regions = serializers.IntegerField()
+    beta = serializers.FloatField(allow_null=True)
+    intercept = serializers.FloatField(allow_null=True)
+    correlation = serializers.FloatField(allow_null=True)
+    r_squared = serializers.FloatField(allow_null=True)
+
+
 class IndexDispersionRowSerializer(serializers.Serializer):
     """Разброс композитного индекса по регионам в году (σ-сходимость, неравенство).
 

@@ -1162,3 +1162,37 @@ def test_index_dispersion_returns_series(index_dispersion_duckdb: Path) -> None:
     eq = {r["year"]: r for r in rows if r["weighting_scheme"] == "equal"}
     assert eq[2024]["cv"] == 0.248 and eq[2024]["gini"] == 0.128
     assert eq[2024]["cv"] < eq[2023]["cv"]  # σ-сходимость: разброс сузился
+
+
+# --- β-сходимость индекса (догоняние отстающих) --------------------------------------
+
+
+@pytest.fixture
+def beta_convergence_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-untyped-def]
+    """Временный DuckDB с таблицей beta_convergence; settings.DUCKDB_PATH → на него."""
+    path = tmp_path / "beta.duckdb"
+    con = duckdb.connect(str(path))
+    con.execute(
+        "CREATE TABLE beta_convergence (weighting_scheme VARCHAR, year_start INTEGER, "
+        "year_end INTEGER, n_regions INTEGER, beta DOUBLE, intercept DOUBLE, "
+        "correlation DOUBLE, r_squared DOUBLE)"
+    )
+    con.execute(
+        "INSERT INTO beta_convergence VALUES "
+        "('equal', 2010, 2024, 85, -0.28, 12.19, -0.62, 0.38), "
+        "('pca', 2010, 2024, 85, -0.19, 9.77, -0.53, 0.28)"
+    )
+    con.close()
+    settings.DUCKDB_PATH = str(path)
+    duck.reset_connection()
+    yield path
+    duck.reset_connection()
+
+
+def test_beta_convergence_returns_schemes(beta_convergence_duckdb: Path) -> None:
+    """Эндпойнт отдаёт β-регрессию по схемам; beta<0 — догоняние."""
+    rows = APIClient().get("/api/index/beta/").json()
+    assert len(rows) == 2
+    eq = next(r for r in rows if r["weighting_scheme"] == "equal")
+    assert eq["beta"] == -0.28 and eq["beta"] < 0
+    assert eq["year_start"] == 2010 and eq["year_end"] == 2024

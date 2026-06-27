@@ -142,10 +142,11 @@ def test_index_lab_in_nav(client: Client) -> None:
 
 
 def test_convergence_page_wiring(client: Client) -> None:
-    """Конвергенция: 200, контролы меры/схемы, график и convergence.js."""
+    """Конвергенция: 200, контролы меры/схемы, графики σ и β, convergence.js."""
     html = client.get("/convergence/").content.decode()
     assert "js/convergence.js" in html
     assert 'id="cv-chart"' in html and 'id="cv-measure"' in html
+    assert 'id="beta-chart"' in html  # β-секция
     assert "plot.ly" in html
 
 

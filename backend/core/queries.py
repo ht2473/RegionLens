@@ -162,6 +162,18 @@ def index_dispersion_list() -> list[dict[str, Any]]:
     )
 
 
+def beta_convergence_list() -> list[dict[str, Any]]:
+    """β-сходимость индекса по схемам весов (таблица beta_convergence).
+
+    Для каждой схемы — наклон регрессии роста индекса на стартовый уровень (beta<0 — отстающие
+    догоняли), стартовый/конечный год, корреляция и R². Питает β-секцию страницы конвергенции.
+    """
+    return q(
+        "SELECT weighting_scheme, year_start, year_end, n_regions, beta, intercept, "
+        "correlation, r_squared FROM beta_convergence ORDER BY weighting_scheme"
+    )
+
+
 def _domain_breakdown(cur: dict[str, Any], prev: dict[str, Any] | None) -> list[dict[str, Any]]:
     """Поддоменная разбивка балла: значение в году, в предыдущем году и дельта (B4).
 

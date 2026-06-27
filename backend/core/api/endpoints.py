@@ -21,6 +21,7 @@ from .. import queries
 from ..permissions import IsAnalyst
 from ..serializers import (
     AnomalySerializer,
+    BetaConvergenceRowSerializer,
     ClusterProfileRowSerializer,
     CompareRowSerializer,
     CorrelationRowSerializer,
@@ -310,6 +311,24 @@ class IndexDispersion(APIView):
         data = queries.index_dispersion_list()
         log.info("index_dispersion", stage="api", rows=len(data))
         return Response(IndexDispersionRowSerializer(data, many=True).data)
+
+
+class BetaConvergence(APIView):
+    """GET /api/index/beta/ — β-сходимость индекса по схемам весов.
+
+    Для каждой схемы — наклон регрессии роста индекса на стартовый уровень (beta<0 — изначально
+    отстающие регионы догоняли), период, корреляция и R². Индекс относительный, поэтому это
+    мобильность/возврат к среднему, не абсолютный рост. Описание данных, не прогноз.
+    """
+
+    @extend_schema(
+        responses=BetaConvergenceRowSerializer(many=True),
+        summary="β-сходимость индекса по схемам весов",
+    )
+    def get(self, request: Request) -> Response:
+        data = queries.beta_convergence_list()
+        log.info("beta_convergence", stage="api", rows=len(data))
+        return Response(BetaConvergenceRowSerializer(data, many=True).data)
 
 
 class Transitions(APIView):

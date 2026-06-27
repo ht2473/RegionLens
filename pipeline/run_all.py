@@ -157,6 +157,14 @@ def _stage_index_dispersion(duckdb_path: str, sources_path: str, log_mlflow: boo
     run_index_dispersion(dev_index, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_beta_convergence(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """β-сходимость индекса: догоняют ли изначально отстающие регионы (по схемам весов)."""
+    from pipeline.beta_convergence import run_beta_convergence
+
+    dev_index = read_table(duckdb_path, "dev_index")
+    run_beta_convergence(dev_index, duckdb_path=duckdb_path, write=True)
+
+
 def _stage_correlations(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
     """Парные корреляции метрик по регионам на год."""
     from pipeline.correlations import run_correlations
@@ -277,6 +285,13 @@ STAGES: tuple[Stage, ...] = (
         ("dev_index",),
         ("index_dispersion",),
         "разброс индекса по регионам по годам (σ-сходимость, неравенство)",
+    ),
+    Stage(
+        "beta_convergence",
+        _stage_beta_convergence,
+        ("dev_index",),
+        ("beta_convergence",),
+        "β-сходимость индекса: догоняют ли отстающие (по схемам весов)",
     ),
     Stage(
         "correlations",
