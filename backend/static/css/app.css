@@ -364,6 +364,40 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--surface); }
 .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface); }
 
+/* Поисковый комбобокс (RL.enhanceSelect) — для выбора показателя на «Неравенстве»/«Корреляциях» */
+.combo { position: relative; width: 380px; max-width: 70vw; }
+.combo-field { position: relative; }
+.combo-input {
+  width: 100%; padding: 9px 34px 9px 11px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--surface); color: var(--ink); font: inherit; cursor: pointer;
+  text-overflow: ellipsis;
+}
+.combo-input:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); cursor: text; }
+.combo-caret {
+  position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-faint); font-size: 0.78rem; cursor: pointer; transition: transform 0.15s ease;
+}
+.combo.open .combo-caret { transform: translateY(-50%) rotate(180deg); }
+.combo-list {
+  position: absolute; left: 0; top: calc(100% + 4px); z-index: 40;
+  min-width: 100%; width: max-content; max-width: min(620px, 88vw);
+  max-height: 340px; overflow-y: auto; padding: 5px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 9px; box-shadow: var(--shadow);
+}
+.combo-opt {
+  position: relative; padding: 8px 28px 8px 10px; border-radius: 6px; cursor: pointer;
+  font-size: 0.92rem; line-height: 1.35; color: var(--ink-soft);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
+.combo-opt:hover, .combo-opt.is-active { background: var(--accent-soft); color: var(--accent-deep); }
+.combo-opt.is-current { font-weight: 600; color: var(--ink); }
+.combo-opt.is-current::after {
+  content: "✓"; position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+  color: var(--accent); font-size: 0.85rem;
+}
+.combo-opt mark { background: var(--accent-soft); color: inherit; border-radius: 3px; padding: 0 1px; font-weight: 600; }
+.combo-empty { padding: 10px; color: var(--ink-faint); font-size: 0.9rem; }
+
 /* ── Дашборд региона и список регионов (Ф7, модуль 3) ────────────────── */
 .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 8px 0 22px; }
 @media (max-width: 880px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } }
