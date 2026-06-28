@@ -8,12 +8,22 @@
   "use strict";
 
   var root = document.getElementById("typology-root");
-  if (!root || typeof Plotly === "undefined") return;
+  if (!root) return;
 
   var PALETTE = ["#c46a3f", "#1f6f63", "#3b6ea5", "#8a6fab", "#b0a44e"];
   var POS = "#1f6f63", NEG = "#b4532a", INK = "#1b2430", GRID = "#e9e3d6";
   var state = { year: 2024 };
   var names = null;
+
+  // Подпись метрики: схлопнуть дубликат «X: X» (артефакт metric_name). 
+  function cleanLabel(name) {
+    if (!name) return "";
+    var p = name.split(": ");
+    return p.length === 2 && p[0].trim() === p[1].trim() ? p[0].trim() : name;
+  }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
 
   function ensureNames() {
     if (names) return Promise.resolve(names);
@@ -101,21 +111,26 @@
         var el = document.getElementById("profile-" + cid);
         if (!el) return;
         if (!rows.length) { el.innerHTML = '<p class="chart-note">Нет профиля.</p>'; return; }
-        var top = rows.slice(0, 6).reverse(); // крупнейший |mean_z| сверху
-        var vals = top.map(function (m) { return m.mean_z; });
-        var labels = top.map(function (m) { return m.metric_name || "metric " + m.metric_id; });
-        Plotly.newPlot(
-          el,
-          [{ type: "bar", orientation: "h", x: vals, y: labels,
-            marker: { color: vals.map(function (v) { return v >= 0 ? POS : NEG; }) },
-            hovertemplate: "%{y}: %{x:.2f}<extra></extra>" }],
-          { font: { family: "Golos Text, system-ui, sans-serif", color: INK, size: 12 },
-            margin: { t: 6, b: 24, l: 200, r: 12 }, height: 220,
-            paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
-            xaxis: { zeroline: true, zerolinecolor: "#b9c2cb", gridcolor: GRID },
-            yaxis: { automargin: true } },
-          { responsive: true, displayModeBar: false }
-        );
+        var top = rows.slice(0, 6); // крупнейший |mean_z| первым (API сортирует по убыванию)
+        var maxAbs = Math.max.apply(null, top.map(function (m) { return Math.abs(m.mean_z); })) || 1;
+        var html = top
+          .map(function (m) {
+            var z = m.mean_z;
+            var pos = z >= 0;
+            var pct = (Math.abs(z) / maxAbs) * 48; // доля полуширины (до края с запасом)
+            var fill = pos
+              ? '<span class="pbar-fill pos" style="left:50%;width:' + pct.toFixed(1) + '%"></span>'
+              : '<span class="pbar-fill neg" style="right:50%;width:' + pct.toFixed(1) + '%"></span>';
+            return (
+              '<div class="pbar-row">' +
+              '<div class="pbar-name">' + esc(cleanLabel(m.metric_name || "metric " + m.metric_id)) + "</div>" +
+              '<div class="pbar-line"><div class="pbar-track">' + fill + "</div>" +
+              '<span class="pbar-val">' + (pos ? "+" : "") + z.toFixed(2) + "</span></div>" +
+              "</div>"
+            );
+          })
+          .join("");
+        el.innerHTML = '<div class="pbars">' + html + "</div>";
       });
   }
 
