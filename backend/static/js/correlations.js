@@ -32,6 +32,7 @@
           opts.push('<option value="' + m.metric_id + '">' + m.metric_name + "</option>");
         });
         select.innerHTML = opts.join("");
+        if (window.RL && RL.enhanceSelect) RL.enhanceSelect(select, "Поиск показателя…");
       });
   }
 

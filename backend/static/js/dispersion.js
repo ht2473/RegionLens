@@ -34,6 +34,7 @@
             return '<option value="' + m.metric_id + '">' + m.metric_name + "</option>";
           })
           .join("");
+        if (window.RL && RL.enhanceSelect) RL.enhanceSelect(select, "Поиск показателя…");
         return rows[0].metric_id;
       });
   }
