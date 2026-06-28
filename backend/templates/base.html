@@ -3,6 +3,24 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
+  <script>
+    /* Тема до первой отрисовки — без мигания: localStorage → системная тема. */
+    (function () {
+      try {
+        var t = localStorage.getItem("rl-theme");
+        if (t !== "dark" && t !== "light") {
+          t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    })();
+    function rlToggleTheme() {
+      var d = document.documentElement;
+      var next = d.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      d.setAttribute("data-theme", next);
+      try { localStorage.setItem("rl-theme", next); } catch (e) {}
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}RegionLens{% endblock %}</title>
   <meta name="description" content="RegionLens — аналитическая платформа социально-экономического развития регионов РФ на данных Росстата.">
@@ -25,20 +43,53 @@
         <a href="{% url 'home' %}" class="{% if active == 'home' %}is-active{% endif %}">Главная</a>
         <a href="{% url 'map' %}" class="{% if active == 'map' %}is-active{% endif %}">Карта</a>
         <a href="{% url 'explore' %}" class="{% if active == 'explore' %}is-active{% endif %}">Показатели</a>
-        <a href="{% url 'rankings' %}" class="{% if active == 'rankings' %}is-active{% endif %}">Рейтинг</a>
-        <a href="{% url 'index_lab' %}" class="{% if active == 'index_lab' %}is-active{% endif %}">Лаборатория индекса</a>
-        <a href="{% url 'convergence' %}" class="{% if active == 'convergence' %}is-active{% endif %}">Конвергенция</a>
-        <a href="{% url 'typology' %}" class="{% if active == 'typology' %}is-active{% endif %}">Типология</a>
-        <a href="{% url 'compare' %}" class="{% if active == 'compare' %}is-active{% endif %}">Сравнение</a>
         <a href="{% url 'regions' %}" class="{% if active == 'regions' %}is-active{% endif %}">Регионы</a>
-        <a href="{% url 'methodology' %}" class="{% if active == 'methodology' %}is-active{% endif %}">Методология</a>
-        <a href="{% url 'data' %}" class="{% if active == 'data' %}is-active{% endif %}">Данные</a>
-        <a href="{% url 'dispersion_page' %}" class="{% if active == 'dispersion' %}is-active{% endif %}">Неравенство</a>
-        {% if is_analyst %}<a href="{% url 'anomalies_page' %}" class="{% if active == 'anomalies' %}is-active{% endif %}">Аномалии</a>{% endif %}
-        {% if is_analyst %}<a href="{% url 'correlations_page' %}" class="{% if active == 'correlations' %}is-active{% endif %}">Корреляции</a>{% endif %}
-        <a href="{% url 'help' %}" class="{% if active == 'help' %}is-active{% endif %}">Справка</a>
-        <a href="{% url 'feedback' %}" class="{% if active == 'feedback' %}is-active{% endif %}">Обратная связь</a>
-        <span class="nav-sep" aria-hidden="true"></span>
+
+        <div class="nav-group" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
+          <button type="button" class="nav-group-btn{% if active == 'rankings' or active == 'index_lab' or active == 'convergence' or active == 'dispersion' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">Индекс <span class="caret" aria-hidden="true">▾</span></button>
+          <div class="nav-menu" x-show="d" x-cloak @click="d = false">
+            <a href="{% url 'rankings' %}" class="{% if active == 'rankings' %}is-active{% endif %}">Рейтинг</a>
+            <a href="{% url 'index_lab' %}" class="{% if active == 'index_lab' %}is-active{% endif %}">Лаборатория индекса</a>
+            <a href="{% url 'convergence' %}" class="{% if active == 'convergence' %}is-active{% endif %}">Конвергенция</a>
+            <a href="{% url 'dispersion_page' %}" class="{% if active == 'dispersion' %}is-active{% endif %}">Неравенство</a>
+          </div>
+        </div>
+
+        <div class="nav-group" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
+          <button type="button" class="nav-group-btn{% if active == 'typology' or active == 'compare' or active == 'anomalies' or active == 'correlations' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">Аналитика <span class="caret" aria-hidden="true">▾</span></button>
+          <div class="nav-menu" x-show="d" x-cloak @click="d = false">
+            <a href="{% url 'typology' %}" class="{% if active == 'typology' %}is-active{% endif %}">Типология</a>
+            <a href="{% url 'compare' %}" class="{% if active == 'compare' %}is-active{% endif %}">Сравнение</a>
+            {% if is_analyst %}<a href="{% url 'anomalies_page' %}" class="{% if active == 'anomalies' %}is-active{% endif %}">Аномалии</a>{% endif %}
+            {% if is_analyst %}<a href="{% url 'correlations_page' %}" class="{% if active == 'correlations' %}is-active{% endif %}">Корреляции</a>{% endif %}
+          </div>
+        </div>
+
+        <div class="nav-group" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
+          <button type="button" class="nav-group-btn{% if active == 'methodology' or active == 'data' or active == 'help' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">О проекте <span class="caret" aria-hidden="true">▾</span></button>
+          <div class="nav-menu" x-show="d" x-cloak @click="d = false">
+            <a href="{% url 'methodology' %}" class="{% if active == 'methodology' %}is-active{% endif %}">Методология</a>
+            <a href="{% url 'data' %}" class="{% if active == 'data' %}is-active{% endif %}">Данные</a>
+            <a href="{% url 'help' %}" class="{% if active == 'help' %}is-active{% endif %}">Справка</a>
+            <a href="{% url 'feedback' %}" class="{% if active == 'feedback' %}is-active{% endif %}">Обратная связь</a>
+          </div>
+        </div>
+
+        <button type="button" class="theme-toggle" onclick="rlToggleTheme()" aria-label="Светлая или тёмная тема" title="Сменить тему"><span class="ic-moon" aria-hidden="true">☾</span><span class="ic-sun" aria-hidden="true">☀</span></button>
+
+        {% if user.is_authenticated %}
+          <div class="nav-group nav-account" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
+            <button type="button" class="nav-group-btn nav-user{% if active == 'account' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{{ user.get_username }} <span class="caret" aria-hidden="true">▾</span></button>
+            <div class="nav-menu nav-menu-right" x-show="d" x-cloak>
+              <a href="{% url 'account' %}" class="{% if active == 'account' %}is-active{% endif %}">Личный кабинет</a>
+              <form method="post" action="{% url 'logout' %}" class="nav-logout">{% csrf_token %}<button type="submit">Выйти</button></form>
+            </div>
+          </div>
+        {% else %}
+          <a href="{% url 'login' %}" class="{% if active == 'login' %}is-active{% endif %}">Войти</a>
+          <a href="{% url 'register' %}" class="{% if active == 'register' %}is-active{% endif %}">Регистрация</a>
+        {% endif %}
+      </nav>
         {% if user.is_authenticated %}
           <a class="nav-user {% if active == 'account' %}is-active{% endif %}" href="{% url 'account' %}" title="Личный кабинет">{{ user.get_username }}</a>
           <form method="post" action="{% url 'logout' %}" class="nav-logout">{% csrf_token %}<button type="submit">Выйти</button></form>
