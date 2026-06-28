@@ -128,6 +128,17 @@
         });
         wire();
         updateMap();
+        if (window.RL && RL.onTheme) {
+          RL.onTheme(function () {
+            try {
+              if (!map.getLayer || !map.getLayer("bg")) return;
+              map.setPaintProperty("bg", "background-color", RL.cssVar("--map-bg", "#eaf0f1"));
+              if (map.getLayer("line"))
+                map.setPaintProperty("line", "line-color", RL.cssVar("--map-line", "#ffffff"));
+              NODATA = RL.cssVar("--map-nodata", "#dcdcdc");
+            } catch (e) {}
+          });
+        }
       })
       .catch(function () {
         root.innerHTML =

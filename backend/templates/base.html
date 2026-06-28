@@ -19,6 +19,7 @@
       var next = d.getAttribute("data-theme") === "dark" ? "light" : "dark";
       d.setAttribute("data-theme", next);
       try { localStorage.setItem("rl-theme", next); } catch (e) {}
+      if (window.RL && window.RL.applyTheme) window.RL.applyTheme();
     }
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
