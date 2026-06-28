@@ -19,6 +19,7 @@ urlpatterns = [
     # Карта / каталоги
     path("geo/layer/", endpoints.GeoLayer.as_view(), name="geo-layer"),
     path("regions/", endpoints.RegionList.as_view(), name="regions"),
+    path("search/", endpoints.SiteSearch.as_view(), name="search"),
     path("regions/<str:okato>/", endpoints.RegionDashboard.as_view(), name="region-dashboard"),
     path(
         "regions/<str:okato>/twins/",

@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+from django.urls import reverse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status
@@ -41,6 +42,7 @@ from ..serializers import (
     RegionSerializer,
     RegionTwinSerializer,
     SchemeAgreementRowSerializer,
+    SiteSearchSerializer,
     TransitionSerializer,
     TypologyExplainSerializer,
     TypologyRowSerializer,
@@ -746,3 +748,70 @@ class MetricValues(APIView):
         data = queries.metric_values(metric_id, year)
         log.info("metric_values", stage="api", metric_id=metric_id, year=year, rows=len(data))
         return Response(MetricValuePointSerializer(data, many=True).data)
+
+
+# Статические страницы сайта для глобального поиска (заголовок → имя маршрута).
+SEARCH_PAGES: list[tuple[str, str]] = [
+    ("Главная", "home"),
+    ("Карта", "map"),
+    ("Показатели", "explore"),
+    ("Регионы", "regions"),
+    ("Рейтинг регионов", "rankings"),
+    ("Лаборатория индекса", "index_lab"),
+    ("Конвергенция", "convergence"),
+    ("Неравенство регионов", "dispersion_page"),
+    ("Типология регионов", "typology"),
+    ("Сравнение регионов", "compare"),
+    ("Аномалии", "anomalies_page"),
+    ("Корреляции", "correlations_page"),
+    ("Методология", "methodology"),
+    ("Данные", "data"),
+    ("Качество данных", "data_quality_page"),
+    ("Справка", "help"),
+    ("Обратная связь", "feedback"),
+]
+
+
+class SiteSearch(APIView):
+    """GET /api/search/?q=<str> — глобальный поиск: регионы, показатели, страницы.
+
+    Лёгкая выдача для поля в шапке. Регионы/показатели — из DuckDB (queries.search),
+    страницы — статический список (фильтр по подстроке заголовка). Минимум запроса —
+    2 символа: на более коротких возвращается пустая выдача без обращения к хранилищу.
+    """
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "q", OpenApiTypes.STR, description="Поисковый запрос (минимум 2 символа)."
+            ),
+        ],
+        responses=SiteSearchSerializer,
+        summary="Глобальный поиск по сайту",
+    )
+    def get(self, request: Request) -> Response:
+        query = (request.query_params.get("q") or "").strip()
+        if len(query) < 2:
+            return Response({"query": query, "regions": [], "metrics": [], "pages": []})
+        found = queries.search(query, limit=6)
+        ql = query.lower()
+        pages = [
+            {"title": title, "url": reverse(name)}
+            for title, name in SEARCH_PAGES
+            if ql in title.lower()
+        ][:6]
+        payload = {
+            "query": query,
+            "regions": found["regions"],
+            "metrics": found["metrics"],
+            "pages": pages,
+        }
+        log.info(
+            "site_search",
+            stage="api",
+            q=query,
+            regions=len(found["regions"]),
+            metrics=len(found["metrics"]),
+            pages=len(pages),
+        )
+        return Response(SiteSearchSerializer(payload).data)

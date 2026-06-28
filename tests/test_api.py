@@ -1196,3 +1196,38 @@ def test_beta_convergence_returns_schemes(beta_convergence_duckdb: Path) -> None
     eq = next(r for r in rows if r["weighting_scheme"] == "equal")
     assert eq["beta"] == -0.28 and eq["beta"] < 0
     assert eq["year_start"] == 2010 and eq["year_end"] == 2024
+
+
+def test_site_search_regions(api_duckdb: Path) -> None:
+    """search/?q=Моск → находит регион Москва; конверт {query,regions,metrics,pages}."""
+    resp = APIClient().get("/api/search/", {"q": "Моск"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert set(data) == {"query", "regions", "metrics", "pages"}
+    assert "Москва" in [r["region_name"] for r in data["regions"]]
+    assert set(data["regions"][0]) == {"okato", "region_name", "federal_district"}
+
+
+def test_site_search_metrics_include_tail(api_duckdb: Path) -> None:
+    """Поиск показателей охватывает весь каталог, включая «хвост» (метрика 3)."""
+    resp = APIClient().get("/api/search/", {"q": "индекс"})
+    assert resp.status_code == 200
+    metrics = resp.json()["metrics"]
+    assert 3 in [m["metric_id"] for m in metrics]  # «Индекс цен» — hib NULL, но найдена
+    assert set(metrics[0]) == {"metric_id", "metric_name", "unit", "domain"}
+
+
+def test_site_search_pages(api_duckdb: Path) -> None:
+    """search/?q=карт → среди страниц есть «Карта» с корректным URL."""
+    resp = APIClient().get("/api/search/", {"q": "карт"})
+    assert resp.status_code == 200
+    pages = {p["title"]: p["url"] for p in resp.json()["pages"]}
+    assert pages.get("Карта") == "/map/"
+
+
+def test_site_search_min_length(api_duckdb: Path) -> None:
+    """Запрос короче 2 символов → пустая выдача (без обращения к хранилищу)."""
+    resp = APIClient().get("/api/search/", {"q": "и"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["regions"] == [] and data["metrics"] == [] and data["pages"] == []

@@ -76,6 +76,8 @@
           </div>
         </div>
 
+        <button type="button" class="search-trigger" onclick="rlOpenSearch()" aria-label="Поиск по сайту" title="Поиск (Ctrl+K)"><svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.7" y1="12.7" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+
         <button type="button" class="theme-toggle" onclick="rlToggleTheme()" aria-label="Светлая или тёмная тема" title="Сменить тему"><span class="ic-moon" aria-hidden="true">☾</span><span class="ic-sun" aria-hidden="true">☀</span></button>
 
         {% if user.is_authenticated %}
@@ -125,7 +127,20 @@
     </div>
   </footer>
 
+  <div id="site-search" class="search-overlay" hidden role="dialog" aria-modal="true" aria-label="Поиск по сайту">
+    <div class="search-backdrop" onclick="rlCloseSearch()"></div>
+    <div class="search-panel">
+      <div class="search-box">
+        <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" class="search-box-ic"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.7" y1="12.7" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input type="text" id="site-search-input" class="search-input" placeholder="Поиск: регион, показатель или страница…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="site-search-results" aria-label="Поисковый запрос">
+        <kbd class="search-esc">Esc</kbd>
+      </div>
+      <div id="site-search-results" class="search-results" role="listbox"></div>
+    </div>
+  </div>
+
   <script src="{% static 'js/rl-common.js' %}"></script>
+  <script src="{% static 'js/search.js' %}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

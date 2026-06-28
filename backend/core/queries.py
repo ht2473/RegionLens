@@ -53,6 +53,29 @@ def regions() -> list[dict[str, Any]]:
     )
 
 
+def search(query: str, limit: int = 6) -> dict[str, list[dict[str, Any]]]:
+    """Глобальный поиск для поля в шапке: регионы и показатели по подстроке.
+
+    Регистронезависимо через lower() (корректно для кириллицы). Регионы — только
+    включённые в аналитику; показатели — весь каталог metric_dim, более покрытые
+    (coverage) показываются выше как более релевантные. Страницы сайта ищет вью.
+    """
+    like = f"%{query.lower()}%"
+    regions = q(
+        "SELECT okato, region_name, federal_district FROM region_dim "
+        "WHERE included_flag = TRUE AND lower(region_name) LIKE ? "
+        "ORDER BY region_name LIMIT ?",
+        [like, limit],
+    )
+    metrics = q(
+        "SELECT metric_id, metric_name, unit, domain FROM metric_dim "
+        "WHERE lower(metric_name) LIKE ? "
+        "ORDER BY coverage DESC NULLS LAST, metric_name LIMIT ?",
+        [like, limit],
+    )
+    return {"regions": regions, "metrics": metrics}
+
+
 def metrics(domain: str | None = None) -> list[dict[str, Any]]:
     """Каталог метрик ядра (опц. фильтр по домену).
 

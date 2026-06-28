@@ -407,3 +407,36 @@ class DataQualityRowSerializer(serializers.Serializer):
     n_imputed = serializers.IntegerField()
     completeness_raw = serializers.FloatField()
     impute_share = serializers.FloatField()
+
+
+class SearchRegionSerializer(serializers.Serializer):
+    """Регион в результатах глобального поиска."""
+
+    okato = serializers.CharField()
+    region_name = serializers.CharField()
+    federal_district = serializers.CharField(allow_null=True)
+
+
+class SearchMetricSerializer(serializers.Serializer):
+    """Показатель в результатах глобального поиска."""
+
+    metric_id = serializers.IntegerField()
+    metric_name = serializers.CharField()
+    unit = serializers.CharField(allow_null=True)
+    domain = serializers.CharField(allow_null=True)
+
+
+class SearchPageSerializer(serializers.Serializer):
+    """Страница сайта в результатах глобального поиска."""
+
+    title = serializers.CharField()
+    url = serializers.CharField()
+
+
+class SiteSearchSerializer(serializers.Serializer):
+    """Ответ глобального поиска: регионы, показатели и страницы."""
+
+    query = serializers.CharField()
+    regions = SearchRegionSerializer(many=True)
+    metrics = SearchMetricSerializer(many=True)
+    pages = SearchPageSerializer(many=True)
