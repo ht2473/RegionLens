@@ -295,4 +295,17 @@
 
   writeUrlState();
   load();
+
+  // При смене темы перекрашивает пунктир «среднее РФ» на радаре — это цвет трейса (0),
+  // relayout его не трогает, поэтому точечно через restyle. Регистрируется один раз.
+  if (window.RL && RL.onTheme) {
+    RL.onTheme(function () {
+      var el = document.getElementById("chart-radar");
+      if (el && el._fullLayout && typeof Plotly !== "undefined") {
+        try {
+          Plotly.restyle(el, { "line.color": RL.cssVar("--line", "#b9c2cb") }, [0]);
+        } catch (e) {}
+      }
+    });
+  }
 })();
