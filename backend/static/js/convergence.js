@@ -15,8 +15,8 @@
     p90_p10: "Отношение P90/P10",
     std: "Стандартное отклонение",
   };
-  var FONT = { family: "Golos Text, sans-serif", color: "#51606e" };
-  var GRID = "#e9e3d6";
+  var FONT = { family: "Golos Text, sans-serif", color: RL.cssVar("--ink-soft", "#51606e") };
+  var GRID = RL.cssVar("--line-soft", "#e9e3d6");
 
   var $measure = document.getElementById("cv-measure");
   var $scheme = document.getElementById("cv-scheme");
@@ -149,7 +149,7 @@
             xaxis: { title: "Стартовый уровень индекса (" + b.year_start + ")", gridcolor: GRID },
             yaxis: {
               title: "Изменение к " + b.year_end, gridcolor: GRID,
-              zeroline: true, zerolinecolor: "#cfc8ba",
+              zeroline: true, zerolinecolor: RL.cssVar("--line", "#cfc8ba"),
             },
             paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: FONT,
           },

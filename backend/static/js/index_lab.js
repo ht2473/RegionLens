@@ -15,8 +15,8 @@
   var GOOD = "#1f6f63";
   var WIDE = "#b4532a";
   var WIDE_GAP = 10; // |разница мест| ≥ — считаем регион «расходящимся»
-  var FONT = { family: "Golos Text, sans-serif", color: "#51606e" };
-  var GRID = "#e9e3d6";
+  var FONT = { family: "Golos Text, sans-serif", color: RL.cssVar("--ink-soft", "#51606e") };
+  var GRID = RL.cssVar("--line-soft", "#e9e3d6");
 
   var state = { year: 2024 };
   var names = null; // okato -> region_name

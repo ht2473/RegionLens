@@ -18,4 +18,15 @@
     }
     return (err && err.message) || "Произошла ошибка. Обновите страницу.";
   };
+
+  // Текущее значение CSS-переменной темы (для графиков/карты — чтобы цвета следовали теме).
+  // Читается при построении графика; data-theme к этому моменту уже выставлен скриптом в <head>.
+  window.RL.cssVar = function (name, fallback) {
+    try {
+      var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      return v || fallback;
+    } catch (e) {
+      return fallback;
+    }
+  };
 })();

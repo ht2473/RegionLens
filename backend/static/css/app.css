@@ -18,9 +18,39 @@
   --shadow: 0 1px 2px rgba(27, 36, 48, 0.04), 0 8px 24px rgba(27, 36, 48, 0.06);
   --radius: 10px;
   --maxw: 1140px;
+  --map-bg: #eaf0f1;
+  --map-line: #ffffff;
+  --map-nodata: #dcdcdc;
   --serif: "Lora", Georgia, "Times New Roman", serif;
   --sans: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
+
+/* ── Тёмная тема (переключатель в шапке; [data-theme] на <html>, сохраняется в localStorage) ── */
+[data-theme="dark"] {
+  --paper: #161a1f;
+  --surface: #1e242c;
+  --ink: #e7edf3;
+  --ink-soft: #aeb9c4;
+  --ink-faint: #7c8893;
+  --line: #2d353f;
+  --line-soft: #28303a;
+  --accent: #3fa28f;
+  --accent-deep: #79cab9;
+  --accent-soft: #20302c;
+  --clay: #d3744a;
+  --good: #3fa28f;
+  --bad: #d3744a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 30px rgba(0, 0, 0, 0.45);
+  --map-bg: #10151a;
+  --map-line: #2a323b;
+  --map-nodata: #2c343d;
+}
+/* поверхности с захардкоженными светлыми цветами — переопределяем под тёмную тему */
+[data-theme="dark"] .site-footer { background: #11151a; }
+[data-theme="dark"] .table th { background: #232b34; color: var(--ink); }
+[data-theme="dark"] .pbar-track { background: #2a323b; }
+[data-theme="dark"] .pbar-track::before { background: #3a434d; }
+[x-cloak] { display: none !important; }
 
 * { box-sizing: border-box; }
 
@@ -100,6 +130,51 @@ small { color: var(--ink-faint); }
 .nav-user { text-decoration: none; border-radius: 7px; }
 .nav-user:hover { background: var(--accent-soft); }
 .nav-user.is-active { background: var(--accent); color: #fff; }
+
+/* ── Группы-дропдауны, переключатель темы (Ф-навигация) ──────────────────── */
+.nav-group { position: relative; display: inline-flex; }
+.nav-group-btn {
+  font: inherit; cursor: pointer; background: none; border: none;
+  padding: 7px 11px; border-radius: 7px; color: var(--ink-soft);
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.nav-group-btn:hover { background: var(--accent-soft); color: var(--accent-deep); }
+.nav-group-btn.is-active { color: var(--accent-deep); font-weight: 500; }
+.nav .caret { font-size: 0.65em; opacity: 0.7; }
+.nav-menu {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 60; min-width: 210px;
+  display: flex; flex-direction: column; gap: 2px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; box-shadow: var(--shadow);
+}
+.nav-menu.nav-menu-right { left: auto; right: 0; }
+.nav-menu a, .nav-menu .nav-logout button {
+  display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: 7px;
+  color: var(--ink-soft); font-size: 0.92rem; white-space: nowrap;
+}
+.nav-menu a:hover, .nav-menu .nav-logout button:hover {
+  background: var(--accent-soft); color: var(--accent-deep); text-decoration: none;
+}
+.nav-menu a.is-active { background: var(--accent); color: #fff; }
+.theme-toggle {
+  margin-left: auto; background: none; border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 11px; cursor: pointer; color: var(--ink); font-size: 1rem; line-height: 1;
+}
+.theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+.ic-sun { display: none; }
+[data-theme="dark"] .ic-moon { display: none; }
+[data-theme="dark"] .ic-sun { display: inline; }
+
+@media (max-width: 900px) {
+  .nav-group { display: block; width: 100%; }
+  .nav-group-btn { width: 100%; justify-content: space-between; }
+  .nav-menu {
+    position: static; min-width: 0; padding: 2px 0 4px 12px;
+    background: none; border: none; box-shadow: none;
+  }
+  .nav-menu.nav-menu-right { right: auto; }
+  .theme-toggle { margin-left: 0; width: 100%; text-align: left; margin-top: 6px; }
+}
 
 /* ── Кабинет: вкладки разделов ───────────────────────────────────────── */
 .subnav { display: flex; flex-wrap: wrap; gap: 2px; margin: 0 0 22px;
@@ -275,6 +350,19 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
   background: linear-gradient(90deg, #e7f0ee, #9cc8bd, #5fa896, #2e8170, #0c5c4f);
 }
 .legend-scale { display: flex; justify-content: space-between; color: var(--ink-faint); font-size: 0.76rem; }
+[data-theme="dark"] .map-legend { background: rgba(28, 34, 42, 0.95); }
+
+/* Попап MapLibre — следует теме (по умолчанию белый, ломался в тёмной теме) */
+.maplibregl-popup-content {
+  background: var(--surface) !important; color: var(--ink-soft) !important;
+  border: 1px solid var(--line); border-radius: 9px; box-shadow: var(--shadow);
+}
+.maplibregl-popup-content strong { color: var(--ink); }
+.maplibregl-popup-close-button { color: var(--ink-faint); }
+.maplibregl-popup-anchor-top .maplibregl-popup-tip { border-bottom-color: var(--surface); }
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip { border-top-color: var(--surface); }
+.maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--surface); }
+.maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface); }
 
 /* ── Дашборд региона и список регионов (Ф7, модуль 3) ────────────────── */
 .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 8px 0 22px; }

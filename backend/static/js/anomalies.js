@@ -10,7 +10,7 @@
   var API = "/api/anomalies/";
   var FLAG = "#b4532a"; // помеченный выброс
   var CALM = "#cfe3dc"; // в норме
-  var NODATA = "#e9e3d6";
+  var NODATA = RL.cssVar("--map-nodata", "#dcdcdc");
 
   var root = document.getElementById("map");
   var state = { year: parseInt((root && root.dataset.year) || "2020", 10) };
@@ -95,7 +95,7 @@
     style: {
       version: 8,
       sources: {},
-      layers: [{ id: "bg", type: "background", paint: { "background-color": "#eaf0f1" } }],
+      layers: [{ id: "bg", type: "background", paint: { "background-color": RL.cssVar("--map-bg", "#eaf0f1") } }],
     },
     center: [99, 66],
     zoom: 2,
@@ -124,7 +124,7 @@
           id: "line",
           type: "line",
           source: "regions",
-          paint: { "line-color": "#ffffff", "line-width": 0.6 },
+          paint: { "line-color": RL.cssVar("--map-line", "#ffffff"), "line-width": 0.6 },
         });
         wire();
         updateMap();

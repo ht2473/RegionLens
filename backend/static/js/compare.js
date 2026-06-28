@@ -18,7 +18,7 @@
     ["health_edu", "Здоровье/обр."],
   ];
   var PALETTE = ["#1f6f63", "#b4532a", "#3b6ea5"];
-  var INK = "#1b2430", GRID = "#e9e3d6";
+  var INK = RL.cssVar("--ink", "#1b2430"), GRID = RL.cssVar("--line-soft", "#e9e3d6");
   var state = { year: 2024 };
   var selects = ["cmp-1", "cmp-2", "cmp-3"].map(function (id) { return document.getElementById(id); });
   var msg = document.getElementById("compare-msg");
@@ -94,7 +94,7 @@
         plot_bgcolor: "rgba(0,0,0,0)",
         legend: { orientation: "h", y: -0.18 },
         xaxis: { tickangle: -20 },
-        yaxis: { title: "доменный балл (z)", zeroline: true, zerolinecolor: "#b9c2cb", gridcolor: GRID },
+        yaxis: { title: "доменный балл (z)", zeroline: true, zerolinecolor: RL.cssVar("--line", "#b9c2cb"), gridcolor: GRID },
       },
       { responsive: true, displayModeBar: false }
     );

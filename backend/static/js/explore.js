@@ -257,11 +257,11 @@
       {
         margin: { l: 54, r: 16, t: 6, b: 34 },
         height: 260,
-        xaxis: { dtick: 2, gridcolor: "#e9e3d6" },
-        yaxis: { title: state.metric.unit || "", gridcolor: "#e9e3d6" },
+        xaxis: { dtick: 2, gridcolor: RL.cssVar("--line-soft", "#e9e3d6") },
+        yaxis: { title: state.metric.unit || "", gridcolor: RL.cssVar("--line-soft", "#e9e3d6") },
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(0,0,0,0)",
-        font: { family: "Golos Text, sans-serif", color: "#51606e" },
+        font: { family: "Golos Text, sans-serif", color: RL.cssVar("--ink-soft", "#51606e") },
       },
       { responsive: true, displayModeBar: false }
     );
@@ -274,7 +274,7 @@
   // (для произвольной метрики «выше=лучше» неизвестно). Клик по региону — тот же drill-down ряда.
   var exmap = (function () {
     var GEOJSON_URL = "/static/geo/regions.geojson";
-    var NODATA = "#dcdcdc";
+    var NODATA = RL.cssVar("--map-nodata", "#dcdcdc");
     var map = null;
     var geo = null;
     var ready = false;
@@ -288,7 +288,7 @@
         style: {
           version: 8,
           sources: {},
-          layers: [{ id: "bg", type: "background", paint: { "background-color": "#eaf0f1" } }],
+          layers: [{ id: "bg", type: "background", paint: { "background-color": RL.cssVar("--map-bg", "#eaf0f1") } }],
         },
         center: [99, 66],
         zoom: 2,
@@ -316,7 +316,7 @@
               id: "line",
               type: "line",
               source: "regions",
-              paint: { "line-color": "#ffffff", "line-width": 0.6 },
+              paint: { "line-color": RL.cssVar("--map-line", "#ffffff"), "line-width": 0.6 },
             });
             wire();
             ready = true;

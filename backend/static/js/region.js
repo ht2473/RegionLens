@@ -40,7 +40,7 @@
     volatile: "волатильный",
     drifting: "дрейфующий",
   };
-  var POS = "#1f6f63", NEG = "#b4532a", INK = "#1b2430", GRID = "#e9e3d6";
+  var POS = "#1f6f63", NEG = "#b4532a", INK = RL.cssVar("--ink", "#1b2430"), GRID = RL.cssVar("--line-soft", "#e9e3d6");
   var FONT = { family: "Golos Text, system-ui, sans-serif", color: INK, size: 13 };
   var CFG = { responsive: true, displayModeBar: false };
 
@@ -130,13 +130,13 @@
       [
         { type: "scatterpolar", r: DOMAIN_ORDER.map(function () { return 0; }).concat([0]),
           theta: theta.concat([theta[0]]), mode: "lines",
-          line: { color: "#b9c2cb", dash: "dot", width: 1 }, name: "среднее РФ", hoverinfo: "skip" },
+          line: { color: RL.cssVar("--line", "#b9c2cb"), dash: "dot", width: 1 }, name: "среднее РФ", hoverinfo: "skip" },
         { type: "scatterpolar", r: r.concat([r[0]]), theta: theta.concat([theta[0]]),
           fill: "toself", fillcolor: "rgba(31,111,99,0.18)",
           line: { color: POS, width: 2 }, name: "регион" },
       ],
-      { polar: { radialaxis: { range: [lo, hi], gridcolor: GRID, tickfont: { size: 10 } },
-          angularaxis: { tickfont: { size: 11 } } },
+      { polar: { bgcolor: "rgba(0,0,0,0)", radialaxis: { range: [lo, hi], gridcolor: GRID, tickfont: { size: 10 } },
+          angularaxis: { gridcolor: GRID, tickfont: { size: 11 } } },
         showlegend: false, font: FONT, margin: { t: 20, b: 20, l: 40, r: 40 },
         height: 300, paper_bgcolor: "rgba(0,0,0,0)" },
       CFG
@@ -152,7 +152,7 @@
         hovertemplate: "%{y}: %{x:.2f}<extra></extra>" }],
       { font: FONT, margin: { t: 10, b: 30, l: opts.left || 130, r: 20 },
         height: opts.height || 300, paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
-        xaxis: { zeroline: true, zerolinecolor: "#b9c2cb", gridcolor: GRID },
+        xaxis: { zeroline: true, zerolinecolor: RL.cssVar("--line", "#b9c2cb"), gridcolor: GRID },
         yaxis: { automargin: true } },
       CFG
     );

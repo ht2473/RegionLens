@@ -11,7 +11,7 @@
   var GEOJSON_URL = "/static/geo/regions.geojson";
   var API = "/api/geo/layer/";
   var CLUSTER_COLORS = ["#c46a3f", "#1f6f63", "#3b6ea5", "#8a6fab", "#b0a44e"]; // по cluster_id
-  var NODATA = "#dcdcdc";
+  var NODATA = RL.cssVar("--map-nodata", "#dcdcdc");
 
   var root = document.getElementById("map");
   if (!root || typeof maplibregl === "undefined") return;
@@ -49,7 +49,7 @@
     style: {
       version: 8,
       sources: {},
-      layers: [{ id: "bg", type: "background", paint: { "background-color": "#eaf0f1" } }],
+      layers: [{ id: "bg", type: "background", paint: { "background-color": RL.cssVar("--map-bg", "#eaf0f1") } }],
     },
     center: [99, 66],
     zoom: 2,
@@ -79,7 +79,7 @@
           id: "line",
           type: "line",
           source: "regions",
-          paint: { "line-color": "#ffffff", "line-width": 0.6 },
+          paint: { "line-color": RL.cssVar("--map-line", "#ffffff"), "line-width": 0.6 },
         });
         wireInteraction();
         update();
