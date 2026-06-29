@@ -483,8 +483,8 @@ def _client_with_role(role: str) -> APIClient:
     return client
 
 
-def test_anomalies_public_anonymous() -> None:
-    """Эндпойнт аномалий открыт всем (включая анонимов) → 200."""
+def test_anomalies_public_anonymous(api_duckdb: Path) -> None:
+    """Эндпойнт аномалий открыт всем (включая анонимов) → 200 (с тестовой БД-фикстурой)."""
     assert APIClient().get("/api/anomalies/").status_code == 200
 
 
@@ -682,8 +682,8 @@ def correlations_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ig
     duck.reset_connection()
 
 
-def test_correlations_public_anonymous() -> None:
-    """Эндпойнт корреляций открыт всем (включая анонимов) → 200."""
+def test_correlations_public_anonymous(correlations_duckdb: Path) -> None:
+    """Эндпойнт корреляций открыт всем (включая анонимов) → 200 (с тестовой БД-фикстурой)."""
     assert APIClient().get("/api/correlations/").status_code == 200
 
 

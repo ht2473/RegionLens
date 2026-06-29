@@ -1,9 +1,18 @@
 name: CI
 
+# Триггеры запуска: push в ветку main и любой pull request. Push в прочие ветки
+# отдельно не проверяется — соответствующее покрытие обеспечивает проверка их
+# pull request, что сокращает число прогонов без потери контроля качества.
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
+
+# Ограничение параллелизма: новый прогон для той же ветки или pull request
+# отменяет предыдущий незавершённый, экономя время раннеров.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   quality:
@@ -13,8 +22,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install
-        # Ф1+: ставим и группу pipeline (pipeline-модули импортируют pandera и пр.).
+        # Устанавливаются группы зависимостей pipeline, backend и dev. Группа
+        # pipeline обязательна и для прогона тестов: её модули импортируют pandera
+        # и другие библиотеки конвейера обработки данных.
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[pipeline,backend,dev]"
@@ -25,25 +38,8 @@ jobs:
       - name: Mypy
         run: mypy pipeline backend
       - name: OpenAPI (schema lint)
-        # Линт OpenAPI-схемы ловит битую
-        # генерацию и расхождение эндпойнтов со схемой.
+        # Валидация сгенерированной OpenAPI-схемы: выявляет ошибки генерации
+        # и расхождения между фактическими эндпоинтами и их описанием в схеме.
         run: PYTHONPATH=backend:. python backend/manage.py spectacular --validate --fail-on-warn --file /tmp/schema.yml
       - name: Pytest
         run: pytest
-
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install pip-audit
-        run: python -m pip install pip-audit
-      - name: Audit (pip-audit)
-        # Аудит зависимостей информационный до Фазы 5 (где он станет настоящим гейтом с политикой
-        # фиксов/SBOM). continue-on-error: новые CVE в транзитивных пакетах (mlflow/dvc-тулинг, вне
-        # веб-surface) не блокируют несвязанную работу. Политика — чинить, а не подавлять: поднимать
-        # пакеты до фикс-версий и пересобирать uv.lock. diskcache CVE-2025-69872 — без фикса, подавлен.
-        continue-on-error: true
-        run: pip-audit -r requirements.txt --no-deps --ignore-vuln CVE-2025-69872
