@@ -40,7 +40,11 @@
     volatile: "волатильный",
     drifting: "дрейфующий",
   };
-  var POS = "#1f6f63", NEG = "#b4532a", INK = RL.cssVar("--ink", "#1b2430"), GRID = RL.cssVar("--line-soft", "#e9e3d6");
+  var POS = "#1f6f63",
+    NEG = "#b4532a",
+    INK = RL.cssVar("--ink", "#1b2430"),
+    GRID = RL.cssVar("--line-soft", "#e9e3d6"),
+    RADARGRID = RL.cssVar("--radar-grid", "#c2b8a0");
   var FONT = { family: "Golos Text, system-ui, sans-serif", color: INK, size: 13 };
   var CFG = { responsive: true, displayModeBar: false };
 
@@ -130,13 +134,14 @@
       [
         { type: "scatterpolar", r: DOMAIN_ORDER.map(function () { return 0; }).concat([0]),
           theta: theta.concat([theta[0]]), mode: "lines",
-          line: { color: RL.cssVar("--line", "#b9c2cb"), dash: "dot", width: 1 }, name: "среднее РФ", hoverinfo: "skip" },
+          line: { color: RADARGRID, dash: "dot", width: 1.6 }, name: "среднее РФ", hoverinfo: "skip" },
         { type: "scatterpolar", r: r.concat([r[0]]), theta: theta.concat([theta[0]]),
           fill: "toself", fillcolor: "rgba(31,111,99,0.18)",
           line: { color: POS, width: 2 }, name: "регион" },
       ],
-      { polar: { bgcolor: "rgba(0,0,0,0)", radialaxis: { range: [lo, hi], gridcolor: GRID, tickfont: { size: 10 } },
-          angularaxis: { gridcolor: GRID, tickfont: { size: 11 } } },
+      { polar: { bgcolor: "rgba(0,0,0,0)",
+          radialaxis: { range: [lo, hi], gridcolor: RADARGRID, gridwidth: 1.2, tickfont: { size: 10 } },
+          angularaxis: { gridcolor: RADARGRID, gridwidth: 1.2, tickfont: { size: 11 } } },
         showlegend: false, font: FONT, margin: { t: 20, b: 20, l: 40, r: 40 },
         height: 300, paper_bgcolor: "rgba(0,0,0,0)" },
       CFG
@@ -296,14 +301,14 @@
   writeUrlState();
   load();
 
-  // При смене темы перекрашивает пунктир «среднее РФ» на радаре — это цвет трейса (0),
+  // При смене темы перекраска пунктира «среднее РФ» на радаре — это цвет трейса (0),
   // relayout его не трогает, поэтому точечно через restyle. Регистрируется один раз.
   if (window.RL && RL.onTheme) {
     RL.onTheme(function () {
       var el = document.getElementById("chart-radar");
       if (el && el._fullLayout && typeof Plotly !== "undefined") {
         try {
-          Plotly.restyle(el, { "line.color": RL.cssVar("--line", "#b9c2cb") }, [0]);
+          Plotly.restyle(el, { "line.color": RL.cssVar("--radar-grid", "#c2b8a0") }, [0]);
         } catch (e) {}
       }
     });
