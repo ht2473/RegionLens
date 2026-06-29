@@ -1,30 +1,63 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Регистрация — RegionLens{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <p class="eyebrow">Учётная запись</p>
-  <h1>Регистрация</h1>
-  <p class="lead">Создайте учётную запись (роль «viewer»): сохраняйте виды, экспортируйте отчёты,
-    ведите личный кабинет.</p>
-</section>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <p class="eyebrow">Учётная запись</p>
+    <h1 class="auth-title">Регистрация</h1>
+    <p class="auth-sub">Создайте учётную запись (роль «viewer»): сохраняйте виды, экспортируйте отчёты и ведите личный кабинет.</p>
 
-<form method="post" action="{% url 'register' %}" style="max-width: 480px;">
-  {% csrf_token %}
-  {% for field in form %}
-    <div class="field">
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.help_text %}
-        <p class="muted" style="font-size:0.82rem; margin:6px 0 0;">{{ field.help_text|safe }}</p>
-      {% endif %}
-      {% for error in field.errors %}
-        <p style="color:var(--bad); font-size:0.85rem; margin:6px 0 0;">{{ error }}</p>
-      {% endfor %}
-    </div>
-  {% endfor %}
-  <button class="btn" type="submit">Зарегистрироваться</button>
-  <p style="margin-top:14px;">Уже есть учётная запись? <a href="{% url 'login' %}">Войти</a></p>
-</form>
+    {% if form.non_field_errors %}
+      <div class="auth-error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'register' %}">
+      {% csrf_token %}
+
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}">Имя пользователя</label>
+        {{ form.username }}
+        <div class="uname-hint" id="uname-hint">
+          <span class="uname-msg">Только буквы и цифры</span>
+          <span class="uname-count">0/40</span>
+        </div>
+        {% for error in form.username.errors %}<p class="field-err">{{ error }}</p>{% endfor %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        {{ form.email }}
+        {% for error in form.email.errors %}<p class="field-err">{{ error }}</p>{% endfor %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.password1.id_for_label }}">Пароль</label>
+        <div class="pass-box">
+          {{ form.password1 }}
+          <button type="button" class="pass-toggle" aria-label="Показать или скрыть пароль">Показать</button>
+        </div>
+        {% if form.password1.help_text %}<div class="field-help">{{ form.password1.help_text|safe }}</div>{% endif %}
+        {% for error in form.password1.errors %}<p class="field-err">{{ error }}</p>{% endfor %}
+      </div>
+
+      <div class="field">
+        <label for="{{ form.password2.id_for_label }}">Повторите пароль</label>
+        <div class="pass-box">
+          {{ form.password2 }}
+          <button type="button" class="pass-toggle" aria-label="Показать или скрыть пароль">Показать</button>
+        </div>
+        {% for error in form.password2.errors %}<p class="field-err">{{ error }}</p>{% endfor %}
+      </div>
+
+      <button class="btn btn-block" type="submit">Зарегистрироваться</button>
+    </form>
+
+    <p class="auth-alt">Уже есть учётная запись? <a href="{% url 'login' %}">Войти</a></p>
+  </div>
+</div>
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'js/auth.js' %}"></script>{% endblock %}

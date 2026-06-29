@@ -105,3 +105,34 @@ def test_nav_shows_username_when_authenticated(client: Client) -> None:
     html = client.get(reverse("home")).content.decode()
     assert "navuser" in html
     assert "Выйти" in html
+
+
+def test_register_rejects_username_with_symbols(client: Client) -> None:
+    """Имя пользователя с символами/дефисом отклоняется (только буквы и цифры)."""
+    resp = client.post(
+        reverse("register"),
+        {"username": "bad-name!", "password1": _PW, "password2": _PW},
+    )
+    assert resp.status_code == 200
+    assert not User.objects.filter(username="bad-name!").exists()
+
+
+def test_register_accepts_cyrillic_alphanumeric(client: Client, roles: None) -> None:
+    """Имя из кириллицы и цифр допустимо (буквы латиница/кириллица + цифры)."""
+    resp = client.post(
+        reverse("register"),
+        {"username": "Евгений2025", "password1": _PW, "password2": _PW},
+    )
+    assert resp.status_code == 302
+    assert User.objects.filter(username="Евгений2025").exists()
+
+
+def test_register_rejects_username_over_40(client: Client) -> None:
+    """Имя длиннее 40 символов отклоняется."""
+    long_name = "a" * 41
+    resp = client.post(
+        reverse("register"),
+        {"username": long_name, "password1": _PW, "password2": _PW},
+    )
+    assert resp.status_code == 200
+    assert not User.objects.filter(username=long_name).exists()

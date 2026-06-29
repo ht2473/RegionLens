@@ -1,32 +1,39 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Вход — RegionLens{% endblock %}
 
 {% block content %}
-<section class="hero">
-  <p class="eyebrow">Учётная запись</p>
-  <h1>Вход</h1>
-  <p class="lead">Войдите, чтобы сохранять виды, экспортировать отчёты и пользоваться личным кабинетом.</p>
-</section>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <p class="eyebrow">Учётная запись</p>
+    <h1 class="auth-title">Вход</h1>
+    <p class="auth-sub">Войдите, чтобы сохранять виды, экспортировать отчёты и пользоваться личным кабинетом.</p>
 
-{% if form.errors %}
-  <div class="card" style="border-color: var(--bad);">
-    <p style="margin:0;">Неверное имя пользователя или пароль. Попробуйте ещё раз.</p>
-  </div>
-{% endif %}
+    {% if form.errors %}
+      <div class="auth-error">Неверное имя пользователя или пароль. Попробуйте ещё раз.</div>
+    {% endif %}
 
-<form method="post" action="{% url 'login' %}" style="max-width: 460px;">
-  {% csrf_token %}
-  <input type="hidden" name="next" value="{{ next }}">
-  <div class="field">
-    <label for="{{ form.username.id_for_label }}">Имя пользователя</label>
-    {{ form.username }}
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}">Имя пользователя</label>
+        {{ form.username }}
+      </div>
+      <div class="field">
+        <label for="{{ form.password.id_for_label }}">Пароль</label>
+        <div class="pass-box">
+          {{ form.password }}
+          <button type="button" class="pass-toggle" aria-label="Показать или скрыть пароль">Показать</button>
+        </div>
+      </div>
+      <button class="btn btn-block" type="submit">Войти</button>
+    </form>
+
+    <p class="auth-alt">Нет учётной записи? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
   </div>
-  <div class="field">
-    <label for="{{ form.password.id_for_label }}">Пароль</label>
-    {{ form.password }}
-  </div>
-  <button class="btn" type="submit">Войти</button>
-  <p style="margin-top:14px;">Нет учётной записи? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
-</form>
+</div>
 {% endblock %}
+
+{% block scripts %}<script src="{% static 'js/auth.js' %}"></script>{% endblock %}

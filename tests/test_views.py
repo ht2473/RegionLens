@@ -16,6 +16,8 @@ PAGES = [
     "/rankings/stability/",
     "/typology/",
     "/compare/",
+    "/anomalies/",
+    "/correlations/",
     "/regions/",
     "/methodology/",
     "/data/",
@@ -249,16 +251,17 @@ def _role_client(role: str) -> Client:
     return client
 
 
-def test_anomalies_page_redirects_anonymous() -> None:
-    """Страница аномалий под ролью analyst: аноним → редирект на вход (302)."""
-    resp = Client().get("/anomalies/")
-    assert resp.status_code == 302 and "login" in resp.headers["Location"]
+def test_analytics_pages_public_anonymous() -> None:
+    """Все вкладки «Аналитики» открыты всем, включая анонимов → 200."""
+    c = Client()
+    for url in ("/typology/", "/compare/", "/anomalies/", "/correlations/"):
+        assert c.get(url).status_code == 200
 
 
 @pytest.mark.django_db
-def test_anomalies_page_forbidden_for_viewer() -> None:
-    """viewer не имеет доступа к расширенной аналитике → 403."""
-    assert _role_client("viewer").get("/anomalies/").status_code == 403
+def test_anomalies_page_ok_for_viewer() -> None:
+    """Любой авторизованный (viewer) имеет доступ к модулю «Аналитика» → 200."""
+    assert _role_client("viewer").get("/anomalies/").status_code == 200
 
 
 @pytest.mark.django_db
@@ -271,10 +274,10 @@ def test_anomalies_page_ok_for_analyst() -> None:
 
 
 @pytest.mark.django_db
-def test_anomalies_menu_item_visible_only_to_analyst() -> None:
-    """Пункт меню «Аномалии» виден analyst и скрыт у viewer."""
-    assert "Аномалии" in _role_client("analyst").get("/").content.decode()
-    assert "Аномалии" not in _role_client("viewer").get("/").content.decode()
+def test_anomalies_menu_item_visible_to_all() -> None:
+    """Пункт меню «Аномалии» виден всем (доступ к странице — после входа)."""
+    assert "Аномалии" in Client().get("/").content.decode()
+    assert "Аномалии" in _role_client("viewer").get("/").content.decode()
 
 
 def test_dispersion_page_shell(client: Client) -> None:
@@ -331,16 +334,10 @@ def test_data_quality_nav_active_data(client: Client) -> None:
     assert "Данные" in html
 
 
-def test_correlations_page_redirects_anonymous() -> None:
-    """Страница корреляций под ролью analyst: аноним → редирект на вход (302)."""
-    resp = Client().get("/correlations/")
-    assert resp.status_code == 302 and "login" in resp.headers["Location"]
-
-
 @pytest.mark.django_db
-def test_correlations_page_forbidden_for_viewer() -> None:
-    """viewer не имеет доступа к корреляциям → 403."""
-    assert _role_client("viewer").get("/correlations/").status_code == 403
+def test_correlations_page_ok_for_viewer() -> None:
+    """Любой авторизованный (viewer) имеет доступ к корреляциям → 200."""
+    assert _role_client("viewer").get("/correlations/").status_code == 200
 
 
 @pytest.mark.django_db
@@ -361,7 +358,7 @@ def test_correlations_has_share_link() -> None:
 
 
 @pytest.mark.django_db
-def test_correlations_menu_item_visible_only_to_analyst() -> None:
-    """Пункт меню «Корреляции» виден analyst и скрыт у viewer."""
-    assert "Корреляции" in _role_client("analyst").get("/").content.decode()
-    assert "Корреляции" not in _role_client("viewer").get("/").content.decode()
+def test_correlations_menu_item_visible_to_all() -> None:
+    """Пункт меню «Корреляции» виден всем (доступ к странице — после входа)."""
+    assert "Корреляции" in Client().get("/").content.decode()
+    assert "Корреляции" in _role_client("viewer").get("/").content.decode()

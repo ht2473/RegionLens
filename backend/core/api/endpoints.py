@@ -19,7 +19,6 @@ from rest_framework.views import APIView
 from pipeline.logging_setup import log
 
 from .. import queries
-from ..permissions import IsAnalyst
 from ..serializers import (
     AnomalySerializer,
     BetaConvergenceRowSerializer,
@@ -460,8 +459,6 @@ class Anomalies(APIView):
     фильтрами. Описательная диагностика, не утверждение о причинах. Пустой список — норма.
     """
 
-    permission_classes = [IsAnalyst]
-
     @extend_schema(
         operation_id="anomalies",
         parameters=[
@@ -568,8 +565,6 @@ class Correlations(APIView):
     отсортировано от сильнейших связей к слабым. metric_id — связи конкретной метрики (в любой
     позиции пары). Это описательная мера: корреляция ≠ причинность, и это не прогноз.
     """
-
-    permission_classes = [IsAnalyst]
 
     @extend_schema(
         operation_id="correlations",

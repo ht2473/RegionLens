@@ -19,7 +19,7 @@ from . import queries, reports
 from .audit import record
 from .forms import RegistrationForm
 from .models import ExportJob, FeedbackMessage, SavedView
-from .permissions import ROLE_ANALYST, ROLE_VIEWER, role_required
+from .permissions import ROLE_VIEWER
 
 
 def healthz(request: HttpRequest) -> JsonResponse:
@@ -87,15 +87,13 @@ def public_saved_view(request: HttpRequest, token: str) -> HttpResponse:
     return redirect(view.target_url())
 
 
-@role_required(ROLE_ANALYST)
 def anomalies_page(request: HttpRequest) -> HttpResponse:
-    """Аномалии и структурные сдвиги (Ф9) — расширенная аналитика, только роль analyst."""
+    """Аномалии и структурные сдвиги (Ф9) — модуль «Аналитика» (вход для авторизованных)."""
     return _page(request, "pages/anomalies.html", active="anomalies", title="Аномалии")
 
 
-@role_required(ROLE_ANALYST)
 def correlations_page(request: HttpRequest) -> HttpResponse:
-    """Корреляции метрик (Ф15) — расширенная аналитика, только роль analyst."""
+    """Корреляции метрик (Ф15) — модуль «Аналитика» (вход для авторизованных)."""
     return _page(request, "pages/correlations.html", active="correlations", title="Корреляции")
 
 
@@ -122,12 +120,12 @@ def rank_stability_page(request: HttpRequest) -> HttpResponse:
 
 
 def typology(request: HttpRequest) -> HttpResponse:
-    """Обзор типологии регионов."""
+    """Обзор типологии регионов — модуль «Аналитика» (вход для авторизованных)."""
     return _page(request, "pages/typology.html", active="typology", title="Типология")
 
 
 def compare(request: HttpRequest) -> HttpResponse:
-    """Сравнение регионов (gap-анализ)."""
+    """Сравнение регионов (gap-анализ) — модуль «Аналитика» (вход для авторизованных)."""
     return _page(request, "pages/compare.html", active="compare", title="Сравнение")
 
 

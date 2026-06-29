@@ -483,15 +483,15 @@ def _client_with_role(role: str) -> APIClient:
     return client
 
 
-def test_anomalies_requires_authentication_anonymous() -> None:
-    """Аноним → 403 (эндпойнт аномалий под ролью analyst)."""
-    assert APIClient().get("/api/anomalies/").status_code == 403
+def test_anomalies_public_anonymous() -> None:
+    """Эндпойнт аномалий открыт всем (включая анонимов) → 200."""
+    assert APIClient().get("/api/anomalies/").status_code == 200
 
 
 @pytest.mark.django_db
-def test_anomalies_forbidden_for_viewer(api_duckdb: Path) -> None:
-    """viewer не имеет доступа к расширенной аналитике → 403."""
-    assert _client_with_role("viewer").get("/api/anomalies/").status_code == 403
+def test_anomalies_ok_for_viewer(api_duckdb: Path) -> None:
+    """Любой авторизованный (viewer) имеет доступ к эндпойнту аномалий → 200."""
+    assert _client_with_role("viewer").get("/api/anomalies/").status_code == 200
 
 
 @pytest.mark.django_db
@@ -682,15 +682,15 @@ def correlations_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ig
     duck.reset_connection()
 
 
-def test_correlations_requires_authentication_anonymous() -> None:
-    """Аноним → 403 (эндпойнт корреляций под ролью analyst)."""
-    assert APIClient().get("/api/correlations/").status_code == 403
+def test_correlations_public_anonymous() -> None:
+    """Эндпойнт корреляций открыт всем (включая анонимов) → 200."""
+    assert APIClient().get("/api/correlations/").status_code == 200
 
 
 @pytest.mark.django_db
-def test_correlations_forbidden_for_viewer(correlations_duckdb: Path) -> None:
-    """viewer не имеет доступа к корреляциям → 403."""
-    assert _client_with_role("viewer").get("/api/correlations/").status_code == 403
+def test_correlations_ok_for_viewer(correlations_duckdb: Path) -> None:
+    """Любой авторизованный (viewer) имеет доступ к эндпойнту корреляций → 200."""
+    assert _client_with_role("viewer").get("/api/correlations/").status_code == 200
 
 
 @pytest.mark.django_db
