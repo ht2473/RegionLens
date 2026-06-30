@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -37,60 +38,62 @@
     <div class="container header-row">
       <div class="brand">
         <a href="{% url 'home' %}"><span class="mark">Region<b>Lens</b></span></a>
-        <span class="tag">аналитика регионов РФ</span>
+        <span class="tag">{% trans "аналитика регионов РФ" %}</span>
       </div>
-      <button class="nav-toggle" @click="open = !open" aria-label="Меню">☰</button>
-      <nav class="nav" :class="{ open: open }" aria-label="Основная навигация">
-        <a href="{% url 'home' %}" class="{% if active == 'home' %}is-active{% endif %}">Главная</a>
-        <a href="{% url 'map' %}" class="{% if active == 'map' %}is-active{% endif %}">Карта</a>
-        <a href="{% url 'explore' %}" class="{% if active == 'explore' %}is-active{% endif %}">Показатели</a>
-        <a href="{% url 'regions' %}" class="{% if active == 'regions' %}is-active{% endif %}">Регионы</a>
+      <button class="nav-toggle" @click="open = !open" aria-label="{% trans 'Меню' %}">☰</button>
+      <nav class="nav" :class="{ open: open }" aria-label="{% trans 'Основная навигация' %}">
+        <a href="{% url 'home' %}" class="{% if active == 'home' %}is-active{% endif %}">{% trans "Главная" %}</a>
+        <a href="{% url 'map' %}" class="{% if active == 'map' %}is-active{% endif %}">{% trans "Карта" %}</a>
+        <a href="{% url 'explore' %}" class="{% if active == 'explore' %}is-active{% endif %}">{% trans "Показатели" %}</a>
+        <a href="{% url 'regions' %}" class="{% if active == 'regions' %}is-active{% endif %}">{% trans "Регионы" %}</a>
 
         <div class="nav-group" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
-          <button type="button" class="nav-group-btn{% if active == 'rankings' or active == 'index_lab' or active == 'convergence' or active == 'dispersion' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">Индекс <span class="caret" aria-hidden="true">▾</span></button>
+          <button type="button" class="nav-group-btn{% if active == 'rankings' or active == 'index_lab' or active == 'convergence' or active == 'dispersion' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{% trans "Индекс" %} <span class="caret" aria-hidden="true">▾</span></button>
           <div class="nav-menu" x-show="d" x-cloak @click="d = false">
-            <a href="{% url 'rankings' %}" class="{% if active == 'rankings' %}is-active{% endif %}">Рейтинг</a>
-            <a href="{% url 'index_lab' %}" class="{% if active == 'index_lab' %}is-active{% endif %}">Лаборатория индекса</a>
-            <a href="{% url 'convergence' %}" class="{% if active == 'convergence' %}is-active{% endif %}">Конвергенция</a>
-            <a href="{% url 'dispersion_page' %}" class="{% if active == 'dispersion' %}is-active{% endif %}">Неравенство</a>
+            <a href="{% url 'rankings' %}" class="{% if active == 'rankings' %}is-active{% endif %}">{% trans "Рейтинг" %}</a>
+            <a href="{% url 'index_lab' %}" class="{% if active == 'index_lab' %}is-active{% endif %}">{% trans "Лаборатория индекса" %}</a>
+            <a href="{% url 'convergence' %}" class="{% if active == 'convergence' %}is-active{% endif %}">{% trans "Конвергенция" %}</a>
+            <a href="{% url 'dispersion_page' %}" class="{% if active == 'dispersion' %}is-active{% endif %}">{% trans "Неравенство" %}</a>
           </div>
         </div>
 
         <div class="nav-group" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
-          <button type="button" class="nav-group-btn{% if active == 'typology' or active == 'compare' or active == 'anomalies' or active == 'correlations' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">Аналитика <span class="caret" aria-hidden="true">▾</span></button>
+          <button type="button" class="nav-group-btn{% if active == 'typology' or active == 'compare' or active == 'anomalies' or active == 'correlations' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{% trans "Аналитика" %} <span class="caret" aria-hidden="true">▾</span></button>
           <div class="nav-menu" x-show="d" x-cloak @click="d = false">
-            <a href="{% url 'typology' %}" class="{% if active == 'typology' %}is-active{% endif %}">Типология</a>
-            <a href="{% url 'compare' %}" class="{% if active == 'compare' %}is-active{% endif %}">Сравнение</a>
-            <a href="{% url 'anomalies_page' %}" class="{% if active == 'anomalies' %}is-active{% endif %}">Аномалии</a>
-            <a href="{% url 'correlations_page' %}" class="{% if active == 'correlations' %}is-active{% endif %}">Корреляции</a>
+            <a href="{% url 'typology' %}" class="{% if active == 'typology' %}is-active{% endif %}">{% trans "Типология" %}</a>
+            <a href="{% url 'compare' %}" class="{% if active == 'compare' %}is-active{% endif %}">{% trans "Сравнение" %}</a>
+            <a href="{% url 'anomalies_page' %}" class="{% if active == 'anomalies' %}is-active{% endif %}">{% trans "Аномалии" %}</a>
+            <a href="{% url 'correlations_page' %}" class="{% if active == 'correlations' %}is-active{% endif %}">{% trans "Корреляции" %}</a>
           </div>
         </div>
 
         <div class="nav-group" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
-          <button type="button" class="nav-group-btn{% if active == 'methodology' or active == 'data' or active == 'help' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">О проекте <span class="caret" aria-hidden="true">▾</span></button>
+          <button type="button" class="nav-group-btn{% if active == 'methodology' or active == 'data' or active == 'help' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{% trans "О проекте" %} <span class="caret" aria-hidden="true">▾</span></button>
           <div class="nav-menu" x-show="d" x-cloak @click="d = false">
-            <a href="{% url 'methodology' %}" class="{% if active == 'methodology' %}is-active{% endif %}">Методология</a>
-            <a href="{% url 'data' %}" class="{% if active == 'data' %}is-active{% endif %}">Данные</a>
-            <a href="{% url 'help' %}" class="{% if active == 'help' %}is-active{% endif %}">Справка</a>
-            <a href="{% url 'feedback' %}" class="{% if active == 'feedback' %}is-active{% endif %}">Обратная связь</a>
+            <a href="{% url 'methodology' %}" class="{% if active == 'methodology' %}is-active{% endif %}">{% trans "Методология" %}</a>
+            <a href="{% url 'data' %}" class="{% if active == 'data' %}is-active{% endif %}">{% trans "Данные" %}</a>
+            <a href="{% url 'help' %}" class="{% if active == 'help' %}is-active{% endif %}">{% trans "Справка" %}</a>
+            <a href="{% url 'feedback' %}" class="{% if active == 'feedback' %}is-active{% endif %}">{% trans "Обратная связь" %}</a>
           </div>
         </div>
 
-        <button type="button" class="search-trigger" onclick="rlOpenSearch()" aria-label="Поиск по сайту" title="Поиск (Ctrl+K)"><svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.7" y1="12.7" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button type="button" class="search-trigger" onclick="rlOpenSearch()" aria-label="{% trans 'Поиск по сайту' %}" title="{% trans 'Поиск (Ctrl+K)' %}"><svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.7" y1="12.7" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
 
-        <button type="button" class="theme-toggle" onclick="rlToggleTheme()" aria-label="Светлая или тёмная тема" title="Сменить тему"><span class="ic-moon" aria-hidden="true">☾</span><span class="ic-sun" aria-hidden="true">☀</span></button>
+        <button type="button" class="theme-toggle" onclick="rlToggleTheme()" aria-label="{% trans 'Светлая или тёмная тема' %}" title="{% trans 'Сменить тему' %}"><span class="ic-moon" aria-hidden="true">☾</span><span class="ic-sun" aria-hidden="true">☀</span></button>
+
+        <form action="{% url 'set_language' %}" method="post" class="lang-switch">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" name="language" value="ru" class="lang-btn{% if LANGUAGE_CODE == 'ru' %} is-active{% endif %}">RU</button><button type="submit" name="language" value="en" class="lang-btn{% if LANGUAGE_CODE == 'en' %} is-active{% endif %}">EN</button></form>
 
         {% if user.is_authenticated %}
           <div class="nav-group nav-account" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
             <button type="button" class="nav-group-btn nav-user{% if active == 'account' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{{ user.get_username }} <span class="caret" aria-hidden="true">▾</span></button>
             <div class="nav-menu nav-menu-right" x-show="d" x-cloak>
-              <a href="{% url 'account' %}" class="{% if active == 'account' %}is-active{% endif %}">Личный кабинет</a>
-              <form method="post" action="{% url 'logout' %}" class="nav-logout">{% csrf_token %}<button type="submit">Выйти</button></form>
+              <a href="{% url 'account' %}" class="{% if active == 'account' %}is-active{% endif %}">{% trans "Личный кабинет" %}</a>
+              <form method="post" action="{% url 'logout' %}" class="nav-logout">{% csrf_token %}<button type="submit">{% trans "Выйти" %}</button></form>
             </div>
           </div>
         {% else %}
-          <a href="{% url 'login' %}" class="{% if active == 'login' %}is-active{% endif %}">Войти</a>
-          <a href="{% url 'register' %}" class="{% if active == 'register' %}is-active{% endif %}">Регистрация</a>
+          <a href="{% url 'login' %}" class="{% if active == 'login' %}is-active{% endif %}">{% trans "Войти" %}</a>
+          <a href="{% url 'register' %}" class="{% if active == 'register' %}is-active{% endif %}">{% trans "Регистрация" %}</a>
         {% endif %}
       </nav>
     </div>
@@ -109,12 +112,12 @@
   <footer class="site-footer">
     <div class="container foot-row">
       <div>
-        <strong>RegionLens</strong> · ВКР по направлению «Прикладная информатика»<br>
-        <span class="muted">Автор: Кузьмин Евгений Олегович · студенческий билет № 70232275</span>
+        <strong>RegionLens</strong> · {% trans "ВКР по направлению «Прикладная информатика»" %}<br>
+        <span class="muted">{% trans "Автор: Кузьмин Евгений Олегович · студенческий билет № 70232275" %}</span>
       </div>
       <div class="muted">
-        Данные: Росстат / портал «Если быть точным» · лицензия CC BY 4.0<br>
-        Окно анализа 2010–2024 · <a href="{% url 'help' %}">Справка</a>
+        {% trans "Данные: Росстат / портал «Если быть точным» · лицензия CC BY 4.0" %}<br>
+        {% trans "Окно анализа 2010–2024" %} · <a href="{% url 'help' %}">{% trans "Справка" %}</a>
       </div>
     </div>
   </footer>

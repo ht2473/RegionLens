@@ -1,0 +1,244 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: RegionLens\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-30 21:36+0000\n"
+"PO-Revision-Date: 2026-06-30 21:36+0000\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "аналитика регионов РФ"
+msgstr "regional analytics, Russia"
+
+msgid "Меню"
+msgstr "Menu"
+
+msgid "Основная навигация"
+msgstr "Main navigation"
+
+msgid "Главная"
+msgstr "Home"
+
+msgid "Карта"
+msgstr "Map"
+
+msgid "Показатели"
+msgstr "Indicators"
+
+msgid "Регионы"
+msgstr "Regions"
+
+msgid "Индекс"
+msgstr "Index"
+
+msgid "Рейтинг"
+msgstr "Ranking"
+
+msgid "Лаборатория индекса"
+msgstr "Index lab"
+
+msgid "Конвергенция"
+msgstr "Convergence"
+
+msgid "Неравенство"
+msgstr "Inequality"
+
+msgid "Аналитика"
+msgstr "Analytics"
+
+msgid "Типология"
+msgstr "Typology"
+
+msgid "Сравнение"
+msgstr "Comparison"
+
+msgid "Аномалии"
+msgstr "Anomalies"
+
+msgid "Корреляции"
+msgstr "Correlations"
+
+msgid "О проекте"
+msgstr "About"
+
+msgid "Методология"
+msgstr "Methodology"
+
+msgid "Данные"
+msgstr "Data"
+
+msgid "Справка"
+msgstr "Help"
+
+msgid "Обратная связь"
+msgstr "Feedback"
+
+msgid "Личный кабинет"
+msgstr "Account"
+
+msgid "Выйти"
+msgstr "Sign out"
+
+msgid "Войти"
+msgstr "Sign in"
+
+msgid "Регистрация"
+msgstr "Sign up"
+
+msgid "Поиск по сайту"
+msgstr "Site search"
+
+msgid "Поиск (Ctrl+K)"
+msgstr "Search (Ctrl+K)"
+
+msgid "Светлая или тёмная тема"
+msgstr "Light or dark theme"
+
+msgid "Сменить тему"
+msgstr "Toggle theme"
+
+msgid "ВКР по направлению «Прикладная информатика»"
+msgstr "Master's thesis in Applied Informatics"
+
+msgid "Автор: Кузьмин Евгений Олегович · студенческий билет № 70232275"
+msgstr "Author: Evgeny O. Kuzmin · student ID No. 70232275"
+
+msgid "Данные: Росстат / портал «Если быть точным» · лицензия CC BY 4.0"
+msgstr "Data: Rosstat / “To Be Precise” portal · licensed under CC BY 4.0"
+
+msgid "Окно анализа 2010–2024"
+msgstr "Analysis window 2010–2024"
+
+msgid "RegionLens — аналитика развития регионов РФ"
+msgstr "RegionLens — development analytics for Russian regions"
+
+msgid "Социально-экономическое развитие регионов РФ"
+msgstr "Socioeconomic development of Russian regions"
+
+msgid "Видеть, как меняются регионы — а не только их позиции в рейтинге"
+msgstr "See how regions change — not just where they rank"
+
+msgid ""
+"RegionLens объединяет открытые данные Росстата в интерактивную аналитику: "
+"типология регионов, композитный индекс развития и траектории движения между "
+"типами за 2010–2024 годы. Вся тяжёлая аналитика рассчитана заранее — "
+"интерфейс отвечает мгновенно."
+msgstr ""
+"RegionLens turns open Rosstat data into interactive analytics: regional "
+"typology, a composite development index, and trajectories of movement "
+"between types over 2010–2024. All heavy analytics is precomputed, so the "
+"interface responds instantly."
+
+msgid "Открыть карту"
+msgstr "Open the map"
+
+msgid "Рейтинг регионов"
+msgstr "Regional ranking"
+
+msgid "субъектов"
+msgstr "regions"
+
+msgid "Непересекающиеся регионы РФ; ключ стыковки с картой — код ОКАТО."
+msgstr "Non-overlapping Russian regions; the map join key is the OKATO code."
+
+msgid "окно анализа"
+msgstr "analysis window"
+
+msgid ""
+"Период с устойчивым покрытием показателей; ранние годы и 2025 исключены как "
+"разреженные."
+msgstr ""
+"The period with stable indicator coverage; early years and 2025 are excluded"
+" as sparse."
+
+msgid "индекс развития"
+msgstr "development index"
+
+msgid ""
+"Композитный индекс по шести доменам с тремя схемами весов и анализом "
+"устойчивости рейтинга."
+msgstr ""
+"A composite index over six domains with three weighting schemes and rank-"
+"robustness analysis."
+
+msgid "Что можно делать"
+msgstr "What you can do"
+
+msgid "Карта и типология"
+msgstr "Map and typology"
+
+msgid ""
+"Раскраска регионов по типу или индексу с ползунком лет; градиент типичности "
+"показывает, насколько регион характерен для своего типа."
+msgstr ""
+"Regions coloured by type or index with a year slider; a typicality gradient "
+"shows how characteristic a region is of its type."
+
+msgid "К карте →"
+msgstr "To the map →"
+
+msgid "Дашборд региона"
+msgstr "Region dashboard"
+
+msgid ""
+"Индекс по доменам и его изменение, тип с объяснением (SHAP), место в "
+"рейтинге, траектория."
+msgstr ""
+"Index by domain and its change, type with a SHAP explanation, rank, and "
+"trajectory."
+
+msgid "К регионам →"
+msgstr "To regions →"
+
+msgid "Рейтинг и сравнение"
+msgstr "Ranking and comparison"
+
+msgid ""
+"Ранжирование по индексу за год и сопоставление 2–3 регионов по доменам (gap-"
+"анализ)."
+msgstr ""
+"Ranking by index for a given year and a 2–3 region comparison by domain (gap"
+" analysis)."
+
+msgid "К рейтингу →"
+msgstr "To the ranking →"
+
+msgid "Неравенство и сходимость"
+msgstr "Inequality and convergence"
+
+msgid ""
+"Разброс регионов по показателям и его динамика; σ- и β-сходимость — "
+"сближаются ли регионы во времени."
+msgstr ""
+"Dispersion of regions across indicators and its dynamics; σ- and "
+"β-convergence — whether regions converge over time."
+
+msgid "К конвергенции →"
+msgstr "To convergence →"
+
+msgid "Аномалии и корреляции"
+msgstr "Anomalies and correlations"
+
+msgid ""
+"Регионы с нетипичными значениями и совместное движение пар показателей "
+"(связь, не причинность)."
+msgstr ""
+"Regions with atypical values and the co-movement of indicator pairs "
+"(association, not causation)."
+
+msgid "К аномалиям →"
+msgstr "To anomalies →"
+
+msgid ""
+"Как устроены гармонизация данных, типология, индекс и переходы — честно и "
+"без причинных заявлений сверх того, что показывают методы."
+msgstr ""
+"How data harmonisation, typology, the index, and transitions work — honestly"
+" and without causal claims beyond what the methods support."
+
+msgid "К методологии →"
+msgstr "To methodology →"

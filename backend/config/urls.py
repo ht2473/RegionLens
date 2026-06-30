@@ -7,6 +7,8 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    # Стандартный маршрут django для смены языка (view set_language).
+    path("i18n/", include("django.conf.urls.i18n")),
     path("", include("core.urls")),
 ]
 
