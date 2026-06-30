@@ -1,4 +1,5 @@
-<nav class="subnav" aria-label="Разделы рейтинга">
-  <a href="{% url 'rankings' %}" class="{% if rankings_tab == 'ranking' %}is-active{% endif %}">Рейтинг</a>
-  <a href="{% url 'rank_stability_page' %}" class="{% if rankings_tab == 'stability' %}is-active{% endif %}">Стабильность</a>
+{% load i18n %}
+<nav class="subnav" aria-label="{% trans 'Разделы рейтинга' %}">
+  <a href="{% url 'rankings' %}" class="{% if rankings_tab == 'ranking' %}is-active{% endif %}">{% trans "Рейтинг" %}</a>
+  <a href="{% url 'rank_stability_page' %}" class="{% if rankings_tab == 'stability' %}is-active{% endif %}">{% trans "Стабильность" %}</a>
 </nav>

@@ -1,29 +1,30 @@
 {% extends "base.html" %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Регион — RegionLens{% endblock %}
+{% block title %}{% trans "Регион" %} — RegionLens{% endblock %}
 
 {% block content %}
 <div id="region-root" data-okato="{{ okato }}" data-year="2024">
   <section class="hero">
-    <p class="eyebrow">Дашборд региона</p>
-    <h1 id="region-title">Регион…</h1>
-    <p class="lead" id="region-sub">Загрузка данных…</p>
+    <p class="eyebrow">{% trans "Дашборд региона" %}</p>
+    <h1 id="region-title">{% trans "Регион…" %}</h1>
+    <p class="lead" id="region-sub">{% trans "Загрузка данных…" %}</p>
     <div class="year-control" style="margin-top:8px;">
-      <label for="year-slider">Год: <strong id="year-label">2024</strong></label>
+      <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
       <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
     </div>
-    <button type="button" id="region-copy-link" class="map-share" style="margin-top:8px;">Скопировать ссылку</button>
+    <button type="button" id="region-copy-link" class="map-share" style="margin-top:8px;">{% trans "Скопировать ссылку" %}</button>
     {% if user.is_authenticated %}
       <div class="export-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
         <a class="btn ghost" id="export-xlsx"
-           href="{% url 'export_region' okato %}?format=xlsx&year={{ export_year }}">Экспорт XLSX</a>
+           href="{% url 'export_region' okato %}?format=xlsx&year={{ export_year }}">{% trans "Экспорт XLSX" %}</a>
         <a class="btn ghost" id="export-docx"
-           href="{% url 'export_region' okato %}?format=docx&year={{ export_year }}">Экспорт DOCX</a>
+           href="{% url 'export_region' okato %}?format=docx&year={{ export_year }}">{% trans "Экспорт DOCX" %}</a>
       </div>
     {% else %}
-      <p style="margin-top:12px; color:var(--ink-faint); font-size:0.88rem;">
-        <a href="{% url 'login' %}">Войдите</a>, чтобы экспортировать отчёт по региону в xlsx/docx.</p>
+      {% url 'login' as login_url %}
+      <p style="margin-top:12px; color:var(--ink-faint); font-size:0.88rem;">{% blocktrans %}<a href="{{ login_url }}">Войдите</a>, чтобы экспортировать отчёт по региону в xlsx/docx.{% endblocktrans %}</p>
     {% endif %}
   </section>
 
@@ -31,48 +32,44 @@
 
   <div id="region-body" style="display:none;">
     <div class="kpi-row">
-      <div class="card kpi"><div class="kpi-label">Индекс развития</div>
+      <div class="card kpi"><div class="kpi-label">{% trans "Индекс развития" %}</div>
         <div class="num" id="kpi-total">—</div><div class="kpi-delta" id="kpi-delta"></div></div>
-      <div class="card kpi"><div class="kpi-label">Место в рейтинге</div>
+      <div class="card kpi"><div class="kpi-label">{% trans "Место в рейтинге" %}</div>
         <div class="num" id="kpi-rank">—</div><div class="kpi-sub" id="kpi-rank-sub"></div></div>
-      <div class="card kpi"><div class="kpi-label">Тип региона</div>
+      <div class="card kpi"><div class="kpi-label">{% trans "Тип региона" %}</div>
         <div class="kpi-type" id="kpi-type">—</div><div class="kpi-sub" id="kpi-typicality"></div></div>
-      <div class="card kpi"><div class="kpi-label">Траектория</div>
+      <div class="card kpi"><div class="kpi-label">{% trans "Траектория" %}</div>
         <div class="kpi-type" id="kpi-traj">—</div><div class="kpi-sub">2010–2024</div></div>
     </div>
 
     <div class="grid cols-2">
-      <div class="card"><h3>Профиль по доменам</h3>
-        <p class="chart-note">z-оценка относительно среднего по РФ за год (0 = среднее).</p>
+      <div class="card"><h3>{% trans "Профиль по доменам" %}</h3>
+        <p class="chart-note">{% trans "z-оценка относительно среднего по РФ за год (0 = среднее)." %}</p>
         <div id="chart-radar" class="chart"></div></div>
-      <div class="card"><h3>Изменение по доменам к пред. году</h3>
-        <p class="chart-note">Арифметическая разбивка по доменам (B4); итог меняется по схеме весов и показан выше отдельно.</p>
+      <div class="card"><h3>{% trans "Изменение по доменам к пред. году" %}</h3>
+        <p class="chart-note">{% trans "Арифметическая разбивка по доменам (B4); итог меняется по схеме весов и показан выше отдельно." %}</p>
         <div id="chart-b4" class="chart"></div></div>
     </div>
 
     <div class="card" id="region-decomp">
-      <h3>Вклад доменов в изменение индекса</h3>
-      <p class="chart-note">Взвешенный вклад каждого домена в годовое изменение индекса (схема
-        «равные веса»): в сумме даёт показанное выше Δ к предыдущему году. Зелёный — рост,
-        оранжевый — спад. Описательное разложение уже посчитанного индекса, не прогноз.</p>
+      <h3>{% trans "Вклад доменов в изменение индекса" %}</h3>
+      <p class="chart-note">{% trans "Взвешенный вклад каждого домена в годовое изменение индекса (схема «равные веса»): в сумме даёт показанное выше Δ к предыдущему году. Зелёный — рост, оранжевый — спад. Описательное разложение уже посчитанного индекса, не прогноз." %}</p>
       <div id="chart-decomp" class="chart"></div>
     </div>
 
     <div class="grid cols-2">
-      <div class="card"><h3>Вклад метрик в отнесение к типу (SHAP)</h3>
-        <p class="chart-note">Объяснение решения классификатора, не причинность.</p>
+      <div class="card"><h3>{% trans "Вклад метрик в отнесение к типу (SHAP)" %}</h3>
+        <p class="chart-note">{% trans "Объяснение решения классификатора, не причинность." %}</p>
         <div id="chart-shap" class="chart"></div></div>
-      <div class="card"><h3>Траектория типа по годам</h3>
-        <p class="chart-note">Тип региона в каждом году окна 2010–2024.</p>
+      <div class="card"><h3>{% trans "Траектория типа по годам" %}</h3>
+        <p class="chart-note">{% trans "Тип региона в каждом году окна 2010–2024." %}</p>
         <div id="chart-traj" class="chart"></div></div>
     </div>
 
     <div class="card" id="region-twins">
-      <h3>Похожие регионы — статистические двойники</h3>
-      <p class="chart-note">Регионы с самым близким профилем показателей в этот год (косинусная
-        близость z-оценок). Это статистическое сходство профиля, а не причинность и не прогноз;
-        1.00 — идентичный профиль.</p>
-      <ol class="twins-list" id="twins-list"><li class="twins-empty">Загрузка…</li></ol>
+      <h3>{% trans "Похожие регионы — статистические двойники" %}</h3>
+      <p class="chart-note">{% trans "Регионы с самым близким профилем показателей в этот год (косинусная близость z-оценок). Это статистическое сходство профиля, а не причинность и не прогноз; 1.00 — идентичный профиль." %}</p>
+      <ol class="twins-list" id="twins-list"><li class="twins-empty">{% trans "Загрузка…" %}</li></ol>
     </div>
   </div>
 </div>
@@ -82,7 +79,7 @@
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <script src="{% static 'js/region.js' %}"></script>
 <script>
-  // Синхронизировать ссылки экспорта с выбранным на ползунке годом (UX; backend читает ?year=).
+  // Синхронизация ссылок экспорта с выбранным на ползунке годом (бэкенд читает параметр ?year=).
   (function () {
     var slider = document.getElementById("year-slider");
     var xlsx = document.getElementById("export-xlsx");

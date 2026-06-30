@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-06-30 21:55+0000\n"
+"PO-Revision-Date: 2026-06-30 22:12+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -760,3 +760,178 @@ msgstr "Data quality"
 
 msgid "Неравенство регионов"
 msgstr "Regional inequality"
+
+msgid "Пространственный взгляд"
+msgstr "A spatial view"
+
+msgid "Карта регионов"
+msgstr "Regions map"
+
+msgid ""
+"Раскраска субъектов по типу или индексу развития. Меняйте год ползунком, "
+"переключайте меру; наведение показывает значение, клик ведёт к дашборду "
+"региона."
+msgstr ""
+"Regions coloured by type or development index. Change the year with the "
+"slider, switch the measure; hover shows the value, a click opens the region "
+"dashboard."
+
+msgid "Тип"
+msgstr "Type"
+
+msgid "Год"
+msgstr "Year"
+
+msgid "Скопировать ссылку"
+msgstr "Copy link"
+
+msgid "Ранжирование"
+msgstr "Ranking"
+
+msgid ""
+"Места субъектов по индексу развития за выбранный год и схему весов. Клик по "
+"строке открывает дашборд региона."
+msgstr ""
+"Region places by development index for the selected year and weighting "
+"scheme. A click on a row opens the region dashboard."
+
+msgid "Схема весов"
+msgstr "Weighting scheme"
+
+msgid "Равные"
+msgstr "Equal"
+
+msgid "PCA"
+msgstr "PCA"
+
+msgid "Экспертные"
+msgstr "Expert"
+
+msgid "Загрузка рейтинга…"
+msgstr "Loading the ranking…"
+
+msgid "Разделы рейтинга"
+msgstr "Ranking sections"
+
+msgid "Стабильность"
+msgstr "Stability"
+
+msgid ""
+"Насколько устойчиво место региона в рейтинге по годам: средний ранг, разброс"
+" и средний модуль годового изменения. Регионы вверху — самые стабильные. Это"
+" описание динамики ранга, <strong>не прогноз</strong>."
+msgstr ""
+"How stable a region’s place in the ranking is over the years: mean rank, "
+"spread, and the mean absolute year-over-year change. Regions at the top are "
+"the most stable. This describes rank dynamics, <strong>not a "
+"forecast</strong>."
+
+msgid "Загрузка…"
+msgstr "Loading…"
+
+msgid "Каталог субъектов"
+msgstr "Region catalogue"
+
+msgid ""
+"85 субъектов РФ. Выберите регион, чтобы открыть дашборд: индекс по доменам, "
+"тип с объяснением, ранг и траектория."
+msgstr ""
+"85 Russian regions. Select a region to open its dashboard: index by domain, "
+"type with an explanation, rank, and trajectory."
+
+msgid "Поиск региона…"
+msgstr "Search for a region…"
+
+msgid "Поиск региона"
+msgstr "Region search"
+
+msgid "Загрузка списка…"
+msgstr "Loading the list…"
+
+msgid "Не удалось загрузить список регионов"
+msgstr "Could not load the region list"
+
+msgid "Прочие"
+msgstr "Other"
+
+msgid "Регион…"
+msgstr "Region…"
+
+msgid "Загрузка данных…"
+msgstr "Loading data…"
+
+msgid "Экспорт XLSX"
+msgstr "Export XLSX"
+
+msgid "Экспорт DOCX"
+msgstr "Export DOCX"
+
+msgid ""
+"<a href=\"%(login_url)s\">Войдите</a>, чтобы экспортировать отчёт по региону"
+" в xlsx/docx."
+msgstr ""
+"<a href=\"%(login_url)s\">Sign in</a> to export a region report to "
+"xlsx/docx."
+
+msgid "Место в рейтинге"
+msgstr "Rank"
+
+msgid "Тип региона"
+msgstr "Region type"
+
+msgid "Траектория"
+msgstr "Trajectory"
+
+msgid "Профиль по доменам"
+msgstr "Profile by domain"
+
+msgid "z-оценка относительно среднего по РФ за год (0 = среднее)."
+msgstr "z-score relative to the national mean for the year (0 = mean)."
+
+msgid "Изменение по доменам к пред. году"
+msgstr "Change by domain vs the previous year"
+
+msgid ""
+"Арифметическая разбивка по доменам (B4); итог меняется по схеме весов и "
+"показан выше отдельно."
+msgstr ""
+"An arithmetic breakdown by domain (B4); the total varies with the weighting "
+"scheme and is shown separately above."
+
+msgid "Вклад доменов в изменение индекса"
+msgstr "Domain contributions to the index change"
+
+msgid ""
+"Взвешенный вклад каждого домена в годовое изменение индекса (схема «равные "
+"веса»): в сумме даёт показанное выше Δ к предыдущему году. Зелёный — рост, "
+"оранжевый — спад. Описательное разложение уже посчитанного индекса, не "
+"прогноз."
+msgstr ""
+"The weighted contribution of each domain to the annual index change (equal-"
+"weights scheme): together they sum to the Δ versus the previous year shown "
+"above. Green is growth, orange is decline. A descriptive decomposition of "
+"the already-computed index, not a forecast."
+
+msgid "Вклад метрик в отнесение к типу (SHAP)"
+msgstr "Metric contributions to the type assignment (SHAP)"
+
+msgid "Объяснение решения классификатора, не причинность."
+msgstr "An explanation of the classifier’s decision, not causation."
+
+msgid "Траектория типа по годам"
+msgstr "Type trajectory over the years"
+
+msgid "Тип региона в каждом году окна 2010–2024."
+msgstr "The region’s type in each year of the 2010–2024 window."
+
+msgid "Похожие регионы — статистические двойники"
+msgstr "Similar regions — statistical twins"
+
+msgid ""
+"Регионы с самым близким профилем показателей в этот год (косинусная близость"
+" z-оценок). Это статистическое сходство профиля, а не причинность и не "
+"прогноз; 1.00 — идентичный профиль."
+msgstr ""
+"Regions with the closest indicator profile in this year (cosine similarity "
+"of z-scores). This is statistical profile similarity, not causation and not "
+"a forecast; 1.00 means an identical profile."

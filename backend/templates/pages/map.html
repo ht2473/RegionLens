@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Карта — RegionLens{% endblock %}
+{% block title %}{% trans "Карта" %} — RegionLens{% endblock %}
 
 {% block head %}
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
@@ -9,22 +10,21 @@
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Пространственный взгляд</p>
-  <h1>Карта регионов</h1>
-  <p class="lead">Раскраска субъектов по типу или индексу развития. Меняйте год ползунком,
-    переключайте меру; наведение показывает значение, клик ведёт к дашборду региона.</p>
+  <p class="eyebrow">{% trans "Пространственный взгляд" %}</p>
+  <h1>{% trans "Карта регионов" %}</h1>
+  <p class="lead">{% trans "Раскраска субъектов по типу или индексу развития. Меняйте год ползунком, переключайте меру; наведение показывает значение, клик ведёт к дашборду региона." %}</p>
 </section>
 
 <div class="map-controls">
   <div class="seg">
-    <button type="button" data-measure="cluster" class="is-active">Тип</button>
-    <button type="button" data-measure="index">Индекс</button>
+    <button type="button" data-measure="cluster" class="is-active">{% trans "Тип" %}</button>
+    <button type="button" data-measure="index">{% trans "Индекс" %}</button>
   </div>
   <div class="year-control">
-    <label for="year-slider">Год: <strong id="year-label">2020</strong></label>
+    <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2020</strong></label>
     <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2020">
   </div>
-  <button type="button" id="map-copy-link" class="map-share">Скопировать ссылку</button>
+  <button type="button" id="map-copy-link" class="map-share">{% trans "Скопировать ссылку" %}</button>
 </div>
 
 <div class="map-wrap">

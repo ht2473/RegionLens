@@ -1,34 +1,34 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Рейтинг — RegionLens{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Рейтинг" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Ранжирование</p>
-  <h1>Рейтинг регионов</h1>
-  <p class="lead">Места субъектов по индексу развития за выбранный год и схему весов.
-    Клик по строке открывает дашборд региона.</p>
+  <p class="eyebrow">{% trans "Ранжирование" %}</p>
+  <h1>{% trans "Рейтинг регионов" %}</h1>
+  <p class="lead">{% trans "Места субъектов по индексу развития за выбранный год и схему весов. Клик по строке открывает дашборд региона." %}</p>
 </section>
 
 {% include "pages/_rankings_tabs.html" %}
 
 <div class="map-controls">
   <div class="year-control">
-    <label for="year-slider">Год: <strong id="year-label">2024</strong></label>
+    <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
     <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
   </div>
   <div class="year-control">
-    <label for="scheme-select">Схема весов</label>
+    <label for="scheme-select">{% trans "Схема весов" %}</label>
     <select id="scheme-select">
-      <option value="equal">Равные</option>
-      <option value="pca">PCA</option>
-      <option value="expert">Экспертные</option>
+      <option value="equal">{% trans "Равные" %}</option>
+      <option value="pca">{% trans "PCA" %}</option>
+      <option value="expert">{% trans "Экспертные" %}</option>
     </select>
   </div>
 </div>
 
 <div id="rankings-root">
-  <div class="shell"><p>Загрузка рейтинга…</p></div>
+  <div class="shell"><p>{% trans "Загрузка рейтинга…" %}</p></div>
 </div>
 {% endblock %}
 

@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Регионы — RegionLens{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Регионы" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Каталог субъектов</p>
-  <h1>Регионы</h1>
-  <p class="lead">85 субъектов РФ. Выберите регион, чтобы открыть дашборд: индекс по доменам,
-    тип с объяснением, ранг и траектория.</p>
+  <p class="eyebrow">{% trans "Каталог субъектов" %}</p>
+  <h1>{% trans "Регионы" %}</h1>
+  <p class="lead">{% trans "85 субъектов РФ. Выберите регион, чтобы открыть дашборд: индекс по доменам, тип с объяснением, ранг и траектория." %}</p>
 </section>
 
 <div x-data="regionsList()" x-init="load()">
   <div class="field" style="max-width:360px;">
-    <input type="search" x-model="q" placeholder="Поиск региона…" aria-label="Поиск региона">
+    <input type="search" x-model="q" placeholder="{% trans 'Поиск региона…' %}" aria-label="{% trans 'Поиск региона' %}">
   </div>
 
   <template x-if="error">
@@ -19,7 +19,7 @@
   </template>
 
   <template x-if="!error && !loaded">
-    <div class="shell"><p>Загрузка списка…</p></div>
+    <div class="shell"><p>{% trans "Загрузка списка…" %}</p></div>
   </template>
 
   <template x-for="group in filteredGroups()" :key="group.fd">
@@ -43,7 +43,7 @@ function regionsList() {
     async load() {
       try {
         const r = await fetch("/api/regions/");
-        if (!r.ok) throw new Error("Не удалось загрузить список регионов (" + r.status + ")");
+        if (!r.ok) throw new Error("{% trans 'Не удалось загрузить список регионов' %} (" + r.status + ")");
         this.all = await r.json();
         this.loaded = true;
       } catch (e) { this.error = e.message; }
@@ -53,7 +53,7 @@ function regionsList() {
       const items = q ? this.all.filter(r => (r.region_name || "").toLowerCase().includes(q)) : this.all;
       const by = {};
       items.forEach(r => {
-        const fd = r.federal_district || "Прочие";
+        const fd = r.federal_district || "{% trans 'Прочие' %}";
         (by[fd] = by[fd] || []).push(r);
       });
       return Object.keys(by).sort().map(fd => ({ fd, items: by[fd] }));

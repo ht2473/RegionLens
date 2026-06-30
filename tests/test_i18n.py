@@ -76,3 +76,28 @@ def test_breadcrumbs_translated_to_english() -> None:
     html = client.get("/data/").content.decode()
     assert "Home" in html and "Data" in html
     assert "Главная" not in html
+
+
+def test_map_rankings_regions_translated_to_english() -> None:
+    """Карта, рейтинг, стабильность и список регионов переведены на английский."""
+    client = Client()
+    client.post(reverse("set_language"), {"language": "en", "next": "/"})
+    map_page = client.get("/map/").content.decode()
+    assert "Regions map" in map_page and "Copy link" in map_page
+    assert "Карта регионов" not in map_page
+    rankings = client.get("/rankings/").content.decode()
+    assert "Regional ranking" in rankings and "Weighting scheme" in rankings
+    stability = client.get(reverse("rank_stability_page")).content.decode()
+    assert "Rank stability" in stability and "not a forecast" in stability
+    regions = client.get("/regions/").content.decode()
+    assert "Region catalogue" in regions and "Search for a region" in regions
+    assert "Каталог субъектов" not in regions
+
+
+def test_region_dashboard_translated_to_english() -> None:
+    """Дашборд региона переведён на английский (статический каркас)."""
+    client = Client()
+    client.post(reverse("set_language"), {"language": "en", "next": "/"})
+    html = client.get("/regions/35000000/").content.decode()
+    assert "Region dashboard" in html and "Profile by domain" in html
+    assert "Дашборд региона" not in html
