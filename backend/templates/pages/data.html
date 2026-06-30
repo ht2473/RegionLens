@@ -1,13 +1,13 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Данные — RegionLens{% endblock %}
+{% block title %}{% trans "Данные" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Источник и охват</p>
-  <h1>Данные</h1>
-  <p class="lead">Платформа работает на открытых данных Росстата, агрегированных порталом
-    «Если быть точным». Персональных данных нет — все показатели агрегированы по регионам.</p>
+  <p class="eyebrow">{% trans "Источник и охват" %}</p>
+  <h1>{% trans "Данные" %}</h1>
+  <p class="lead">{% trans "Платформа работает на открытых данных Росстата, агрегированных порталом «Если быть точным». Персональных данных нет — все показатели агрегированы по регионам." %}</p>
 </section>
 
 {% include "pages/_data_tabs.html" %}
@@ -15,76 +15,71 @@
 {% if profile %}
 <div class="kpi-row">
   <div class="card kpi">
-    <div class="kpi-label">Субъектов в аналитике</div>
+    <div class="kpi-label">{% trans "Субъектов в аналитике" %}</div>
     <div class="num">{{ profile.regions.included }}</div>
-    <div class="kpi-sub">+{{ profile.regions.aggregates }} агрегата «с АО» исключены</div>
+    <div class="kpi-sub">{% blocktrans with n=profile.regions.aggregates %}+{{ n }} агрегата «с АО» исключены{% endblocktrans %}</div>
   </div>
   <div class="card kpi">
-    <div class="kpi-label">Изданий-источников</div>
+    <div class="kpi-label">{% trans "Изданий-источников" %}</div>
     <div class="num">{{ profile.fact.sources }}</div>
-    <div class="kpi-sub">дедупликация по свежайшему</div>
+    <div class="kpi-sub">{% trans "дедупликация по свежайшему" %}</div>
   </div>
   <div class="card kpi">
-    <div class="kpi-label">Диапазон рядов</div>
+    <div class="kpi-label">{% trans "Диапазон рядов" %}</div>
     <div class="num">{{ profile.fact.year_min }}–{{ profile.fact.year_max }}</div>
-    <div class="kpi-sub">для отображения на дашбордах</div>
+    <div class="kpi-sub">{% trans "для отображения на дашбордах" %}</div>
   </div>
   <div class="card kpi">
-    <div class="kpi-label">Окно расчёта</div>
+    <div class="kpi-label">{% trans "Окно расчёта" %}</div>
     <div class="num">{{ profile.features.window_start }}–{{ profile.features.window_end }}</div>
-    <div class="kpi-sub">типология / индекс / переходы</div>
+    <div class="kpi-sub">{% trans "типология / индекс / переходы" %}</div>
   </div>
 </div>
 {% endif %}
 
 <div class="prose">
-  <h2>Источник</h2>
+  <h2>{% trans "Источник" %}</h2>
   <ul>
-    <li>Росстат / портал «Если быть точным», лицензия <strong>CC BY 4.0</strong>.</li>
-    <li>Формат — длинная таблица показателей по регионам, федеральным округам и стране.</li>
-    <li>Для аналитики используется только уровень «Регион».</li>
+    <li>{% blocktrans %}Росстат / портал «Если быть точным», лицензия <strong>CC BY 4.0</strong>.{% endblocktrans %}</li>
+    <li>{% trans "Формат — длинная таблица показателей по регионам, федеральным округам и стране." %}</li>
+    <li>{% trans "Для аналитики используется только уровень «Регион»." %}</li>
   </ul>
 
-  <h2>Охват</h2>
+  <h2>{% trans "Охват" %}</h2>
   <ul>
-    <li><strong>{% if profile %}{{ profile.regions.included }}{% else %}85{% endif %}</strong>
-      непересекающихся субъектов РФ{% if profile %} в {{ profile.regions.districts }} федеральных
-      округах{% endif %} (агрегаты «с автономным округом» исключены, чтобы не задваивать данные).</li>
-    <li>Полный диапазон рядов — для отображения; окно расчёта аналитики —
-      <strong>{% if profile %}{{ profile.features.window_start }}–{{ profile.features.window_end }}{% else %}2010–2024{% endif %}</strong>.</li>
-    <li>Ключ региона и стыковка с картой — код <strong>ОКАТО</strong>.</li>
+    <li>{% blocktrans with n=profile.regions.included|default:85 d=profile.regions.districts|default:8 %}<strong>{{ n }}</strong> непересекающихся субъектов РФ в {{ d }} федеральных округах (агрегаты «с автономным округом» исключены, чтобы не задваивать данные).{% endblocktrans %}</li>
+    <li>{% blocktrans with s=profile.features.window_start|default:2010 e=profile.features.window_end|default:2024 %}Полный диапазон рядов — для отображения; окно расчёта аналитики — <strong>{{ s }}–{{ e }}</strong>.{% endblocktrans %}</li>
+    <li>{% blocktrans %}Ключ региона и стыковка с картой — код <strong>ОКАТО</strong>.{% endblocktrans %}</li>
   </ul>
 </div>
 
 {% if profile %}
-<h2>Отбор показателей: от тысяч к курируемому ядру</h2>
-<p class="chart-note">Покрытие метрики — доля заполненных пар «регион×год» в окне расчёта. Из всего
-  массива по покрытию, релевантности и неизбыточности отобрано курируемое ядро.</p>
+<h2>{% trans "Отбор показателей: от тысяч к курируемому ядру" %}</h2>
+<p class="chart-note">{% trans "Покрытие метрики — доля заполненных пар «регион×год» в окне расчёта. Из всего массива по покрытию, релевантности и неизбыточности отобрано курируемое ядро." %}</p>
 <div class="table-wrap">
   <table class="table">
-    <thead><tr><th>Ступень отбора</th><th class="num">Метрик</th></tr></thead>
+    <thead><tr><th>{% trans "Ступень отбора" %}</th><th class="num">{% trans "Метрик" %}</th></tr></thead>
     <tbody>
-      <tr><td>Всего метрик (код × подкатегория)</td><td class="num">{{ profile.metrics.total }}</td></tr>
-      <tr><td>Покрытие ≥ 50%</td><td class="num">{{ profile.coverage.ge50 }}</td></tr>
-      <tr><td>Покрытие ≥ 80%</td><td class="num">{{ profile.coverage.ge80 }}</td></tr>
-      <tr><td>Покрытие ≥ 90%</td><td class="num">{{ profile.coverage.ge90 }}</td></tr>
-      <tr><td>Покрытие ≥ 95%</td><td class="num">{{ profile.coverage.ge95 }}</td></tr>
-      <tr><td><strong>Курируемое ядро (в аналитике)</strong></td><td class="num"><strong>{{ profile.metrics.core }}</strong></td></tr>
+      <tr><td>{% trans "Всего метрик (код × подкатегория)" %}</td><td class="num">{{ profile.metrics.total }}</td></tr>
+      <tr><td>{% trans "Покрытие ≥ 50%" %}</td><td class="num">{{ profile.coverage.ge50 }}</td></tr>
+      <tr><td>{% trans "Покрытие ≥ 80%" %}</td><td class="num">{{ profile.coverage.ge80 }}</td></tr>
+      <tr><td>{% trans "Покрытие ≥ 90%" %}</td><td class="num">{{ profile.coverage.ge90 }}</td></tr>
+      <tr><td>{% trans "Покрытие ≥ 95%" %}</td><td class="num">{{ profile.coverage.ge95 }}</td></tr>
+      <tr><td><strong>{% trans "Курируемое ядро (в аналитике)" %}</strong></td><td class="num"><strong>{{ profile.metrics.core }}</strong></td></tr>
     </tbody>
   </table>
 </div>
 {% endif %}
 
 <div class="prose">
-  <h2>Качество и воспроизводимость</h2>
+  <h2>{% trans "Качество и воспроизводимость" %}</h2>
   <ul>
-    <li>Дедупликация по свежайшему изданию источника; контроль качества как код.</li>
-    <li>Импутация пропусков с предохранителями;
-      {% if profile %}фактическая доля импутаций в аналитической матрице —
-      <strong>{{ profile.features.impute_pct }}%</strong>{% else %}доля импутаций контролируется{% endif %}.</li>
-    <li>Сиды зафиксированы — пересборка аналитики детерминирована.</li>
+    <li>{% trans "Дедупликация по свежайшему изданию источника; контроль качества как код." %}</li>
+    <li>{% trans "Импутация пропусков с предохранителями" %}; {% if profile %}{% blocktrans with p=profile.features.impute_pct %}фактическая доля импутаций в аналитической матрице — <strong>{{ p }}%</strong>{% endblocktrans %}{% else %}{% trans "доля импутаций контролируется" %}{% endif %}.</li>
+    <li>{% trans "Сиды зафиксированы — пересборка аналитики детерминирована." %}</li>
   </ul>
 
-  <p>Подробнее о методах расчёта — на странице <a href="{% url 'methodology' %}">Методология</a>.</p>
+  {% url 'methodology' as m_url %}
+  <p>{% blocktrans %}Подробнее о методах расчёта — на странице <a href="{{ m_url }}">Методология</a>.{% endblocktrans %}</p>
 </div>
 {% endblock %}

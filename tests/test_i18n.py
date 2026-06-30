@@ -50,3 +50,29 @@ def test_switch_back_to_russian() -> None:
     html = client.get("/").content.decode()
     assert "Главная" in html
     assert "Home" not in html
+
+
+def test_about_pages_translated_to_english() -> None:
+    """Раздел «О проекте» (методология, данные, справка) переведён на английский."""
+    client = Client()
+    client.post(reverse("set_language"), {"language": "en", "next": "/"})
+    methodology = client.get("/methodology/").content.decode()
+    assert "How it works" in methodology
+    assert "Data harmonisation" in methodology
+    assert "Гармонизация данных" not in methodology
+    data = client.get("/data/").content.decode()
+    assert "Source and coverage" in data
+    assert "non-overlapping Russian regions" in data
+    assert "Источник и охват" not in data
+    help_page = client.get("/help/").content.decode()
+    assert "Notation" in help_page
+    assert "Обозначения" not in help_page
+
+
+def test_breadcrumbs_translated_to_english() -> None:
+    """Подписи «хлебных крошек» формируются во вью и переводятся вместе с интерфейсом."""
+    client = Client()
+    client.post(reverse("set_language"), {"language": "en", "next": "/"})
+    html = client.get("/data/").content.decode()
+    assert "Home" in html and "Data" in html
+    assert "Главная" not in html

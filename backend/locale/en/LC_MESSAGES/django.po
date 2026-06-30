@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-06-30 21:36+0000\n"
+"PO-Revision-Date: 2026-06-30 21:55+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -242,3 +242,521 @@ msgstr ""
 
 msgid "К методологии →"
 msgstr "To methodology →"
+
+msgid "Помощь по платформе"
+msgstr "Platform help"
+
+msgid ""
+"Короткое руководство по разделам и обозначениям. Если что-то не работает или"
+" непонятно — напишите через <a href=\"%(feedback_url)s\">обратную связь</a>."
+msgstr ""
+"A short guide to the sections and notation. If something is broken or "
+"unclear, write to us via <a href=\"%(feedback_url)s\">feedback</a>."
+
+msgid "Разделы"
+msgstr "Sections"
+
+msgid "регионы, раскрашенные по типу или индексу; ползунок выбирает год."
+msgstr "regions coloured by type or index; the slider selects the year."
+
+msgid ""
+"каталог метрик с поиском: карта значений, таблица и временной ряд по "
+"выбранному показателю."
+msgstr ""
+"a searchable indicator catalogue: value map, table, and time series for the "
+"selected indicator."
+
+msgid "список субъектов и переход к дашборду конкретного региона."
+msgstr "a list of regions and a link to an individual region dashboard."
+
+msgid ""
+"ранжирование регионов по индексу развития за выбранный год; отдельная "
+"вкладка — устойчивость ранга к выбору весов."
+msgstr ""
+"regions ranked by the development index for a given year; a separate tab "
+"covers rank robustness to the weighting choice."
+
+msgid ""
+"чувствительность рейтинга к схеме весов: согласованность схем и коридор "
+"ранга региона."
+msgstr ""
+"sensitivity of the ranking to the weighting scheme: scheme agreement and a "
+"region rank corridor."
+
+msgid ""
+"сближаются ли регионы во времени: σ-сходимость (разброс) и β-сходимость "
+"(мобильность)."
+msgstr ""
+"whether regions converge over time: σ-convergence (dispersion) and "
+"β-convergence (mobility)."
+
+msgid "разброс регионов по выбранному показателю и его динамика по годам."
+msgstr ""
+"dispersion of regions for the selected indicator and its dynamics over the "
+"years."
+
+msgid "обзор типов регионов и их состава."
+msgstr "an overview of regional types and their composition."
+
+msgid "сопоставление 2–3 регионов по доменам (gap-анализ)."
+msgstr "a 2–3 region comparison by domain (gap analysis)."
+
+msgid "регионы с нетипичными значениями и структурными сдвигами."
+msgstr "regions with atypical values and structural shifts."
+
+msgid ""
+"совместное движение пар показателей по регионам (связь, не причинность)."
+msgstr ""
+"co-movement of indicator pairs across regions (association, not causation)."
+
+msgid "Поиск"
+msgstr "Search"
+
+msgid ""
+"Иконка поиска в шапке (или сочетание <kbd>Ctrl</kbd>+<kbd>K</kbd>) открывает"
+" быстрый поиск по регионам, показателям и страницам. В разделах "
+"«Неравенство» и «Корреляции» показатель выбирается через поле с поиском по "
+"названию."
+msgstr ""
+"The search icon in the header (or <kbd>Ctrl</kbd>+<kbd>K</kbd>) opens a "
+"quick search across regions, indicators, and pages. In the “Inequality” and "
+"“Correlations” sections the indicator is chosen via a search-as-you-type "
+"field."
+
+msgid "Обозначения"
+msgstr "Notation"
+
+msgid "Индекс развития"
+msgstr "Development index"
+
+msgid ""
+"композитный балл 0–100 по шести доменам; нормирован по всему окну, чтобы "
+"рост региона во времени был сопоставим."
+msgstr ""
+"a composite 0–100 score over six domains; normalised across the whole window"
+" so a region’s growth over time is comparable."
+
+msgid "Схемы весов"
+msgstr "Weighting schemes"
+
+msgid ""
+"равные, PCA и экспертные; рейтинг приводится для каждой, а его устойчивость "
+"проверяется ранговой корреляцией."
+msgstr ""
+"equal, PCA, and expert; the ranking is given for each, and its robustness is"
+" checked with rank correlation."
+
+msgid "Тип (кластер)"
+msgstr "Type (cluster)"
+
+msgid "группа похожих регионов за год; метки согласованы по годам."
+msgstr ""
+"a group of similar regions for a year; labels are aligned across years."
+
+msgid "Типичность"
+msgstr "Typicality"
+
+msgid "насколько регион характерен для своего типа (не прогноз смены типа)."
+msgstr ""
+"how characteristic a region is of its type (not a forecast of a type "
+"change)."
+
+msgid "SHAP"
+msgstr "SHAP"
+
+msgid ""
+"вклад метрик в отнесение региона к типу (объяснение решения классификатора, "
+"не причинность)."
+msgstr ""
+"the contribution of metrics to a region’s type assignment (an explanation of"
+" the classifier’s decision, not causation)."
+
+msgid "σ-сходимость"
+msgstr "σ-convergence"
+
+msgid ""
+"сокращается ли разброс между регионами во времени (коэффициент вариации, "
+"индекс Джини, отношение P90/P10)."
+msgstr ""
+"whether dispersion between regions shrinks over time (coefficient of "
+"variation, Gini index, P90/P10 ratio)."
+
+msgid "β-сходимость"
+msgstr "β-convergence"
+
+msgid ""
+"догоняют ли изначально отстающие регионы; для относительного индекса "
+"трактуется как мобильность, а не абсолютный рост."
+msgstr ""
+"whether initially lagging regions catch up; for a relative index this is "
+"read as mobility, not absolute growth."
+
+msgid "Корреляция"
+msgstr "Correlation"
+
+msgid ""
+"мера совместного движения показателей; высокая связь не означает "
+"причинности."
+msgstr ""
+"a measure of indicators moving together; a strong association does not imply"
+" causation."
+
+msgid "Учётная запись"
+msgstr "Account"
+
+msgid ""
+"Все разделы аналитики открыты без регистрации. Вход нужен только для личного"
+" кабинета: сохранённые виды, история экспортов и профиль. Тема оформления "
+"(светлая или тёмная) переключается в шапке."
+msgstr ""
+"All analytics sections are open without registration. Signing in is needed "
+"only for the account area: saved views, export history, and profile. The "
+"theme (light or dark) is toggled in the header."
+
+msgid "Об авторе"
+msgstr "About the author"
+
+msgid ""
+"Платформа разработана в рамках выпускной квалификационной работы по "
+"направлению <strong>09.04.03 «Прикладная информатика»</strong>."
+msgstr ""
+"The platform was developed as a master’s thesis in <strong>09.04.03 “Applied"
+" Informatics”</strong>."
+
+msgid "Автор"
+msgstr "Author"
+
+msgid "Кузьмин Евгений Олегович"
+msgstr "Evgeny O. Kuzmin"
+
+msgid "Студенческий билет"
+msgstr "Student ID"
+
+msgid "Репозиторий"
+msgstr "Repository"
+
+msgid "Разделы данных"
+msgstr "Data sections"
+
+msgid "Источник и охват"
+msgstr "Source and coverage"
+
+msgid "Качество"
+msgstr "Quality"
+
+msgid "Как это устроено"
+msgstr "How it works"
+
+msgid ""
+"Аналитика рассчитывается офлайн-конвейером заранее и складывается в "
+"хранилище; приложение только читает готовое. Ниже — что и как считается."
+msgstr ""
+"Analytics is precomputed by an offline pipeline and stored; the application "
+"only reads the results. Below is what is computed and how."
+
+msgid "Метрик в ядре"
+msgstr "Metrics in the core"
+
+msgid "в %(n)s доменах"
+msgstr "across %(n)s domains"
+
+msgid "Ячеек матрицы"
+msgstr "Matrix cells"
+
+msgid "регион × год × метрика"
+msgstr "region × year × metric"
+
+msgid "Доля импутаций"
+msgstr "Imputation share"
+
+msgid "с предохранителями"
+msgstr "with safeguards"
+
+msgid "Схем весов индекса"
+msgstr "Index weighting schemes"
+
+msgid "равные / PCA / экспертные"
+msgstr "equal / PCA / expert"
+
+msgid "Гармонизация данных"
+msgstr "Data harmonisation"
+
+msgid ""
+"Исходные показатели Росстата приводятся к сопоставимой форме: метрика "
+"определяется парой «код показателя × подкатегория», ключ региона — ОКАТО, "
+"при дублях по изданиям берётся свежайшее. Абсолютные величины "
+"пересчитываются на душу населения; доли, темпы и индексы уже сопоставимы. "
+"Для аналитики берутся только показатели уровня «Регион»."
+msgstr ""
+"Raw Rosstat indicators are brought to a comparable form: a metric is defined"
+" by an “indicator code × subcategory” pair, the region key is OKATO, and on "
+"duplicates across editions the most recent is kept. Absolute values are "
+"converted to per-capita terms; shares, rates, and indices are already "
+"comparable. Only region-level indicators are used for analytics."
+
+msgid "Состав ядра по доменам"
+msgstr "Core composition by domain"
+
+msgid "Домен"
+msgstr "Domain"
+
+msgid "Метрик"
+msgstr "Metrics"
+
+msgid "Всего"
+msgstr "Total"
+
+msgid "Формы значений в ядре"
+msgstr "Value forms in the core"
+
+msgid "После гармонизации показатели сопоставимы между регионами."
+msgstr "After harmonisation, indicators are comparable across regions."
+
+msgid "Форма значения"
+msgstr "Value form"
+
+msgid "Курируемое ядро метрик"
+msgstr "Curated metric core"
+
+msgid ""
+"Из тысяч показателей отобрано курируемое ядро (%(n)s метрик) по покрытию, "
+"релевантности и неизбыточности, распределённое по шести доменам: экономика, "
+"доходы, демография, рынок труда, инфраструктура, здоровье и образование. "
+"Значения стандартизируются по году (z-оценка)."
+msgstr ""
+"From thousands of indicators, a curated core (%(n)s metrics) is selected by "
+"coverage, relevance, and non-redundancy, spread across six domains: economy,"
+" incomes, demographics, labour market, infrastructure, and health and "
+"education. Values are standardised by year (z-score)."
+
+msgid ""
+"По годам строится кластеризация регионов (k=%(k)s); метки кластеров "
+"согласованы во времени, так что один и тот же тип сопоставим между годами."
+msgstr ""
+"Regions are clustered by year (k=%(k)s); cluster labels are aligned over "
+"time, so the same type is comparable across years."
+
+msgid ""
+"Среднее качество разбиения (silhouette) ≈ %(s)s; устойчивость типа год к "
+"году ≈ %(st)s%%."
+msgstr ""
+"Mean partition quality (silhouette) ≈ %(s)s; year-to-year type stability ≈ "
+"%(st)s%%."
+
+msgid ""
+"Для каждого региона считается расстояние до центра своего типа — мера "
+"типичности (насколько регион характерен для типа, а не вероятность смены "
+"типа). Принадлежность к типу объясняется через SHAP — это объяснение решения"
+" классификатора, не причинность."
+msgstr ""
+"For each region the distance to its type centre is computed — a typicality "
+"measure (how characteristic a region is of its type, not a probability of "
+"changing type). Type membership is explained via SHAP — an explanation of "
+"the classifier’s decision, not causation."
+
+msgid ""
+"Доменные баллы сводятся в композитный индекс по %(n)s схемам весов (равные, "
+"PCA, экспертные) и нормируются в диапазон 0–100 по всему окну, чтобы рост "
+"региона во времени был виден. Устойчивость рейтинга к выбору весов "
+"проверяется ранговой корреляцией."
+msgstr ""
+"Domain scores are combined into a composite index under %(n)s weighting "
+"schemes (equal, PCA, expert) and normalised to 0–100 across the whole window"
+" so a region’s growth over time is visible. Rank robustness to the weighting"
+" choice is checked with rank correlation."
+
+msgid ""
+"Разброс регионов по индексу и отдельным показателям описывается мерами "
+"неравенства (коэффициент вариации, индекс Джини, отношение перцентилей "
+"P90/P10) и прослеживается по годам — это <strong>σ-сходимость</strong>: "
+"сужается ли разрыв между регионами со временем. Отдельно оценивается "
+"<strong>β-сходимость</strong> — связь начального уровня региона с его "
+"последующим изменением через наклон регрессии. Поскольку индекс "
+"относительный (нормирован по окну), β трактуется как мобильность и возврат к"
+" среднему, а не как абсолютный рост. Обе оценки описательные и не утверждают"
+" причин."
+msgstr ""
+"Dispersion of regions across the index and individual indicators is "
+"described by inequality measures (coefficient of variation, Gini index, "
+"P90/P10 percentile ratio) and tracked over the years — this is "
+"<strong>σ-convergence</strong>: whether the gap between regions narrows over"
+" time. Separately, <strong>β-convergence</strong> is estimated — the "
+"relationship between a region’s initial level and its subsequent change via "
+"the regression slope. Since the index is relative (normalised over the "
+"window), β is read as mobility and reversion to the mean rather than "
+"absolute growth. Both estimates are descriptive and make no causal claims."
+
+msgid "Переходы и траектории"
+msgstr "Transitions and trajectories"
+
+msgid ""
+"Прослеживается движение регионов между типами год к году и классифицируется "
+"тип траектории (устойчивый, сходящийся, расходящийся, волатильный и др.). "
+"Изменение индекса показывается как разложение по доменам — это арифметика "
+"баллов, без утверждений о причинах."
+msgstr ""
+"Movement of regions between types is traced year to year and the trajectory "
+"type is classified (stable, converging, diverging, volatile, and others). "
+"Index change is shown as a domain decomposition — arithmetic over scores, "
+"with no causal claims."
+
+msgid "Честность выводов"
+msgstr "Honest conclusions"
+
+msgid ""
+"Данные — короткие годовые ряды, поэтому методы подбираются под это "
+"ограничение, а результаты сопровождаются метриками качества. Формулировки "
+"избегают причинности там, где методы её не устанавливают."
+msgstr ""
+"The data are short annual series, so methods are chosen for that constraint "
+"and results are reported with quality metrics. Wording avoids causation "
+"where the methods do not establish it."
+
+msgid ""
+"Платформа работает на открытых данных Росстата, агрегированных порталом "
+"«Если быть точным». Персональных данных нет — все показатели агрегированы по"
+" регионам."
+msgstr ""
+"The platform runs on open Rosstat data aggregated by the “To Be Precise” "
+"portal. There is no personal data — all indicators are aggregated by region."
+
+msgid "Субъектов в аналитике"
+msgstr "Regions in analytics"
+
+msgid "+%(n)s агрегата «с АО» исключены"
+msgstr "+%(n)s “with district” aggregates excluded"
+
+msgid "Изданий-источников"
+msgstr "Source editions"
+
+msgid "дедупликация по свежайшему"
+msgstr "deduplicated to the most recent"
+
+msgid "Диапазон рядов"
+msgstr "Series range"
+
+msgid "для отображения на дашбордах"
+msgstr "for display on dashboards"
+
+msgid "Окно расчёта"
+msgstr "Computation window"
+
+msgid "типология / индекс / переходы"
+msgstr "typology / index / transitions"
+
+msgid "Источник"
+msgstr "Source"
+
+msgid ""
+"Росстат / портал «Если быть точным», лицензия <strong>CC BY 4.0</strong>."
+msgstr ""
+"Rosstat / the “To Be Precise” portal, licensed under <strong>CC BY "
+"4.0</strong>."
+
+msgid ""
+"Формат — длинная таблица показателей по регионам, федеральным округам и "
+"стране."
+msgstr ""
+"The format is a long table of indicators by region, federal district, and "
+"country."
+
+msgid "Для аналитики используется только уровень «Регион»."
+msgstr "Only the region level is used for analytics."
+
+msgid "Охват"
+msgstr "Coverage"
+
+msgid ""
+"<strong>%(n)s</strong> непересекающихся субъектов РФ в %(d)s федеральных "
+"округах (агрегаты «с автономным округом» исключены, чтобы не задваивать "
+"данные)."
+msgstr ""
+"<strong>%(n)s</strong> non-overlapping Russian regions across %(d)s federal "
+"districts (“with autonomous district” aggregates are excluded to avoid "
+"double counting)."
+
+msgid ""
+"Полный диапазон рядов — для отображения; окно расчёта аналитики — "
+"<strong>%(s)s–%(e)s</strong>."
+msgstr ""
+"The full series range is for display; the analytics computation window is "
+"<strong>%(s)s–%(e)s</strong>."
+
+msgid "Ключ региона и стыковка с картой — код <strong>ОКАТО</strong>."
+msgstr "The region key and map join is the <strong>OKATO</strong> code."
+
+msgid "Отбор показателей: от тысяч к курируемому ядру"
+msgstr "Indicator selection: from thousands to a curated core"
+
+msgid ""
+"Покрытие метрики — доля заполненных пар «регион×год» в окне расчёта. Из "
+"всего массива по покрытию, релевантности и неизбыточности отобрано "
+"курируемое ядро."
+msgstr ""
+"A metric’s coverage is the share of filled “region×year” pairs in the "
+"computation window. From the whole set, a curated core is selected by "
+"coverage, relevance, and non-redundancy."
+
+msgid "Ступень отбора"
+msgstr "Selection stage"
+
+msgid "Всего метрик (код × подкатегория)"
+msgstr "Total metrics (code × subcategory)"
+
+msgid "Покрытие ≥ 50%%"
+msgstr "Coverage ≥ 50%%"
+
+msgid "Покрытие ≥ 80%%"
+msgstr "Coverage ≥ 80%%"
+
+msgid "Покрытие ≥ 90%%"
+msgstr "Coverage ≥ 90%%"
+
+msgid "Покрытие ≥ 95%%"
+msgstr "Coverage ≥ 95%%"
+
+msgid "Курируемое ядро (в аналитике)"
+msgstr "Curated core (in analytics)"
+
+msgid "Качество и воспроизводимость"
+msgstr "Quality and reproducibility"
+
+msgid ""
+"Дедупликация по свежайшему изданию источника; контроль качества как код."
+msgstr ""
+"Deduplication to the most recent source edition; quality control as code."
+
+msgid "Импутация пропусков с предохранителями"
+msgstr "Gap imputation with safeguards"
+
+msgid ""
+"фактическая доля импутаций в аналитической матрице — "
+"<strong>%(p)s%%</strong>"
+msgstr ""
+"the actual imputation share in the analytics matrix is "
+"<strong>%(p)s%%</strong>"
+
+msgid "доля импутаций контролируется"
+msgstr "the imputation share is controlled"
+
+msgid "Сиды зафиксированы — пересборка аналитики детерминирована."
+msgstr "Seeds are fixed — rebuilding the analytics is deterministic."
+
+msgid ""
+"Подробнее о методах расчёта — на странице <a "
+"href=\"%(m_url)s\">Методология</a>."
+msgstr ""
+"More on the computation methods on the <a href=\"%(m_url)s\">Methodology</a>"
+" page."
+
+msgid "Стабильность рейтинга"
+msgstr "Rank stability"
+
+msgid "Регион"
+msgstr "Region"
+
+msgid "Качество данных"
+msgstr "Data quality"
+
+msgid "Неравенство регионов"
+msgstr "Regional inequality"

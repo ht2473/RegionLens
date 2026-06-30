@@ -1,4 +1,5 @@
-<nav class="subnav" aria-label="Разделы данных">
-  <a href="{% url 'data' %}" class="{% if data_tab == 'source' %}is-active{% endif %}">Источник и охват</a>
-  <a href="{% url 'data_quality_page' %}" class="{% if data_tab == 'quality' %}is-active{% endif %}">Качество</a>
+{% load i18n %}
+<nav class="subnav" aria-label="{% trans 'Разделы данных' %}">
+  <a href="{% url 'data' %}" class="{% if data_tab == 'source' %}is-active{% endif %}">{% trans "Источник и охват" %}</a>
+  <a href="{% url 'data_quality_page' %}" class="{% if data_tab == 'quality' %}is-active{% endif %}">{% trans "Качество" %}</a>
 </nav>
