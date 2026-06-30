@@ -1,50 +1,45 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Конвергенция — RegionLens{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Конвергенция" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Динамика неравенства</p>
-  <h1>Конвергенция регионов</h1>
-  <p class="lead">Сближаются ли регионы по уровню развития во времени? σ-сходимость измеряет, сужается
-    ли разброс композитного индекса по регионам. Падение меры разброса — регионы становятся более
-    похожими; рост — разрыв усиливается.</p>
+  <p class="eyebrow">{% trans "Динамика неравенства" %}</p>
+  <h1>{% trans "Конвергенция регионов" %}</h1>
+  <p class="lead">{% trans "Сближаются ли регионы по уровню развития во времени? σ-сходимость измеряет, сужается ли разброс композитного индекса по регионам. Падение меры разброса — регионы становятся более похожими; рост — разрыв усиливается." %}</p>
 </section>
 
 <section class="lab-block">
-  <h2>σ-сходимость: сужается ли разброс</h2>
+  <h2>{% trans "σ-сходимость: сужается ли разброс" %}</h2>
   <div class="map-controls">
     <div class="year-control">
-      <label for="cv-measure">Мера разброса</label>
+      <label for="cv-measure">{% trans "Мера разброса" %}</label>
       <select id="cv-measure">
-        <option value="cv">Коэффициент вариации</option>
-        <option value="gini">Индекс Джини</option>
-        <option value="p90_p10">Отношение P90/P10</option>
-        <option value="std">Стандартное отклонение</option>
+        <option value="cv">{% trans "Коэффициент вариации" %}</option>
+        <option value="gini">{% trans "Индекс Джини" %}</option>
+        <option value="p90_p10">{% trans "Отношение P90/P10" %}</option>
+        <option value="std">{% trans "Стандартное отклонение" %}</option>
       </select>
     </div>
     <div class="year-control">
-      <label for="cv-scheme">Схема весов</label>
+      <label for="cv-scheme">{% trans "Схема весов" %}</label>
       <select id="cv-scheme">
-        <option value="equal">Равные</option>
-        <option value="pca">PCA</option>
-        <option value="expert">Экспертные</option>
+        <option value="equal">{% trans "Равные" %}</option>
+        <option value="pca">{% trans "PCA" %}</option>
+        <option value="expert">{% trans "Экспертные" %}</option>
       </select>
     </div>
   </div>
-  <div id="cv-chart"><div class="shell"><p>Загрузка…</p></div></div>
+  <div id="cv-chart"><div class="shell"><p>{% trans "Загрузка…" %}</p></div></div>
   <p class="lab-note" id="cv-readout"></p>
-  <p class="lab-note">Индекс z-нормирован, поэтому отражает относительные позиции регионов; меры
-    разброса инвариантны к шкале и сопоставимы между годами. Это описательная динамика, не прогноз.</p>
+  <p class="lab-note">{% trans "Индекс z-нормирован, поэтому отражает относительные позиции регионов; меры разброса инвариантны к шкале и сопоставимы между годами. Это описательная динамика, не прогноз." %}</p>
 </section>
 
 <section class="lab-block">
-  <h2>β-сходимость: догоняют ли отстающие</h2>
-  <p class="lab-note">Каждая точка — регион: стартовый уровень индекса (X) против его изменения за
-    период (Y). Нисходящий наклон (β&lt;0) — регионы с низким стартом росли быстрее (догоняние);
-    линия — описательная регрессия. Схема весов — общая с графиком выше. Индекс относительный,
-    поэтому это мобильность / возврат к среднему, а не абсолютный рост.</p>
-  <div id="beta-chart"><div class="shell"><p>Загрузка…</p></div></div>
+  <h2>{% trans "β-сходимость: догоняют ли отстающие" %}</h2>
+  <p class="lab-note">{% blocktrans %}Каждая точка — регион: стартовый уровень индекса (X) против его изменения за период (Y). Нисходящий наклон (β&lt;0) — регионы с низким стартом росли быстрее (догоняние); линия — описательная регрессия. Схема весов — общая с графиком выше. Индекс относительный, поэтому это мобильность / возврат к среднему, а не абсолютный рост.{% endblocktrans %}</p>
+  <div id="beta-chart"><div class="shell"><p>{% trans "Загрузка…" %}</p></div></div>
   <p class="lab-note" id="beta-readout"></p>
 </section>
 {% endblock %}

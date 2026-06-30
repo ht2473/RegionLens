@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-06-30 22:12+0000\n"
+"PO-Revision-Date: 2026-06-30 22:22+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -935,3 +935,304 @@ msgstr ""
 "Regions with the closest indicator profile in this year (cosine similarity "
 "of z-scores). This is statistical profile similarity, not causation and not "
 "a forecast; 1.00 means an identical profile."
+
+msgid "Типы регионов"
+msgstr "Types of regions"
+
+msgid "Обзор типологии"
+msgstr "Typology overview"
+
+msgid ""
+"Состав типов регионов за выбранный год: какие субъекты в каждом типе, чем "
+"тип характерен (профиль по метрикам) и насколько регионы типичны для своего "
+"типа."
+msgstr ""
+"The composition of regional types for the selected year: which regions "
+"belong to each type, what characterises a type (its metric profile), and how"
+" typical regions are of their type."
+
+msgid "Загрузка типологии…"
+msgstr "Loading the typology…"
+
+msgid "Сопоставление"
+msgstr "Side by side"
+
+msgid "Сравнение регионов"
+msgstr "Region comparison"
+
+msgid ""
+"Выберите 2–3 региона и год — увидите различие по доменам (gap-анализ) и "
+"сводку по индексу и типу."
+msgstr ""
+"Pick 2–3 regions and a year to see the difference by domain (gap analysis) "
+"and a summary of index and type."
+
+msgid "Регион 1"
+msgstr "Region 1"
+
+msgid "Регион 2"
+msgstr "Region 2"
+
+msgid "Регион 3 (необяз.)"
+msgstr "Region 3 (optional)"
+
+msgid "Сравнить"
+msgstr "Compare"
+
+msgid "Межрегиональное неравенство"
+msgstr "Interregional inequality"
+
+msgid ""
+"Насколько сильно различаются регионы по выбранному показателю и как разрыв "
+"менялся по годам. Это описательная статистика разброса значений по регионам,"
+" <strong>не прогноз и не вывод о причинах</strong>."
+msgstr ""
+"How widely regions differ on the selected indicator and how the gap has "
+"changed over the years. This is descriptive statistics of value dispersion "
+"across regions, <strong>not a forecast and not a conclusion about "
+"causes</strong>."
+
+msgid "Показатель"
+msgstr "Indicator"
+
+msgid "Выберите показатель…"
+msgstr "Select an indicator…"
+
+msgid "Динамика неравенства"
+msgstr "Inequality dynamics"
+
+msgid "Конвергенция регионов"
+msgstr "Regional convergence"
+
+msgid ""
+"Сближаются ли регионы по уровню развития во времени? σ-сходимость измеряет, "
+"сужается ли разброс композитного индекса по регионам. Падение меры разброса "
+"— регионы становятся более похожими; рост — разрыв усиливается."
+msgstr ""
+"Do regions converge in development level over time? σ-convergence measures "
+"whether the dispersion of the composite index across regions narrows. A "
+"falling dispersion measure means regions grow more alike; a rising one means"
+" the gap widens."
+
+msgid "σ-сходимость: сужается ли разброс"
+msgstr "σ-convergence: is dispersion narrowing"
+
+msgid "Мера разброса"
+msgstr "Dispersion measure"
+
+msgid "Коэффициент вариации"
+msgstr "Coefficient of variation"
+
+msgid "Индекс Джини"
+msgstr "Gini index"
+
+msgid "Отношение P90/P10"
+msgstr "P90/P10 ratio"
+
+msgid "Стандартное отклонение"
+msgstr "Standard deviation"
+
+msgid ""
+"Индекс z-нормирован, поэтому отражает относительные позиции регионов; меры "
+"разброса инвариантны к шкале и сопоставимы между годами. Это описательная "
+"динамика, не прогноз."
+msgstr ""
+"The index is z-normalised, so it reflects relative positions of regions; "
+"dispersion measures are scale-invariant and comparable across years. This is"
+" descriptive dynamics, not a forecast."
+
+msgid "β-сходимость: догоняют ли отстающие"
+msgstr "β-convergence: are laggards catching up"
+
+msgid ""
+"Каждая точка — регион: стартовый уровень индекса (X) против его изменения за"
+" период (Y). Нисходящий наклон (β&lt;0) — регионы с низким стартом росли "
+"быстрее (догоняние); линия — описательная регрессия. Схема весов — общая с "
+"графиком выше. Индекс относительный, поэтому это мобильность / возврат к "
+"среднему, а не абсолютный рост."
+msgstr ""
+"Each point is a region: its starting index level (X) against its change over"
+" the period (Y). A downward slope (β&lt;0) means regions starting low grew "
+"faster (catch-up); the line is a descriptive regression. The weighting "
+"scheme is shared with the chart above. The index is relative, so this is "
+"mobility / reversion to the mean, not absolute growth."
+
+msgid "Прозрачность индекса"
+msgstr "Index transparency"
+
+msgid ""
+"Композитный индекс зависит от выбора схемы взвешивания доменов. Здесь видно,"
+" насколько выводы устойчивы: согласованность рейтингов разных схем во "
+"времени и какие регионы расходятся сильнее всего."
+msgstr ""
+"The composite index depends on the choice of domain weighting scheme. Here "
+"you can see how robust the conclusions are: the agreement of rankings from "
+"different schemes over time and which regions diverge the most."
+
+msgid "Согласованность схем во времени"
+msgstr "Scheme agreement over time"
+
+msgid ""
+"Ранговая корреляция Спирмена между рейтингами пар схем по годам. Ближе к 1 —"
+" порядок регионов почти не зависит от выбора схемы; ниже — рейтинг "
+"чувствителен к весам."
+msgstr ""
+"Spearman rank correlation between the rankings of scheme pairs by year. "
+"Closer to 1 means the order of regions barely depends on the scheme; lower "
+"means the ranking is sensitive to the weights."
+
+msgid "Сравнение схем: кто расходится"
+msgstr "Scheme comparison: who diverges"
+
+msgid "Схема X"
+msgstr "Scheme X"
+
+msgid "Схема Y"
+msgstr "Scheme Y"
+
+msgid ""
+"Каждая точка — регион: место по схеме X против места по схеме Y. На "
+"диагонали — схемы согласны; чем дальше точка от диагонали, тем сильнее место"
+" региона зависит от весов (такие выделены цветом)."
+msgstr ""
+"Each point is a region: its place under scheme X against its place under "
+"scheme Y. On the diagonal the schemes agree; the farther a point is from the"
+" diagonal, the more a region’s place depends on the weights (those are "
+"highlighted)."
+
+msgid "Расширенная аналитика"
+msgstr "Advanced analytics"
+
+msgid "Аномалии и структурные сдвиги"
+msgstr "Anomalies and structural shifts"
+
+msgid ""
+"Диагностика данных: пространственные выбросы по годам, резкие сдвиги уровня "
+"в рядах показателей и кандидаты смены методологии Росстата. Это описательные"
+" находки для проверки аналитиком, <strong>а не утверждение о "
+"причинах</strong>."
+msgstr ""
+"Data diagnostics: spatial outliers by year, abrupt level shifts in indicator"
+" series, and candidate Rosstat methodology changes. These are descriptive "
+"findings for an analyst to review, <strong>not a statement about "
+"causes</strong>."
+
+msgid "Пространственные выбросы"
+msgstr "Spatial outliers"
+
+msgid ""
+"Регион, нетипичный на фоне остальных в этот год (IsolationForest по профилю "
+"показателей). Выделенные — помеченные выбросы; наведение даёт оценку, клик "
+"ведёт к дашборду региона."
+msgstr ""
+"A region atypical relative to the rest in this year (IsolationForest over "
+"the indicator profile). Highlighted ones are flagged outliers; hover shows "
+"the score, a click opens the region dashboard."
+
+msgid "Резкие структурные сдвиги рядов"
+msgstr "Abrupt structural shifts in series"
+
+msgid ""
+"Год, когда ряд показателя региона резко сменил уровень (не плавный тренд). "
+"Величина — размер сдвига в единицах показателя."
+msgstr ""
+"The year when a region’s indicator series abruptly changed level (not a "
+"smooth trend). The magnitude is the size of the shift in the indicator’s "
+"units."
+
+msgid "Кандидаты смены методологии (A3)"
+msgstr "Methodology-change candidates (A3)"
+
+msgid ""
+"Метрика и год, где сдвиг произошёл синхронно у многих регионов, вне "
+"известных макрошоков, на методологически ревизуемой метрике — "
+"<strong>кандидат</strong> для ручной проверки, не вывод."
+msgstr ""
+"A metric and year where a shift occurred simultaneously across many regions,"
+" outside known macro shocks, on a methodologically revisable metric — a "
+"<strong>candidate</strong> for manual review, not a conclusion."
+
+msgid "Корреляции метрик"
+msgstr "Metric correlations"
+
+msgid "Связи показателей"
+msgstr "Indicator relationships"
+
+msgid ""
+"Насколько согласованно показатели меняются по регионам в пределах года. "
+"Сильная связь означает, что показатели движутся вместе — но не объясняет, "
+"почему."
+msgstr ""
+"How consistently indicators vary across regions within a year. A strong "
+"relationship means indicators move together — but does not explain why."
+
+msgid "Важно: корреляция ≠ причинность"
+msgstr "Important: correlation ≠ causation"
+
+msgid ""
+"Высокая корреляция означает лишь совместное движение двух показателей по "
+"регионам, а не то, что один влияет на другой. За связью может стоять общий "
+"фактор или совпадение. Используйте это как разведку гипотез, а не как вывод "
+"о причинах."
+msgstr ""
+"A high correlation only means two indicators move together across regions, "
+"not that one affects the other. A relationship may hide a common factor or "
+"coincidence. Use this to scout hypotheses, not to conclude about causes."
+
+msgid "Все пары"
+msgstr "All pairs"
+
+msgid "Обзор показателей"
+msgstr "Indicator overview"
+
+msgid "Показатели регионов"
+msgstr "Regional indicators"
+
+msgid ""
+"Любой из сотен показателей Росстата — по всем регионам за выбранный год. "
+"Найдите показатель в каталоге слева, выберите год и сравните регионы."
+msgstr ""
+"Any of hundreds of Rosstat indicators — across all regions for the selected "
+"year. Find an indicator in the catalogue on the left, pick a year, and "
+"compare regions."
+
+msgid "Поиск показателя…"
+msgstr "Search for an indicator…"
+
+msgid "Все домены"
+msgstr "All domains"
+
+msgid "Набор показателей"
+msgstr "Indicator set"
+
+msgid "Основные"
+msgstr "Main"
+
+msgid "Ядро индекса"
+msgstr "Index core"
+
+msgid "Все"
+msgstr "All"
+
+msgid "Таблица"
+msgstr "Table"
+
+msgid "Выберите показатель в каталоге слева."
+msgstr "Select an indicator in the catalogue on the left."
+
+msgid "Полнота и импутации"
+msgstr "Completeness and imputation"
+
+msgid ""
+"Насколько полна аналитическая матрица и какую её долю пришлось достроить. "
+"Различаем <strong>доступность сырья</strong> (отчитался ли Росстат) и "
+"<strong>долю импутаций</strong> готовой сетки. Для абсолютных показателей "
+"они расходятся: при пересчёте на душу нужна численность населения, и её "
+"пропуск даёт импутацию даже там, где сырьё было."
+msgstr ""
+"How complete the analytics matrix is and what share of it had to be filled "
+"in. We distinguish <strong>raw availability</strong> (whether Rosstat "
+"reported) from the <strong>imputation share</strong> of the finished grid. "
+"For absolute indicators the two diverge: per-capita conversion needs "
+"population, and a missing population value causes imputation even where the "
+"raw data existed."

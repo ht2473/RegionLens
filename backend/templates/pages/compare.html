@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Сравнение — RegionLens{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Сравнение" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Сопоставление</p>
-  <h1>Сравнение регионов</h1>
-  <p class="lead">Выберите 2–3 региона и год — увидите различие по доменам (gap-анализ) и сводку
-    по индексу и типу.</p>
+  <p class="eyebrow">{% trans "Сопоставление" %}</p>
+  <h1>{% trans "Сравнение регионов" %}</h1>
+  <p class="lead">{% trans "Выберите 2–3 региона и год — увидите различие по доменам (gap-анализ) и сводку по индексу и типу." %}</p>
 </section>
 
 <div class="compare-controls">
-  <div class="field"><label>Регион 1</label><select class="cmp-region" id="cmp-1"></select></div>
-  <div class="field"><label>Регион 2</label><select class="cmp-region" id="cmp-2"></select></div>
-  <div class="field"><label>Регион 3 (необяз.)</label><select class="cmp-region" id="cmp-3"></select></div>
+  <div class="field"><label>{% trans "Регион 1" %}</label><select class="cmp-region" id="cmp-1"></select></div>
+  <div class="field"><label>{% trans "Регион 2" %}</label><select class="cmp-region" id="cmp-2"></select></div>
+  <div class="field"><label>{% trans "Регион 3 (необяз.)" %}</label><select class="cmp-region" id="cmp-3"></select></div>
   <div class="field">
-    <label for="year-slider">Год: <strong id="year-label">2024</strong></label>
+    <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
     <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
   </div>
-  <div class="field" style="align-self:end;"><button class="btn" id="cmp-go">Сравнить</button></div>
+  <div class="field" style="align-self:end;"><button class="btn" id="cmp-go">{% trans "Сравнить" %}</button></div>
 </div>
 
 <div id="compare-msg" class="chart-note"></div>

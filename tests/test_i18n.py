@@ -101,3 +101,23 @@ def test_region_dashboard_translated_to_english() -> None:
     html = client.get("/regions/35000000/").content.decode()
     assert "Region dashboard" in html and "Profile by domain" in html
     assert "Дашборд региона" not in html
+
+
+def test_analytics_cluster_translated_to_english() -> None:
+    """Аналитический кластер (типология, сравнение, конвергенция и др.) переведён."""
+    client = Client()
+    client.post(reverse("set_language"), {"language": "en", "next": "/"})
+    pages = {
+        "typology": ("Typology overview", "Обзор типологии"),
+        "compare": ("Region comparison", "Сравнение регионов"),
+        "convergence": ("Regional convergence", "Конвергенция регионов"),
+        "index_lab": ("Index transparency", "Прозрачность индекса"),
+        "anomalies_page": ("Advanced analytics", "Расширенная аналитика"),
+        "correlations_page": ("Metric correlations", "Корреляции метрик"),
+        "explore": ("Regional indicators", "Показатели регионов"),
+        "dispersion_page": ("Interregional inequality", "Межрегиональное неравенство"),
+    }
+    for name, (english, russian) in pages.items():
+        html = client.get(reverse(name)).content.decode()
+        assert english in html, name
+        assert russian not in html, name

@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Типология — RegionLens{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Типология" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Типы регионов</p>
-  <h1>Обзор типологии</h1>
-  <p class="lead">Состав типов регионов за выбранный год: какие субъекты в каждом типе, чем тип
-    характерен (профиль по метрикам) и насколько регионы типичны для своего типа.</p>
+  <p class="eyebrow">{% trans "Типы регионов" %}</p>
+  <h1>{% trans "Обзор типологии" %}</h1>
+  <p class="lead">{% trans "Состав типов регионов за выбранный год: какие субъекты в каждом типе, чем тип характерен (профиль по метрикам) и насколько регионы типичны для своего типа." %}</p>
 </section>
 
 <div class="map-controls">
   <div class="year-control">
-    <label for="year-slider">Год: <strong id="year-label">2024</strong></label>
+    <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
     <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
   </div>
 </div>
 
 <div id="typology-root">
-  <div class="shell"><p>Загрузка типологии…</p></div>
+  <div class="shell"><p>{% trans "Загрузка типологии…" %}</p></div>
 </div>
 {% endblock %}
 

@@ -1,25 +1,24 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Неравенство регионов — RegionLens{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Неравенство регионов" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Межрегиональное неравенство</p>
-  <h1>Неравенство регионов</h1>
-  <p class="lead">Насколько сильно различаются регионы по выбранному показателю и как разрыв
-    менялся по годам. Это описательная статистика разброса значений по регионам,
-    <strong>не прогноз и не вывод о причинах</strong>.</p>
+  <p class="eyebrow">{% trans "Межрегиональное неравенство" %}</p>
+  <h1>{% trans "Неравенство регионов" %}</h1>
+  <p class="lead">{% blocktrans %}Насколько сильно различаются регионы по выбранному показателю и как разрыв менялся по годам. Это описательная статистика разброса значений по регионам, <strong>не прогноз и не вывод о причинах</strong>.{% endblocktrans %}</p>
 </section>
 
 <div class="map-controls">
   <div class="year-control">
-    <label for="metric-select">Показатель</label>
-    <select id="metric-select"><option>Загрузка…</option></select>
+    <label for="metric-select">{% trans "Показатель" %}</label>
+    <select id="metric-select"><option>{% trans "Загрузка…" %}</option></select>
   </div>
 </div>
 
 <div id="dispersion-root">
-  <div class="shell"><p>Выберите показатель…</p></div>
+  <div class="shell"><p>{% trans "Выберите показатель…" %}</p></div>
 </div>
 {% endblock %}
 

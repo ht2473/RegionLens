@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Показатели — RegionLens{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Показатели" %} — RegionLens{% endblock %}
 
 {% block head %}
   <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
@@ -8,42 +9,41 @@
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Обзор показателей</p>
-  <h1>Показатели регионов</h1>
-  <p class="lead">Любой из сотен показателей Росстата — по всем регионам за выбранный год.
-    Найдите показатель в каталоге слева, выберите год и сравните регионы.</p>
+  <p class="eyebrow">{% trans "Обзор показателей" %}</p>
+  <h1>{% trans "Показатели регионов" %}</h1>
+  <p class="lead">{% trans "Любой из сотен показателей Росстата — по всем регионам за выбранный год. Найдите показатель в каталоге слева, выберите год и сравните регионы." %}</p>
 </section>
 
 <div class="explore" id="explore-root">
   <aside class="explore-catalog">
     <div class="explore-filters">
-      <input type="search" id="ex-search" placeholder="Поиск показателя…" autocomplete="off">
+      <input type="search" id="ex-search" placeholder="{% trans 'Поиск показателя…' %}" autocomplete="off">
       <div class="explore-selects">
-        <select id="ex-domain" aria-label="Домен"><option value="">Все домены</option></select>
-        <select id="ex-tier" aria-label="Набор показателей">
-          <option value="extended">Основные</option>
-          <option value="core">Ядро индекса</option>
-          <option value="">Все</option>
+        <select id="ex-domain" aria-label="{% trans 'Домен' %}"><option value="">{% trans "Все домены" %}</option></select>
+        <select id="ex-tier" aria-label="{% trans 'Набор показателей' %}">
+          <option value="extended">{% trans "Основные" %}</option>
+          <option value="core">{% trans "Ядро индекса" %}</option>
+          <option value="">{% trans "Все" %}</option>
         </select>
       </div>
     </div>
-    <ul id="ex-list" class="explore-list"><li class="explore-muted">Загрузка…</li></ul>
+    <ul id="ex-list" class="explore-list"><li class="explore-muted">{% trans "Загрузка…" %}</li></ul>
   </aside>
 
   <main class="explore-main">
     <div id="ex-meta" class="explore-meta"></div>
     <div class="year-control" id="ex-year-control" hidden>
       <div class="seg" id="ex-view-toggle">
-        <button type="button" data-view="table" class="is-active">Таблица</button>
-        <button type="button" data-view="map">Карта</button>
+        <button type="button" data-view="table" class="is-active">{% trans "Таблица" %}</button>
+        <button type="button" data-view="map">{% trans "Карта" %}</button>
       </div>
-      <label for="ex-year">Год: <strong id="ex-year-label"></strong></label>
+      <label for="ex-year">{% trans "Год" %}: <strong id="ex-year-label"></strong></label>
       <input type="range" id="ex-year" step="1">
-      <button type="button" id="ex-copy-link" class="map-share">Скопировать ссылку</button>
+      <button type="button" id="ex-copy-link" class="map-share">{% trans "Скопировать ссылку" %}</button>
     </div>
     <div id="ex-series" class="explore-series" hidden></div>
     <div id="ex-values">
-      <div class="shell"><p>Выберите показатель в каталоге слева.</p></div>
+      <div class="shell"><p>{% trans "Выберите показатель в каталоге слева." %}</p></div>
     </div>
     <div id="ex-map-wrap" class="map-wrap" hidden>
       <div id="ex-map"></div>
