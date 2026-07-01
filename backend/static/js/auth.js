@@ -12,7 +12,7 @@
       btn.addEventListener("click", function () {
         var show = input.type === "password";
         input.type = show ? "text" : "password";
-        btn.textContent = show ? "Скрыть" : "Показать";
+        btn.textContent = show ? gettext("Скрыть") : gettext("Показать");
         input.focus();
       });
     })(boxes[i]);
@@ -32,15 +32,15 @@
       if (countEl) countEl.textContent = v.length + "/" + MAX;
       hint.classList.remove("ok", "bad");
       if (!v) {
-        if (msgEl) msgEl.textContent = "Только буквы и цифры";
+        if (msgEl) msgEl.textContent = gettext("Только буквы и цифры");
         return;
       }
       if (!RE.test(v)) {
         hint.classList.add("bad");
-        if (msgEl) msgEl.textContent = "Только буквы и цифры, без пробелов и символов";
+        if (msgEl) msgEl.textContent = gettext("Только буквы и цифры, без пробелов и символов");
       } else {
         hint.classList.add("ok");
-        if (msgEl) msgEl.textContent = "Имя подходит";
+        if (msgEl) msgEl.textContent = gettext("Имя подходит");
       }
     };
     uname.addEventListener("input", check);

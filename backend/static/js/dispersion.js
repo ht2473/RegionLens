@@ -21,29 +21,29 @@
   function loadMetrics() {
     return fetch("/api/metrics/")
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка каталога метрик (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка каталога метрик") + " (" + r.status + ")");
         return r.json();
       })
       .then(function (rows) {
         if (!rows.length) {
-          select.innerHTML = "<option>Нет метрик</option>";
-          throw new Error("Каталог метрик пуст.");
+          select.innerHTML = "<option>" + gettext("Нет метрик") + "</option>";
+          throw new Error(gettext("Каталог метрик пуст."));
         }
         select.innerHTML = rows
           .map(function (m) {
             return '<option value="' + m.metric_id + '">' + m.metric_name + "</option>";
           })
           .join("");
-        if (window.RL && RL.enhanceSelect) RL.enhanceSelect(select, "Поиск показателя…");
+        if (window.RL && RL.enhanceSelect) RL.enhanceSelect(select, gettext("Поиск показателя…"));
         return rows[0].metric_id;
       });
   }
 
   function load(metricId) {
-    shell("Загрузка…");
+    shell(gettext("Загрузка…"));
     fetch("/api/dispersion/?metric_id=" + metricId)
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка загрузки (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка загрузки") + " (" + r.status + ")");
         return r.json();
       })
       .then(function (rows) {
@@ -56,7 +56,7 @@
 
   function render(rows) {
     if (!rows.length) {
-      shell("Нет данных разброса по этому показателю.");
+      shell(gettext("Нет данных разброса по этому показателю."));
       return;
     }
     rows.sort(function (a, b) {
@@ -75,7 +75,7 @@
     var hasRatio = ratios.length > 0;
 
     var head =
-      "<tr><th>Год</th><th class='num'>n</th><th class='num'>Медиана</th>" +
+      "<tr><th>" + gettext("Год") + "</th><th class='num'>n</th><th class='num'>" + gettext("Медиана") + "</th>" +
       "<th class='num'>P10</th><th class='num'>P90</th>" +
       "<th class='num'>P90/P10</th><th class='num'>CV</th><th class='num'>IQR</th></tr>";
 
@@ -100,10 +100,16 @@
       .join("");
 
     var note = hasRatio
-      ? "<p class='chart-note'>Столбец и бар P90/P10 — отношение значения региона 90-го перцентиля к 10-му: " +
-        "1 — равенство, рост по годам — расширение разрыва. Считается для величин со шкалой отношений.</p>"
-      : "<p class='chart-note'>Для этого типа показателя отношение P90/P10 и коэффициент вариации не определены " +
-        "(нет содержательного нуля) — смотрите разброс по IQR и значениям P10/P90.</p>";
+      ? "<p class='chart-note'>" +
+        gettext(
+          "Столбец и бар P90/P10 — отношение значения региона 90-го перцентиля к 10-му: 1 — равенство, рост по годам — расширение разрыва. Считается для величин со шкалой отношений."
+        ) +
+        "</p>"
+      : "<p class='chart-note'>" +
+        gettext(
+          "Для этого типа показателя отношение P90/P10 и коэффициент вариации не определены (нет содержательного нуля) — смотрите разброс по IQR и значениям P10/P90."
+        ) +
+        "</p>";
 
     root.innerHTML =
       note +

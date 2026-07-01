@@ -10,7 +10,7 @@
   if (!document.getElementById("lab-agreement")) return;
   if (typeof Plotly === "undefined") return;
 
-  var SCHEME_RU = { equal: "равные", pca: "PCA", expert: "экспертные" };
+  var SCHEME_RU = { equal: gettext("равные"), pca: "PCA", expert: gettext("экспертные") };
   var COLORS = ["#1f6f63", "#b4532a", "#3b6ea5"];
   var GOOD = "#1f6f63";
   var WIDE = "#b4532a";
@@ -26,7 +26,7 @@
     if (el) el.innerHTML = '<div class="shell"><p>' + msg + "</p></div>";
   }
   function asJson(r) {
-    if (!r.ok) throw new Error("Ошибка загрузки (" + r.status + ")");
+    if (!r.ok) throw new Error(gettext("Ошибка загрузки") + " (" + r.status + ")");
     return r.json();
   }
   function ensureNames() {
@@ -60,7 +60,7 @@
   // ── Тренд согласованности схем ───────────────────────────────────────────
   function renderTrend(rows) {
     if (!rows.length) {
-      shell("lab-agreement", "Нет данных о согласованности схем.");
+      shell("lab-agreement", gettext("Нет данных о согласованности схем."));
       return;
     }
     var byPair = {};
@@ -87,7 +87,7 @@
       baseLayout({
         height: 300,
         margin: { l: 56, r: 16, t: 8, b: 36 },
-        yaxis: { title: "Спирмен ρ", gridcolor: GRID },
+        yaxis: { title: gettext("Спирмен ρ"), gridcolor: GRID },
         xaxis: { dtick: 2, gridcolor: GRID },
         legend: { orientation: "h" },
       }),
@@ -99,7 +99,7 @@
   function renderScatter(a, b, rankA, rankB) {
     var okatos = Object.keys(rankA).filter(function (o) { return rankB[o] != null; });
     if (!okatos.length) {
-      shell("lab-scatter", "Нет данных за выбранный год.");
+      shell("lab-scatter", gettext("Нет данных за выбранный год."));
       return;
     }
     var xs = [], ys = [], text = [], colors = [], n = okatos.length;
@@ -110,7 +110,7 @@
       var nm = (names && names[o]) || o;
       text.push(
         nm + "<br>" + SCHEME_RU[a] + ": " + ra + " · " + SCHEME_RU[b] + ": " + rb +
-        " (разница " + Math.abs(ra - rb) + ")"
+        " (" + gettext("разница") + " " + Math.abs(ra - rb) + ")"
       );
       colors.push(Math.abs(ra - rb) >= WIDE_GAP ? WIDE : GOOD);
     });
@@ -125,8 +125,8 @@
       ],
       baseLayout({
         height: 460,
-        xaxis: { title: "Место — " + SCHEME_RU[a], gridcolor: GRID },
-        yaxis: { title: "Место — " + SCHEME_RU[b], gridcolor: GRID, scaleanchor: "x", scaleratio: 1 },
+        xaxis: { title: gettext("Место") + " — " + SCHEME_RU[a], gridcolor: GRID },
+        yaxis: { title: gettext("Место") + " — " + SCHEME_RU[b], gridcolor: GRID, scaleanchor: "x", scaleratio: 1 },
         shapes: [
           { type: "line", x0: 1, y0: 1, x1: n, y1: n, line: { color: "#8a96a1", width: 1, dash: "dot" } },
         ],
@@ -138,10 +138,10 @@
   function loadScatter() {
     var a = $a.value, b = $b.value, year = state.year;
     if (a === b) {
-      shell("lab-scatter", "Выберите две разные схемы.");
+      shell("lab-scatter", gettext("Выберите две разные схемы."));
       return;
     }
-    shell("lab-scatter", "Загрузка…");
+    shell("lab-scatter", gettext("Загрузка…"));
     Promise.all([
       ensureNames(),
       fetch("/api/index/?year=" + year + "&scheme=" + a).then(asJson),

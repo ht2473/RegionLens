@@ -10,12 +10,12 @@
   if (!go) return;
 
   var DOMAINS = [
-    ["economy", "Экономика"],
-    ["income", "Доходы"],
-    ["demography", "Демография"],
-    ["labor", "Труд"],
-    ["infrastructure", "Инфраструктура"],
-    ["health_edu", "Здоровье/обр."],
+    ["economy", gettext("Экономика")],
+    ["income", gettext("Доходы")],
+    ["demography", gettext("Демография")],
+    ["labor", gettext("Труд")],
+    ["infrastructure", gettext("Инфраструктура")],
+    ["health_edu", gettext("Здоровье/обр.")],
   ];
   var PALETTE = ["#1f6f63", "#b4532a", "#3b6ea5"];
   var INK = RL.cssVar("--ink", "#1b2430"), GRID = RL.cssVar("--line-soft", "#e9e3d6");
@@ -31,7 +31,7 @@
     .then(function (rows) {
       rows.sort(function (a, b) { return (a.region_name || "").localeCompare(b.region_name || "", "ru"); });
       selects.forEach(function (sel, i) {
-        var opts = i === 2 ? '<option value="">— нет —</option>' : "";
+        var opts = i === 2 ? '<option value="">' + gettext("— нет —") + "</option>" : "";
         opts += rows
           .map(function (r) { return '<option value="' + r.okato + '">' + r.region_name + "</option>"; })
           .join("");
@@ -43,7 +43,7 @@
       }
       run();
     })
-    .catch(function () { setMsg("Не удалось загрузить список регионов."); });
+    .catch(function () { setMsg(gettext("Не удалось загрузить список регионов.")); });
 
   function selectedOkatos() {
     var seen = {}, out = [];
@@ -56,14 +56,14 @@
 
   function run() {
     var okatos = selectedOkatos();
-    if (okatos.length < 2) { setMsg("Выберите минимум 2 разных региона."); return; }
+    if (okatos.length < 2) { setMsg(gettext("Выберите минимум 2 разных региона.")); return; }
     setMsg("");
     var qs = new URLSearchParams();
     qs.set("year", state.year);
     okatos.forEach(function (o) { qs.append("okato", o); });
     fetch("/api/compare/?" + qs.toString())
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка сравнения (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка сравнения") + " (" + r.status + ")");
         return r.json();
       })
       .then(render)
@@ -71,7 +71,7 @@
   }
 
   function render(rows) {
-    if (!rows.length) { setMsg("Нет данных за выбранный год."); return; }
+    if (!rows.length) { setMsg(gettext("Нет данных за выбранный год.")); return; }
     var traces = rows.map(function (r, i) {
       return {
         type: "bar",
@@ -94,12 +94,13 @@
         plot_bgcolor: "rgba(0,0,0,0)",
         legend: { orientation: "h", y: -0.18 },
         xaxis: { tickangle: -20 },
-        yaxis: { title: "доменный балл (z)", zeroline: true, zerolinecolor: RL.cssVar("--line", "#b9c2cb"), gridcolor: GRID },
+        yaxis: { title: gettext("доменный балл (z)"), zeroline: true, zerolinecolor: RL.cssVar("--line", "#b9c2cb"), gridcolor: GRID },
       },
       { responsive: true, displayModeBar: false }
     );
 
-    var head = "<tr><th>Регион</th><th class='num'>Индекс</th><th>Тип</th></tr>";
+    var head =
+      "<tr><th>" + gettext("Регион") + "</th><th class='num'>" + gettext("Индекс") + "</th><th>" + gettext("Тип") + "</th></tr>";
     var body = rows
       .slice()
       .sort(function (a, b) { return (b.total_score || 0) - (a.total_score || 0); })
@@ -113,7 +114,7 @@
       .join("");
     var el = document.getElementById("compare-summary");
     el.innerHTML =
-      "<h3>Сводка</h3><div class='table-wrap'><table class='table'><thead>" +
+      "<h3>" + gettext("Сводка") + "</h3><div class='table-wrap'><table class='table'><thead>" +
       head + "</thead><tbody>" + body + "</tbody></table></div>";
     el.querySelectorAll("tr[data-okato]").forEach(function (tr) {
       tr.addEventListener("click", function () {

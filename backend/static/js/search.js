@@ -50,7 +50,7 @@
     overlay.hidden = false;
     document.body.classList.add("search-open");
     input.value = "";
-    setHint("Начните вводить: регион, показатель или страница");
+    setHint(gettext("Начните вводить: регион, показатель или страница"));
     input.setAttribute("aria-expanded", "true");
     setTimeout(function () {
       input.focus();
@@ -98,37 +98,39 @@
     }
 
     group(
-      "Регионы",
+      gettext("Регионы"),
       (data.regions || []).map(function (r) {
         return {
           label: r.region_name,
           sub: r.federal_district,
           url: "/regions/" + r.okato + "/",
-          kind: "регион",
+          kind: gettext("регион"),
         };
       })
     );
     group(
-      "Показатели",
+      gettext("Показатели"),
       (data.metrics || []).map(function (m) {
         return {
           label: cleanLabel(m.metric_name),
           sub: m.unit,
           url: "/explore/?metric=" + m.metric_id,
-          kind: "показатель",
+          kind: gettext("показатель"),
         };
       })
     );
     group(
-      "Страницы",
+      gettext("Страницы"),
       (data.pages || []).map(function (p) {
-        return { label: p.title, sub: null, url: p.url, kind: "страница" };
+        return { label: p.title, sub: null, url: p.url, kind: gettext("страница") };
       })
     );
 
     if (!items.length) {
       results.innerHTML =
-        '<div class="search-empty">Ничего не найдено по запросу «' + esc(q) + "»</div>";
+        '<div class="search-empty">' +
+        interpolate(gettext("Ничего не найдено по запросу «%(q)s»"), { q: esc(q) }, true) +
+        "</div>";
       return;
     }
     results.innerHTML = html;
@@ -143,7 +145,9 @@
         if (input.value.trim() === q) render(d, q);
       })
       .catch(function () {
-        if (results) results.innerHTML = '<div class="search-empty">Не удалось выполнить поиск</div>';
+        if (results)
+          results.innerHTML =
+            '<div class="search-empty">' + gettext("Не удалось выполнить поиск") + "</div>";
       });
   }
 
@@ -151,7 +155,7 @@
     var q = input.value.trim();
     clearTimeout(debounce);
     if (q.length < 2) {
-      setHint("Введите минимум 2 символа");
+      setHint(gettext("Введите минимум 2 символа"));
       return;
     }
     debounce = setTimeout(function () {

@@ -10,10 +10,10 @@
   if (typeof Plotly === "undefined") return;
 
   var MEASURE_RU = {
-    cv: "Коэффициент вариации",
-    gini: "Индекс Джини",
-    p90_p10: "Отношение P90/P10",
-    std: "Стандартное отклонение",
+    cv: gettext("Коэффициент вариации"),
+    gini: gettext("Индекс Джини"),
+    p90_p10: gettext("Отношение P90/P10"),
+    std: gettext("Стандартное отклонение"),
   };
   var FONT = { family: "Golos Text, sans-serif", color: RL.cssVar("--ink-soft", "#51606e") };
   var GRID = RL.cssVar("--line-soft", "#e9e3d6");
@@ -33,7 +33,7 @@
     if (el) el.innerHTML = '<div class="shell"><p>' + msg + "</p></div>";
   }
   function asJson(r) {
-    if (!r.ok) throw new Error("Ошибка загрузки (" + r.status + ")");
+    if (!r.ok) throw new Error(gettext("Ошибка загрузки") + " (" + r.status + ")");
     return r.json();
   }
   // Plotly не очищает контейнер сам — убираем заглушку/старый график перед отрисовкой.
@@ -62,7 +62,7 @@
       .filter(function (r) { return r.weighting_scheme === scheme && r[measure] != null; })
       .sort(function (a, b) { return a.year - b.year; });
     if (!pts.length) {
-      shell($chart, "Нет данных для выбранной схемы.");
+      shell($chart, gettext("Нет данных для выбранной схемы."));
       $readout.textContent = "";
       return;
     }
@@ -88,12 +88,16 @@
     var first = vals[0];
     var last = vals[vals.length - 1];
     var chg = first !== 0 ? ((last - first) / Math.abs(first)) * 100 : 0;
-    var dir = last < first ? "снизился" : "вырос";
-    var verdict = last < first ? "σ-сходимость: регионы сблизились" : "расхождение: разрыв усилился";
-    $readout.textContent =
-      MEASURE_RU[measure] + " " + years[0] + "→" + years[years.length - 1] + ": " + dir +
-      " на " + Math.abs(chg).toFixed(0) + "% (" + first.toFixed(3) + " → " + last.toFixed(3) +
-      "). " + verdict + ".";
+    var dir = last < first ? gettext("снизился") : gettext("вырос");
+    var verdict = last < first ? gettext("σ-сходимость: регионы сблизились") : gettext("расхождение: разрыв усилился");
+    $readout.textContent = interpolate(
+      gettext("%(measure)s %(y0)s→%(y1)s: %(dir)s на %(chg)s% (%(first)s → %(last)s). %(verdict)s."),
+      {
+        measure: MEASURE_RU[measure], y0: years[0], y1: years[years.length - 1], dir: dir,
+        chg: Math.abs(chg).toFixed(0), first: first.toFixed(3), last: last.toFixed(3), verdict: verdict,
+      },
+      true
+    );
   }
 
   // ── β-сходимость: рост за период vs стартовый уровень ─────────────────────
@@ -103,11 +107,11 @@
     var b = null;
     betaData.forEach(function (r) { if (r.weighting_scheme === scheme) b = r; });
     if (!b) {
-      shell($betaChart, "Нет данных для выбранной схемы.");
+      shell($betaChart, gettext("Нет данных для выбранной схемы."));
       $betaReadout.textContent = "";
       return;
     }
-    shell($betaChart, "Загрузка…");
+    shell($betaChart, gettext("Загрузка…"));
     Promise.all([
       ensureNames(),
       fetch("/api/index/?year=" + b.year_start + "&scheme=" + scheme).then(asJson),
@@ -124,8 +128,8 @@
           xs.push(init[o]);
           ys.push(g);
           text.push(
-            ((names && names[o]) || o) + "<br>старт " + init[o].toFixed(1) +
-            " · изменение " + (g >= 0 ? "+" : "") + g.toFixed(1)
+            ((names && names[o]) || o) + "<br>" + gettext("старт") + " " + init[o].toFixed(1) +
+            " · " + gettext("изменение") + " " + (g >= 0 ? "+" : "") + g.toFixed(1)
           );
         });
         var xmin = Math.min.apply(null, xs), xmax = Math.max.apply(null, xs);
@@ -146,9 +150,9 @@
           ],
           {
             margin: { l: 60, r: 16, t: 8, b: 44 }, height: 420, showlegend: false,
-            xaxis: { title: "Стартовый уровень индекса (" + b.year_start + ")", gridcolor: GRID },
+            xaxis: { title: interpolate(gettext("Стартовый уровень индекса (%(year)s)"), { year: b.year_start }, true), gridcolor: GRID },
             yaxis: {
-              title: "Изменение к " + b.year_end, gridcolor: GRID,
+              title: gettext("Изменение к") + " " + b.year_end, gridcolor: GRID,
               zeroline: true, zerolinecolor: RL.cssVar("--line", "#cfc8ba"),
             },
             paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: FONT,
@@ -156,8 +160,8 @@
           { responsive: true, displayModeBar: false }
         );
         var verdict = b.beta < 0
-          ? "β-сходимость: изначально отстающие росли быстрее (догоняние)"
-          : "β-дивергенция: лидеры росли быстрее";
+          ? gettext("β-сходимость: изначально отстающие росли быстрее (догоняние)")
+          : gettext("β-дивергенция: лидеры росли быстрее");
         $betaReadout.textContent =
           "β = " + b.beta.toFixed(3) + ", r = " + (b.correlation != null ? b.correlation.toFixed(2) : "—") +
           " (R² = " + (b.r_squared != null ? b.r_squared.toFixed(2) : "—") + "), " +

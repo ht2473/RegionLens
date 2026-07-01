@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RegionLens (djangojs)\n"
 "POT-Creation-Date: 2026-07-01 02:48+0000\n"
-"PO-Revision-Date: 2026-07-01 02:48+0000\n"
+"PO-Revision-Date: 2026-07-01 03:02+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -167,3 +167,196 @@ msgstr ""
 "Rank σ and mean |Δ| per year measure how “jittery” a place in the ranking "
 "is: 0 means the region did not move. The bar is normalised to the sample "
 "maximum; sorted from the most stable to the most volatile."
+
+msgid "Начните вводить: регион, показатель или страница"
+msgstr "Start typing: a region, indicator, or page"
+
+msgid "Регионы"
+msgstr "Regions"
+
+msgid "регион"
+msgstr "region"
+
+msgid "Показатели"
+msgstr "Indicators"
+
+msgid "показатель"
+msgstr "indicator"
+
+msgid "Страницы"
+msgstr "Pages"
+
+msgid "страница"
+msgstr "page"
+
+msgid "Ничего не найдено по запросу «%(q)s»"
+msgstr "Nothing found for “%(q)s”"
+
+msgid "Не удалось выполнить поиск"
+msgstr "Search failed"
+
+msgid "Введите минимум 2 символа"
+msgstr "Enter at least 2 characters"
+
+msgid "Скрыть"
+msgstr "Hide"
+
+msgid "Показать"
+msgstr "Show"
+
+msgid "Только буквы и цифры"
+msgstr "Letters and digits only"
+
+msgid "Только буквы и цифры, без пробелов и символов"
+msgstr "Letters and digits only, no spaces or symbols"
+
+msgid "Имя подходит"
+msgstr "The name is valid"
+
+msgid "Экономика"
+msgstr "Economy"
+
+msgid "Доходы"
+msgstr "Incomes"
+
+msgid "Демография"
+msgstr "Demographics"
+
+msgid "Инфраструктура"
+msgstr "Infrastructure"
+
+msgid "Здоровье/обр."
+msgstr "Health/edu."
+
+msgid "— нет —"
+msgstr "— none —"
+
+msgid "Не удалось загрузить список регионов."
+msgstr "Could not load the region list."
+
+msgid "Выберите минимум 2 разных региона."
+msgstr "Select at least 2 different regions."
+
+msgid "Ошибка сравнения"
+msgstr "Comparison error"
+
+msgid "доменный балл (z)"
+msgstr "domain score (z)"
+
+msgid "Тип"
+msgstr "Type"
+
+msgid "Сводка"
+msgstr "Summary"
+
+msgid "Ошибка каталога метрик"
+msgstr "Metric catalogue error"
+
+msgid "Нет метрик"
+msgstr "No metrics"
+
+msgid "Каталог метрик пуст."
+msgstr "The metric catalogue is empty."
+
+msgid "Поиск показателя…"
+msgstr "Search for an indicator…"
+
+msgid "Нет данных разброса по этому показателю."
+msgstr "No dispersion data for this indicator."
+
+msgid "Год"
+msgstr "Year"
+
+msgid "Медиана"
+msgstr "Median"
+
+msgid ""
+"Столбец и бар P90/P10 — отношение значения региона 90-го перцентиля к 10-му:"
+" 1 — равенство, рост по годам — расширение разрыва. Считается для величин со"
+" шкалой отношений."
+msgstr ""
+"The P90/P10 column and bar show the ratio of the 90th-percentile region "
+"value to the 10th: 1 means equality, growth over the years means a widening "
+"gap. Computed for ratio-scale quantities."
+
+msgid ""
+"Для этого типа показателя отношение P90/P10 и коэффициент вариации не "
+"определены (нет содержательного нуля) — смотрите разброс по IQR и значениям "
+"P10/P90."
+msgstr ""
+"For this indicator type the P90/P10 ratio and the coefficient of variation "
+"are undefined (no meaningful zero) — see the spread via IQR and the P10/P90 "
+"values."
+
+msgid "равные"
+msgstr "equal"
+
+msgid "экспертные"
+msgstr "expert"
+
+msgid "Нет данных о согласованности схем."
+msgstr "No scheme-agreement data."
+
+msgid "Спирмен ρ"
+msgstr "Spearman ρ"
+
+msgid "разница"
+msgstr "difference"
+
+msgid "Место"
+msgstr "Place"
+
+msgid "Выберите две разные схемы."
+msgstr "Select two different schemes."
+
+msgid "Коэффициент вариации"
+msgstr "Coefficient of variation"
+
+msgid "Индекс Джини"
+msgstr "Gini index"
+
+msgid "Отношение P90/P10"
+msgstr "P90/P10 ratio"
+
+msgid "Стандартное отклонение"
+msgstr "Standard deviation"
+
+msgid "Нет данных для выбранной схемы."
+msgstr "No data for the selected scheme."
+
+msgid "снизился"
+msgstr "decreased"
+
+msgid "вырос"
+msgstr "increased"
+
+msgid "σ-сходимость: регионы сблизились"
+msgstr "σ-convergence: regions have converged"
+
+msgid "расхождение: разрыв усилился"
+msgstr "divergence: the gap has widened"
+
+msgid ""
+"%(measure)s %(y0)s→%(y1)s: %(dir)s на %(chg)s% (%(first)s → %(last)s). "
+"%(verdict)s."
+msgstr ""
+"%(measure)s %(y0)s→%(y1)s: %(dir)s by %(chg)s% (%(first)s → %(last)s). "
+"%(verdict)s."
+
+msgid "старт"
+msgstr "start"
+
+msgid "изменение"
+msgstr "change"
+
+msgid "Стартовый уровень индекса (%(year)s)"
+msgstr "Starting index level (%(year)s)"
+
+msgid "Изменение к"
+msgstr "Change by"
+
+msgid "β-сходимость: изначально отстающие росли быстрее (догоняние)"
+msgstr "β-convergence: initial laggards grew faster (catch-up)"
+
+msgid "β-дивергенция: лидеры росли быстрее"
+msgstr "β-divergence: leaders grew faster"
