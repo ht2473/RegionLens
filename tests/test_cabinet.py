@@ -320,9 +320,7 @@ def test_comparison_delete_and_owner_isolation(client_alice: Client, alice: User
 
     mine = ComparisonSet.objects.create(user=alice, name="Моё", okatos=["45000000", "78000000"])
     other = User.objects.create_user("bob", password=_PW)
-    theirs = ComparisonSet.objects.create(
-        user=other, name="Чужое", okatos=["45000000", "78000000"]
-    )
+    theirs = ComparisonSet.objects.create(user=other, name="Чужое", okatos=["45000000", "78000000"])
     assert client_alice.post(reverse("comparison_delete", args=[mine.pk])).status_code == 302
     assert not ComparisonSet.objects.filter(pk=mine.pk).exists()
     assert client_alice.post(reverse("comparison_delete", args=[theirs.pk])).status_code == 404
