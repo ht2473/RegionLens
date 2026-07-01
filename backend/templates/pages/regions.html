@@ -53,7 +53,7 @@ function regionsList() {
       const items = q ? this.all.filter(r => (r.region_name || "").toLowerCase().includes(q)) : this.all;
       const by = {};
       items.forEach(r => {
-        const fd = r.federal_district || "{% trans 'Прочие' %}";
+        const fd = RL.localizeFederalDistrict(r.federal_district) || "{% trans 'Прочие' %}";
         (by[fd] = by[fd] || []).push(r);
       });
       return Object.keys(by).sort().map(fd => ({ fd, items: by[fd] }));

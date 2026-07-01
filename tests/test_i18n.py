@@ -162,3 +162,24 @@ def test_javascript_catalog_serves_translations() -> None:
     client.post(reverse("set_language"), {"language": "ru", "next": "/"})
     catalog_ru = client.get(reverse("javascript-catalog")).content.decode()
     assert "Corridor" not in catalog_ru
+
+
+def test_data_layer_labels_have_english_translations() -> None:
+    """Подписи доменов и типов значений (из слоя данных) переводятся на английский."""
+    from django.utils import translation
+
+    with translation.override("en"):
+        from django.utils.translation import gettext
+
+        assert gettext("Экономика") == "Economy"
+        assert gettext("Рынок труда") == "Labour market"
+        assert gettext("Здоровье и образование") == "Health and education"
+        assert gettext("на душу населения") == "per capita"
+
+
+def test_federal_district_names_in_js_catalog() -> None:
+    """Названия федеральных округов доступны в каталоге JS для EN-интерфейса."""
+    client = Client()
+    client.post(reverse("set_language"), {"language": "en", "next": "/"})
+    catalog = client.get(reverse("javascript-catalog")).content.decode()
+    assert "Far Eastern" in catalog and "Northwestern" in catalog

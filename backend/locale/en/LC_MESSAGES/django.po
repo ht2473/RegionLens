@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-06-30 22:37+0000\n"
+"PO-Revision-Date: 2026-07-01 12:20+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1465,3 +1465,39 @@ msgstr "Index scheme"
 
 msgid "ОКАТО региона (необязательно)"
 msgstr "Region OKATO (optional)"
+
+msgid "Экономика"
+msgstr "Economy"
+
+msgid "Доходы"
+msgstr "Incomes"
+
+msgid "Демография"
+msgstr "Demographics"
+
+msgid "Рынок труда"
+msgstr "Labour market"
+
+msgid "Инфраструктура"
+msgstr "Infrastructure"
+
+msgid "Здоровье и образование"
+msgstr "Health and education"
+
+msgid "Вне аналитики"
+msgstr "Outside analytics"
+
+msgid "абсолютные"
+msgstr "absolute"
+
+msgid "на душу населения"
+msgstr "per capita"
+
+msgid "доли / проценты"
+msgstr "shares / percentages"
+
+msgid "темпы (год к году)"
+msgstr "rates (year-over-year)"
+
+msgid "индексы"
+msgstr "indices"

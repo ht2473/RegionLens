@@ -102,7 +102,7 @@
       (data.regions || []).map(function (r) {
         return {
           label: r.region_name,
-          sub: r.federal_district,
+          sub: RL.localizeFederalDistrict(r.federal_district),
           url: "/regions/" + r.okato + "/",
           kind: gettext("регион"),
         };

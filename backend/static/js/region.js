@@ -92,7 +92,7 @@
     document.getElementById("region-title").textContent = d.region_name || OKATO;
     var typeLabel = d.cluster ? d.cluster.cluster_label : "—";
     document.getElementById("region-sub").textContent =
-      (d.federal_district ? d.federal_district + " · " : "") + gettext("тип") + ": " + typeLabel;
+      (d.federal_district ? RL.localizeFederalDistrict(d.federal_district) + " · " : "") + gettext("тип") + ": " + typeLabel;
 
     // KPI
     document.getElementById("kpi-total").textContent = fmt(d.index.total_score);
@@ -249,7 +249,7 @@
 
       var fo = document.createElement("span");
       fo.className = "twin-fo";
-      fo.textContent = t.federal_district || "";
+      fo.textContent = RL.localizeFederalDistrict(t.federal_district) || "";
 
       var sim = document.createElement("span");
       sim.className = "twin-sim";

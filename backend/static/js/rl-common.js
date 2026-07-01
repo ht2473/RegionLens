@@ -28,6 +28,26 @@
 
   // Текущее значение CSS-переменной темы (для графиков/карты — чтобы цвета следовали теме).
   // Читается при построении графика; data-theme к этому моменту уже выставлен скриптом в <head>.
+  // Локализация названий федеральных округов: в данных они хранятся по-русски,
+  // здесь переводятся по активному языку через каталог jsi18n (для EN-интерфейса).
+  var _fdMap = null;
+  window.RL.localizeFederalDistrict = function (name) {
+    if (!name) return name;
+    if (_fdMap === null) {
+      _fdMap = {
+        "Дальневосточный": gettext("Дальневосточный"),
+        "Приволжский": gettext("Приволжский"),
+        "Северо-Западный": gettext("Северо-Западный"),
+        "Северо-Кавказский": gettext("Северо-Кавказский"),
+        "Сибирский": gettext("Сибирский"),
+        "Уральский": gettext("Уральский"),
+        "Центральный": gettext("Центральный"),
+        "Южный": gettext("Южный"),
+      };
+    }
+    return _fdMap[name] || name;
+  };
+
   window.RL.cssVar = function (name, fallback) {
     try {
       var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();

@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from django.utils.translation import gettext
+
 from pipeline.logging_setup import log
 
 from .duck import q
@@ -673,13 +675,13 @@ def data_profile() -> dict[str, Any] | None:
             "WHERE higher_is_better IS NOT NULL GROUP BY domain ORDER BY n DESC, domain"
         )
         for row in core_by_domain:
-            row["label"] = DOMAIN_LABELS_RU.get(row["domain"], row["domain"])
+            row["label"] = gettext(DOMAIN_LABELS_RU.get(row["domain"], row["domain"]))
         value_types = q(
             "SELECT value_type, COUNT(*) AS n FROM metric_dim "
             "WHERE higher_is_better IS NOT NULL GROUP BY value_type ORDER BY n DESC, value_type"
         )
         for row in value_types:
-            row["label"] = VALUE_TYPE_LABELS_RU.get(row["value_type"], row["value_type"])
+            row["label"] = gettext(VALUE_TYPE_LABELS_RU.get(row["value_type"], row["value_type"]))
         coverage = q(
             "SELECT COUNT(*) FILTER (WHERE coverage >= 0.95) AS ge95, "
             "COUNT(*) FILTER (WHERE coverage >= 0.90) AS ge90, "
