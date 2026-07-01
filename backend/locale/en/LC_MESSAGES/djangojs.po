@@ -1,0 +1,169 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: RegionLens (djangojs)\n"
+"POT-Creation-Date: 2026-07-01 02:48+0000\n"
+"PO-Revision-Date: 2026-07-01 02:48+0000\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid ""
+"Не удалось связаться с сервером. Проверьте соединение и что хранилище данных"
+" собрано, затем обновите страницу."
+msgstr ""
+"Could not reach the server. Check your connection and that the data store is"
+" built, then refresh the page."
+
+msgid "Произошла ошибка. Обновите страницу."
+msgstr "An error occurred. Please refresh the page."
+
+msgid "Выберите или введите для поиска…"
+msgstr "Select or type to search…"
+
+msgid "Ничего не найдено"
+msgstr "Nothing found"
+
+msgid "Загрузка типологии…"
+msgstr "Loading the typology…"
+
+msgid "Ошибка загрузки типологии"
+msgstr "Failed to load the typology"
+
+msgid "Нет данных за выбранный год."
+msgstr "No data for the selected year."
+
+msgid "тип"
+msgstr "type"
+
+msgid "регионов"
+msgstr "regions"
+
+msgid "Регионы (от типичных к пограничным):"
+msgstr "Regions (from typical to borderline):"
+
+msgid "Нет профиля."
+msgstr "No profile."
+
+msgid ""
+"Не удалось загрузить границы регионов. Сформируйте "
+"<code>static/geo/regions.geojson</code> командой "
+"<code>build_region_geojson</code> (см. README)."
+msgstr ""
+"Could not load region boundaries. Generate "
+"<code>static/geo/regions.geojson</code> with the "
+"<code>build_region_geojson</code> command (see README)."
+
+msgid "Ошибка загрузки слоя"
+msgstr "Failed to load the layer"
+
+msgid "нет данных"
+msgstr "no data"
+
+msgid "Слой не загрузился"
+msgstr "The layer failed to load"
+
+msgid "Индекс"
+msgstr "Index"
+
+msgid "Типы регионов"
+msgstr "Types of regions"
+
+msgid "Плотность заливки — типичность региона для своего типа."
+msgstr "Fill density reflects how typical a region is of its type."
+
+msgid "Индекс развития (0–100)"
+msgstr "Development index (0–100)"
+
+msgid "Ссылка скопирована"
+msgstr "Link copied"
+
+msgid "Эк."
+msgstr "Econ."
+
+msgid "Дох."
+msgstr "Inc."
+
+msgid "Дем."
+msgstr "Dem."
+
+msgid "Труд"
+msgstr "Labour"
+
+msgid "Инфр."
+msgstr "Infra."
+
+msgid "Здр./обр."
+msgstr "Health/edu."
+
+msgid "Загрузка рейтинга…"
+msgstr "Loading the ranking…"
+
+msgid "Ошибка загрузки рейтинга"
+msgstr "Failed to load the ranking"
+
+msgid "Регион"
+msgstr "Region"
+
+msgid "Разброс места по всем схемам весов"
+msgstr "Spread of the place across all weighting schemes"
+
+msgid "Коридор"
+msgstr "Corridor"
+
+msgid "По схемам весов: с %(best)s по %(worst)s место (коридор %(range)s)"
+msgstr ""
+"Across weighting schemes: from place %(best)s to %(worst)s (corridor "
+"%(range)s)"
+
+msgid ""
+"«Коридор» — место региона по разным схемам весов (равные / PCA / "
+"экспертные): чем шире, тем сильнее ранг зависит от выбора весов, а не от "
+"самих данных."
+msgstr ""
+"The “corridor” is a region’s place under different weighting schemes (equal "
+"/ PCA / expert): the wider it is, the more the rank depends on the weight "
+"choice rather than the data itself."
+
+msgid "Загрузка…"
+msgstr "Loading…"
+
+msgid "Ошибка загрузки"
+msgstr "Loading error"
+
+msgid ""
+"Нет данных стабильности рейтинга. Пересоберите конвейер (стадия "
+"rank_stability)."
+msgstr "No rank-stability data. Rebuild the pipeline (rank_stability stage)."
+
+msgid "Лет"
+msgstr "Years"
+
+msgid "Ср. ранг"
+msgstr "Mean rank"
+
+msgid "σ ранга"
+msgstr "Rank σ"
+
+msgid "Мин"
+msgstr "Min"
+
+msgid "Макс"
+msgstr "Max"
+
+msgid "Размах"
+msgstr "Range"
+
+msgid "Ср. |Δ| за год"
+msgstr "Mean |Δ| per year"
+
+msgid ""
+"σ ранга и средний |Δ| за год — мера «дёрганности» места в рейтинге: 0 "
+"означает, что регион не двигался. Бар нормирован по максимуму в выборке; "
+"сортировка — от самых стабильных к самым подвижным."
+msgstr ""
+"Rank σ and mean |Δ| per year measure how “jittery” a place in the ranking "
+"is: 0 means the region did not move. The bar is normalised to the sample "
+"maximum; sorted from the most stable to the most volatile."

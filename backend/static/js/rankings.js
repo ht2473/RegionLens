@@ -9,12 +9,12 @@
   if (!root) return;
 
   var DOMAINS = [
-    ["economy", "Эк."],
-    ["income", "Дох."],
-    ["demography", "Дем."],
-    ["labor", "Труд"],
-    ["infrastructure", "Инфр."],
-    ["health_edu", "Здр./обр."],
+    ["economy", gettext("Эк.")],
+    ["income", gettext("Дох.")],
+    ["demography", gettext("Дем.")],
+    ["labor", gettext("Труд")],
+    ["infrastructure", gettext("Инфр.")],
+    ["health_edu", gettext("Здр./обр.")],
   ];
   var state = { year: 2024, scheme: "equal" };
   var names = null; // okato -> region_name
@@ -33,11 +33,11 @@
   }
 
   function load() {
-    root.innerHTML = '<div class="shell"><p>Загрузка рейтинга…</p></div>';
+    root.innerHTML = '<div class="shell"><p>' + gettext("Загрузка рейтинга…") + "</p></div>";
     Promise.all([
       ensureNames(),
       fetch("/api/index/?year=" + state.year + "&scheme=" + state.scheme).then(function (r) {
-        if (!r.ok) throw new Error("Ошибка загрузки рейтинга (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка загрузки рейтинга") + " (" + r.status + ")");
         return r.json();
       }),
       // коридор ранга по схемам — необязателен: если недоступен, рейтинг работает как прежде
@@ -51,7 +51,7 @@
 
   function render(rows, robustness) {
     if (!rows.length) {
-      root.innerHTML = '<div class="shell"><p>Нет данных за выбранный год.</p></div>';
+      root.innerHTML = '<div class="shell"><p>' + gettext("Нет данных за выбранный год.") + "</p></div>";
       return;
     }
     var hasCorr = Array.isArray(robustness);
@@ -59,9 +59,11 @@
     if (hasCorr) robustness.forEach(function (c) { corrMap[c.okato] = c; });
 
     var head =
-      "<tr><th>#</th><th>Регион</th><th class='num'>Индекс</th>" +
+      "<tr><th>#</th><th>" + gettext("Регион") + "</th><th class='num'>" + gettext("Индекс") + "</th>" +
       DOMAINS.map(function (d) { return "<th class='num' title='" + d[0] + "'>" + d[1] + "</th>"; }).join("") +
-      (hasCorr ? "<th class='num' title='Разброс места по всем схемам весов'>Коридор</th>" : "") +
+      (hasCorr
+        ? "<th class='num' title='" + gettext("Разброс места по всем схемам весов") + "'>" + gettext("Коридор") + "</th>"
+        : "") +
       "</tr>";
     var body = rows
       .map(function (r) {
@@ -80,8 +82,13 @@
               c.rank_best === c.rank_worst ? String(c.rank_best) : c.rank_best + "–" + c.rank_worst;
             var cls = c.rank_range >= 10 ? "num rank-wide" : "num";
             corrCell =
-              "<td class='" + cls + "' title='По схемам весов: с " + c.rank_best + " по " +
-              c.rank_worst + " место (коридор " + c.rank_range + ")'>" + txt + "</td>";
+              "<td class='" + cls + "' title='" +
+              interpolate(
+                gettext("По схемам весов: с %(best)s по %(worst)s место (коридор %(range)s)"),
+                { best: c.rank_best, worst: c.rank_worst, range: c.rank_range },
+                true
+              ) +
+              "'>" + txt + "</td>";
           } else {
             corrCell = "<td class='num'>—</td>";
           }
@@ -95,9 +102,11 @@
       })
       .join("");
     var note = hasCorr
-      ? "<p class='chart-note'>«Коридор» — место региона по разным схемам весов " +
-        "(равные / PCA / экспертные): чем шире, тем сильнее ранг зависит от выбора весов, " +
-        "а не от самих данных.</p>"
+      ? "<p class='chart-note'>" +
+        gettext(
+          "«Коридор» — место региона по разным схемам весов (равные / PCA / экспертные): чем шире, тем сильнее ранг зависит от выбора весов, а не от самих данных."
+        ) +
+        "</p>"
       : "";
     root.innerHTML =
       "<div class='table-wrap'><table class='table rankings'><thead>" +

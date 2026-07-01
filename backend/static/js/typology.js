@@ -37,11 +37,11 @@
   }
 
   function load() {
-    root.innerHTML = '<div class="shell"><p>Загрузка типологии…</p></div>';
+    root.innerHTML = '<div class="shell"><p>' + gettext("Загрузка типологии…") + "</p></div>";
     Promise.all([
       ensureNames(),
       fetch("/api/typology/?year=" + state.year).then(function (r) {
-        if (!r.ok) throw new Error("Ошибка загрузки типологии (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка загрузки типологии") + " (" + r.status + ")");
         return r.json();
       }),
     ])
@@ -51,13 +51,13 @@
 
   function render(rows) {
     if (!rows.length) {
-      root.innerHTML = '<div class="shell"><p>Нет данных за выбранный год.</p></div>';
+      root.innerHTML = '<div class="shell"><p>' + gettext("Нет данных за выбранный год.") + "</p></div>";
       return;
     }
     var groups = {};
     rows.forEach(function (r) {
       var cid = r.cluster_id;
-      if (!groups[cid]) groups[cid] = { cid: cid, label: r.cluster_label || "тип " + cid, items: [] };
+      if (!groups[cid]) groups[cid] = { cid: cid, label: r.cluster_label || gettext("тип") + " " + cid, items: [] };
       groups[cid].items.push(r);
     });
     var cids = Object.keys(groups).sort(function (a, b) { return a - b; });
@@ -91,9 +91,9 @@
         return (
           "<div class='card type-card'>" +
           "<h3><span class='swatch' style='background:" + (PALETTE[cid] || "#ccc") + "'></span>" +
-          g.label + " <span class='type-count'>" + g.items.length + " регионов</span></h3>" +
+          g.label + " <span class='type-count'>" + g.items.length + " " + gettext("регионов") + "</span></h3>" +
           "<div id='profile-" + cid + "' class='chart profile-chart'></div>" +
-          "<p class='chart-note'>Регионы (от типичных к пограничным):</p>" +
+          "<p class='chart-note'>" + gettext("Регионы (от типичных к пограничным):") + "</p>" +
           "<div class='region-grid sm'>" + chips + "</div>" +
           "</div>"
         );
@@ -110,7 +110,7 @@
       .then(function (rows) {
         var el = document.getElementById("profile-" + cid);
         if (!el) return;
-        if (!rows.length) { el.innerHTML = '<p class="chart-note">Нет профиля.</p>'; return; }
+        if (!rows.length) { el.innerHTML = '<p class="chart-note">' + gettext("Нет профиля.") + "</p>"; return; }
         var top = rows.slice(0, 6); // крупнейший |mean_z| первым (API сортирует по убыванию)
         var maxAbs = Math.max.apply(null, top.map(function (m) { return Math.abs(m.mean_z); })) || 1;
         var html = top

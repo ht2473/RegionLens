@@ -7,16 +7,23 @@
   "use strict";
   window.RL = window.RL || {};
 
+  // Защитный фолбэк: каталог переводов JS (jsi18n) подключается раньше и определяет gettext.
+  // Если он по какой-то причине не загрузился — возвращаем исходную (русскую) строку.
+  if (typeof window.gettext !== "function") {
+    window.gettext = function (s) {
+      return s;
+    };
+  }
+
   // Сетевой сбой → fetch отклоняется с TypeError: даёт дружелюбное сообщение. Наши HTTP-ошибки
   // (new Error с кодом статуса) сохраняют свой текст. Иначе — общий безопасный текст.
   window.RL.errText = function (err) {
     if (err instanceof TypeError) {
-      return (
-        "Не удалось связаться с сервером. Проверьте соединение и что хранилище данных собрано, " +
-        "затем обновите страницу."
+      return gettext(
+        "Не удалось связаться с сервером. Проверьте соединение и что хранилище данных собрано, затем обновите страницу."
       );
     }
-    return (err && err.message) || "Произошла ошибка. Обновите страницу.";
+    return (err && err.message) || gettext("Произошла ошибка. Обновите страницу.");
   };
 
   // Текущее значение CSS-переменной темы (для графиков/карты — чтобы цвета следовали теме).
@@ -91,7 +98,7 @@
     input.setAttribute("role", "combobox");
     input.setAttribute("aria-autocomplete", "list");
     input.setAttribute("aria-expanded", "false");
-    input.placeholder = placeholder || "Выберите или введите для поиска…";
+    input.placeholder = placeholder || gettext("Выберите или введите для поиска…");
     var caret = document.createElement("span");
     caret.className = "combo-caret";
     caret.setAttribute("aria-hidden", "true");
@@ -153,7 +160,7 @@
         .slice(0, 100);
       active = -1;
       if (!filtered.length) {
-        list.innerHTML = '<div class="combo-empty">Ничего не найдено</div>';
+        list.innerHTML = '<div class="combo-empty">' + gettext("Ничего не найдено") + "</div>";
         return;
       }
       list.innerHTML = filtered

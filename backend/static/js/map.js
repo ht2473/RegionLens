@@ -98,9 +98,11 @@
       })
       .catch(function () {
         root.innerHTML =
-          '<div class="shell"><p>Не удалось загрузить границы регионов. ' +
-          "Сформируйте <code>static/geo/regions.geojson</code> командой " +
-          "<code>build_region_geojson</code> (см. README).</p></div>";
+          '<div class="shell"><p>' +
+          gettext(
+            "Не удалось загрузить границы регионов. Сформируйте <code>static/geo/regions.geojson</code> командой <code>build_region_geojson</code> (см. README)."
+          ) +
+          "</p></div>";
       });
   });
 
@@ -108,7 +110,7 @@
     var url = API + "?year=" + encodeURIComponent(state.year) + "&measure=" + state.measure;
     fetch(url)
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка загрузки слоя (" + r.status + ").");
+        if (!r.ok) throw new Error(gettext("Ошибка загрузки слоя") + " (" + r.status + ").");
         return r.json();
       })
       .then(function (rows) {
@@ -141,8 +143,8 @@
           f.properties.metric = d
             ? state.measure === "index"
               ? (d.total_score != null ? d.total_score.toFixed(1) : "—")
-              : d.cluster_label || "тип " + d.cluster_id
-            : "нет данных";
+              : d.cluster_label || gettext("тип") + " " + d.cluster_id
+            : gettext("нет данных");
         });
         map.getSource("regions").setData(geo);
         applyPaint();
@@ -152,7 +154,7 @@
         var el = document.getElementById("map-legend");
         if (el) {
           el.innerHTML =
-            "<div class='legend-title'>Слой не загрузился</div>" +
+            "<div class='legend-title'>" + gettext("Слой не загрузился") + "</div>" +
             "<div class='legend-note'>" + RL.errText(e) + "</div>";
         }
       });
@@ -193,7 +195,7 @@
         .setLngLat(e.lngLat)
         .setHTML(
           '<strong>' + (p.name || p.okato) + "</strong><br>" +
-            (state.measure === "index" ? "Индекс: " : "") + (p.metric || "—")
+            (state.measure === "index" ? gettext("Индекс") + ": " : "") + (p.metric || "—")
         )
         .addTo(map);
     });
@@ -213,19 +215,23 @@
     if (state.measure === "cluster") {
       var seen = {};
       rows.forEach(function (d) {
-        if (seen[d.cluster_id] === undefined) seen[d.cluster_id] = d.cluster_label || "тип " + d.cluster_id;
+        if (seen[d.cluster_id] === undefined)
+        seen[d.cluster_id] = d.cluster_label || gettext("тип") + " " + d.cluster_id;
       });
-      var html = "<div class='legend-title'>Типы регионов</div>";
+      var html = "<div class='legend-title'>" + gettext("Типы регионов") + "</div>";
       Object.keys(seen).sort().forEach(function (cid) {
         html +=
           "<div class='legend-row'><span class='swatch' style='background:" +
           (CLUSTER_COLORS[cid] || NODATA) + "'></span>" + seen[cid] + "</div>";
       });
-      html += "<div class='legend-note'>Плотность заливки — типичность региона для своего типа.</div>";
+      html +=
+        "<div class='legend-note'>" +
+        gettext("Плотность заливки — типичность региона для своего типа.") +
+        "</div>";
       el.innerHTML = html;
     } else {
       el.innerHTML =
-        "<div class='legend-title'>Индекс развития (0–100)</div>" +
+        "<div class='legend-title'>" + gettext("Индекс развития (0–100)") + "</div>" +
         "<div class='legend-gradient'></div>" +
         "<div class='legend-scale'><span>0</span><span>50</span><span>100</span></div>";
     }
@@ -262,7 +268,7 @@
     copyBtn.addEventListener("click", function () {
       var flash = function () {
         var prev = copyBtn.textContent;
-        copyBtn.textContent = "Ссылка скопирована";
+        copyBtn.textContent = gettext("Ссылка скопирована");
         setTimeout(function () {
           copyBtn.textContent = prev;
         }, 1500);

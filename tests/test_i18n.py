@@ -149,3 +149,16 @@ def test_account_pages_translated_to_english(client: Client, django_user_model: 
     views = client.get(reverse("account_views")).content.decode()
     assert "My views" in views and "Save a new view" in views
     assert "Мои виды" not in views
+
+
+def test_javascript_catalog_serves_translations() -> None:
+    """Каталог переводов для JS (jsi18n) отдаёт английские строки при активном en."""
+    client = Client()
+    client.post(reverse("set_language"), {"language": "en", "next": "/"})
+    catalog = client.get(reverse("javascript-catalog")).content.decode()
+    assert "Corridor" in catalog
+    assert "Loading the ranking" in catalog
+    # На русском (по умолчанию) каталог не содержит английских переводов.
+    client.post(reverse("set_language"), {"language": "ru", "next": "/"})
+    catalog_ru = client.get(reverse("javascript-catalog")).content.decode()
+    assert "Corridor" not in catalog_ru

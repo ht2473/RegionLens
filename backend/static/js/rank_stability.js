@@ -23,10 +23,10 @@
   }
 
   function load() {
-    shell("Загрузка…");
+    shell(gettext("Загрузка…"));
     fetch("/api/rank-stability/?scheme=" + encodeURIComponent(scheme.value))
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка загрузки (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка загрузки") + " (" + r.status + ")");
         return r.json();
       })
       .then(function (rows) {
@@ -39,7 +39,7 @@
 
   function render(rows) {
     if (!rows.length) {
-      shell("Нет данных стабильности рейтинга. Пересоберите конвейер (стадия rank_stability).");
+      shell(gettext("Нет данных стабильности рейтинга. Пересоберите конвейер (стадия rank_stability)."));
       return;
     }
     var stds = rows
@@ -52,9 +52,10 @@
     var maxStd = stds.length ? Math.max.apply(null, stds) : 0;
 
     var head =
-      "<tr><th>Регион</th><th class='num'>Лет</th><th class='num'>Ср. ранг</th>" +
-      "<th class='num'>σ ранга</th><th class='num'>Мин</th><th class='num'>Макс</th>" +
-      "<th class='num'>Размах</th><th class='num'>Ср. |Δ| за год</th></tr>";
+      "<tr><th>" + gettext("Регион") + "</th><th class='num'>" + gettext("Лет") + "</th>" +
+      "<th class='num'>" + gettext("Ср. ранг") + "</th><th class='num'>" + gettext("σ ранга") + "</th>" +
+      "<th class='num'>" + gettext("Мин") + "</th><th class='num'>" + gettext("Макс") + "</th>" +
+      "<th class='num'>" + gettext("Размах") + "</th><th class='num'>" + gettext("Ср. |Δ| за год") + "</th></tr>";
 
     var body = rows
       .map(function (r) {
@@ -77,9 +78,11 @@
       .join("");
 
     root.innerHTML =
-      "<p class='chart-note'>σ ранга и средний |Δ| за год — мера «дёрганности» места в рейтинге: " +
-      "0 означает, что регион не двигался. Бар нормирован по максимуму в выборке; сортировка — " +
-      "от самых стабильных к самым подвижным.</p>" +
+      "<p class='chart-note'>" +
+      gettext(
+        "σ ранга и средний |Δ| за год — мера «дёрганности» места в рейтинге: 0 означает, что регион не двигался. Бар нормирован по максимуму в выборке; сортировка — от самых стабильных к самым подвижным."
+      ) +
+      "</p>" +
       "<div class='table-wrap'><table class='table'><thead>" +
       head +
       "</thead><tbody>" +
