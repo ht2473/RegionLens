@@ -2,6 +2,7 @@
 
 from django.contrib.auth import views as auth_views
 from django.urls import include, path, reverse_lazy
+from django.utils.translation import gettext_lazy as _
 
 from . import cabinet, views
 
@@ -34,8 +35,8 @@ urlpatterns = [
             extra_context={
                 "active": "login",
                 "breadcrumbs": [
-                    {"title": "Главная", "url": reverse_lazy("home")},
-                    {"title": "Вход"},
+                    {"title": _("Главная"), "url": reverse_lazy("home")},
+                    {"title": _("Вход")},
                 ],
             },
         ),
@@ -59,9 +60,9 @@ urlpatterns = [
                 "active": "account",
                 "cabinet_tab": "password",
                 "breadcrumbs": [
-                    {"title": "Главная", "url": reverse_lazy("home")},
-                    {"title": "Личный кабинет", "url": reverse_lazy("account")},
-                    {"title": "Смена пароля", "url": None},
+                    {"title": _("Главная"), "url": reverse_lazy("home")},
+                    {"title": _("Личный кабинет"), "url": reverse_lazy("account")},
+                    {"title": _("Смена пароля"), "url": None},
                 ],
             },
         ),
@@ -75,9 +76,9 @@ urlpatterns = [
                 "active": "account",
                 "cabinet_tab": "password",
                 "breadcrumbs": [
-                    {"title": "Главная", "url": reverse_lazy("home")},
-                    {"title": "Личный кабинет", "url": reverse_lazy("account")},
-                    {"title": "Смена пароля", "url": None},
+                    {"title": _("Главная"), "url": reverse_lazy("home")},
+                    {"title": _("Личный кабинет"), "url": reverse_lazy("account")},
+                    {"title": _("Смена пароля"), "url": None},
                 ],
             },
         ),

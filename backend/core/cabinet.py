@@ -11,20 +11,19 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext
 
 from .audit import record
 from .forms import ProfileForm, SavedViewForm
 from .models import ExportJob, SavedView, UserProfile
 from .permissions import effective_roles
 
-_ACCOUNT_CRUMB = {"title": "Личный кабинет", "url": "/account/"}
-
 
 def _crumbs(tail_title: str) -> list[dict[str, str | None]]:
     """Крошки кабинета: Главная → Личный кабинет → <раздел>."""
     return [
-        {"title": "Главная", "url": reverse("home")},
-        dict(_ACCOUNT_CRUMB),
+        {"title": gettext("Главная"), "url": reverse("home")},
+        {"title": gettext("Личный кабинет"), "url": "/account/"},
         {"title": tail_title, "url": None},
     ]
 
@@ -37,8 +36,8 @@ def overview(request: HttpRequest) -> HttpResponse:
         "active": "account",
         "cabinet_tab": "overview",
         "breadcrumbs": [
-            {"title": "Главная", "url": reverse("home")},
-            {"title": "Личный кабинет", "url": None},
+            {"title": gettext("Главная"), "url": reverse("home")},
+            {"title": gettext("Личный кабинет"), "url": None},
         ],
         "profile": profile,
         "roles": sorted(effective_roles(request.user)),
@@ -65,7 +64,7 @@ def profile_edit(request: HttpRequest) -> HttpResponse:
     ctx = {
         "active": "account",
         "cabinet_tab": "profile",
-        "breadcrumbs": _crumbs("Профиль"),
+        "breadcrumbs": _crumbs(gettext("Профиль")),
         "form": form,
         "saved": saved,
     }
@@ -91,7 +90,7 @@ def saved_views(request: HttpRequest) -> HttpResponse:
     ctx = {
         "active": "account",
         "cabinet_tab": "views",
-        "breadcrumbs": _crumbs("Сохранённые виды"),
+        "breadcrumbs": _crumbs(gettext("Сохранённые виды")),
         "form": form,
         "views": SavedView.objects.filter(user=request.user),
     }
@@ -136,7 +135,7 @@ def export_history(request: HttpRequest) -> HttpResponse:
     ctx = {
         "active": "account",
         "cabinet_tab": "exports",
-        "breadcrumbs": _crumbs("История экспортов"),
+        "breadcrumbs": _crumbs(gettext("История экспортов")),
         "jobs": ExportJob.objects.filter(user=request.user),
     }
     return render(request, "account/exports.html", ctx)

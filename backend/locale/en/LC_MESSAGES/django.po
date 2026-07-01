@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-06-30 22:22+0000\n"
+"PO-Revision-Date: 2026-06-30 22:37+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1236,3 +1236,232 @@ msgstr ""
 "For absolute indicators the two diverge: per-capita conversion needs "
 "population, and a missing population value causes imputation even where the "
 "raw data existed."
+
+msgid "Вход"
+msgstr "Sign in"
+
+msgid ""
+"Войдите, чтобы сохранять виды, экспортировать отчёты и пользоваться личным "
+"кабинетом."
+msgstr "Sign in to save views, export reports, and use your account."
+
+msgid "Неверное имя пользователя или пароль. Попробуйте ещё раз."
+msgstr "Incorrect username or password. Please try again."
+
+msgid "Имя пользователя"
+msgstr "Username"
+
+msgid "Пароль"
+msgstr "Password"
+
+msgid "Показать или скрыть пароль"
+msgstr "Show or hide the password"
+
+msgid "Показать"
+msgstr "Show"
+
+msgid "Нет учётной записи? <a href=\"%(register_url)s\">Зарегистрироваться</a>"
+msgstr "No account? <a href=\"%(register_url)s\">Sign up</a>"
+
+msgid ""
+"Создайте учётную запись (роль «viewer»): сохраняйте виды, экспортируйте "
+"отчёты и ведите личный кабинет."
+msgstr ""
+"Create an account (viewer role): save views, export reports, and manage your"
+" account."
+
+msgid "Только буквы и цифры"
+msgstr "Letters and digits only"
+
+msgid "Повторите пароль"
+msgstr "Repeat the password"
+
+msgid "Зарегистрироваться"
+msgstr "Sign up"
+
+msgid "Уже есть учётная запись? <a href=\"%(login_url)s\">Войти</a>"
+msgstr "Already have an account? <a href=\"%(login_url)s\">Sign in</a>"
+
+msgid "Связаться с автором"
+msgstr "Contact the author"
+
+msgid ""
+"Нашли ошибку, неточность в данных или есть предложение по платформе? "
+"Напишите — это поможет сделать RegionLens лучше."
+msgstr ""
+"Found a bug, a data inaccuracy, or have a suggestion for the platform? Write"
+" to us — it helps make RegionLens better."
+
+msgid "Сообщение получено"
+msgstr "Message received"
+
+msgid ""
+"Спасибо за обратную связь. Постоянное хранение сообщений и просмотр из "
+"личного кабинета появятся позже."
+msgstr ""
+"Thank you for your feedback. Persistent storage of messages and viewing them"
+" from your account will be added later."
+
+msgid "Имя (необязательно)"
+msgstr "Name (optional)"
+
+msgid "Сообщение"
+msgstr "Message"
+
+msgid "Опишите проблему или предложение…"
+msgstr "Describe the issue or suggestion…"
+
+msgid "Отправить"
+msgstr "Send"
+
+msgid "Разделы кабинета"
+msgstr "Account sections"
+
+msgid "Обзор"
+msgstr "Overview"
+
+msgid "Профиль"
+msgstr "Profile"
+
+msgid "Сохранённые виды"
+msgstr "Saved views"
+
+msgid "История экспортов"
+msgstr "Export history"
+
+msgid "Смена пароля"
+msgstr "Change password"
+
+msgid "Здравствуйте, %(name)s"
+msgstr "Hello, %(name)s"
+
+msgid "Здесь — ваш профиль, сохранённые виды и история экспортов отчётов."
+msgstr "Here are your profile, saved views, and report export history."
+
+msgid "Сохранённых видов"
+msgstr "Saved views"
+
+msgid "Управлять →"
+msgstr "Manage →"
+
+msgid "Экспортов отчётов"
+msgstr "Report exports"
+
+msgid "История →"
+msgstr "History →"
+
+msgid "Доступ"
+msgstr "Access"
+
+msgid "Роли"
+msgstr "Roles"
+
+msgid "Редактировать профиль →"
+msgstr "Edit profile →"
+
+msgid "Профиль сохранён."
+msgstr "Profile saved."
+
+msgid "Сохранить"
+msgstr "Save"
+
+msgid "Изменить пароль"
+msgstr "Change password"
+
+msgid "Пароль изменён"
+msgstr "Password changed"
+
+msgid "Ваш пароль успешно обновлён."
+msgstr "Your password has been updated successfully."
+
+msgid "Сформированные отчёты по регионам в форматах xlsx и docx."
+msgstr "Generated region reports in xlsx and docx formats."
+
+msgid "Регион (ОКАТО)"
+msgstr "Region (OKATO)"
+
+msgid "Формат"
+msgstr "Format"
+
+msgid "Статус"
+msgstr "Status"
+
+msgid "Создан"
+msgstr "Created"
+
+msgid "Скачать"
+msgstr "Download"
+
+msgid ""
+"Экспортов пока нет. Кнопки экспорта появятся на страницах региона после "
+"подключения модуля отчётов."
+msgstr ""
+"No exports yet. Export buttons appear on region pages once the reporting "
+"module is enabled."
+
+msgid ""
+"Именованные наборы параметров экрана (год, мера, схема, регион). Хранится "
+"только конфигурация — аналитика всегда перечитывается из хранилища."
+msgstr ""
+"Named sets of screen parameters (year, measure, scheme, region). Only the "
+"configuration is stored — analytics is always re-read from the store."
+
+msgid "Сохранить новый вид"
+msgstr "Save a new view"
+
+msgid "Сохранить вид"
+msgstr "Save view"
+
+msgid "Мои виды"
+msgstr "My views"
+
+msgid "Название"
+msgstr "Name"
+
+msgid "Параметры"
+msgstr "Parameters"
+
+msgid "Открыть"
+msgstr "Open"
+
+msgid "Закрыть доступ"
+msgstr "Make private"
+
+msgid "Открыть доступ"
+msgstr "Make public"
+
+msgid "Удалить"
+msgstr "Delete"
+
+msgid "Пока нет сохранённых видов."
+msgstr "No saved views yet."
+
+msgid "Скопировано"
+msgstr "Copied"
+
+msgid "Равные веса"
+msgstr "Equal weights"
+
+msgid ""
+"Имя пользователя может содержать только буквы и цифры (без пробелов и "
+"символов)."
+msgstr ""
+"The username may contain only letters and digits (no spaces or symbols)."
+
+msgid "Только буквы и цифры, до 40 символов."
+msgstr "Letters and digits only, up to 40 characters."
+
+msgid "E-mail (необязательно)"
+msgstr "Email (optional)"
+
+msgid "E-mail"
+msgstr "Email"
+
+msgid "Мера карты"
+msgstr "Map measure"
+
+msgid "Схема индекса"
+msgstr "Index scheme"
+
+msgid "ОКАТО региона (необязательно)"
+msgstr "Region OKATO (optional)"

@@ -1,34 +1,33 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Обратная связь — RegionLens{% endblock %}
+{% block title %}{% trans "Обратная связь" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Связаться с автором</p>
-  <h1>Обратная связь</h1>
-  <p class="lead">Нашли ошибку, неточность в данных или есть предложение по платформе? Напишите —
-    это поможет сделать RegionLens лучше.</p>
+  <p class="eyebrow">{% trans "Связаться с автором" %}</p>
+  <h1>{% trans "Обратная связь" %}</h1>
+  <p class="lead">{% trans "Нашли ошибку, неточность в данных или есть предложение по платформе? Напишите — это поможет сделать RegionLens лучше." %}</p>
 </section>
 
 {% if sent %}
   <div class="card" style="border-color: var(--accent); background: var(--accent-soft);">
-    <h3 style="margin-top:0;">Сообщение получено</h3>
-    <p style="margin-bottom:0;">Спасибо за обратную связь. Постоянное хранение сообщений и просмотр
-      из личного кабинета подключаются в операционном модуле (Ф10).</p>
+    <h3 style="margin-top:0;">{% trans "Сообщение получено" %}</h3>
+    <p style="margin-bottom:0;">{% trans "Спасибо за обратную связь. Постоянное хранение сообщений и просмотр из личного кабинета появятся позже." %}</p>
   </div>
 {% else %}
   <form method="post" action="{% url 'feedback' %}" style="max-width: 560px;">
     {% csrf_token %}
     <div class="field">
-      <label for="name">Имя (необязательно)</label>
+      <label for="name">{% trans "Имя (необязательно)" %}</label>
       <input type="text" id="name" name="name" maxlength="120" autocomplete="name">
     </div>
     <div class="field">
-      <label for="text">Сообщение</label>
+      <label for="text">{% trans "Сообщение" %}</label>
       <textarea id="text" name="text" required maxlength="4000"
-        placeholder="Опишите проблему или предложение…"></textarea>
+        placeholder="{% trans 'Опишите проблему или предложение…' %}"></textarea>
     </div>
-    <button class="btn" type="submit">Отправить</button>
+    <button class="btn" type="submit">{% trans "Отправить" %}</button>
   </form>
 {% endif %}
 {% endblock %}

@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}История экспортов — RegionLens{% endblock %}
+{% block title %}{% trans "История экспортов" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Личный кабинет</p>
-  <h1>История экспортов</h1>
-  <p class="lead">Сформированные отчёты по регионам в форматах xlsx и docx.</p>
+  <p class="eyebrow">{% trans "Личный кабинет" %}</p>
+  <h1>{% trans "История экспортов" %}</h1>
+  <p class="lead">{% trans "Сформированные отчёты по регионам в форматах xlsx и docx." %}</p>
 </section>
 
 {% include "account/_tabs.html" %}
@@ -15,7 +16,7 @@
   <div class="table-wrap">
     <table class="table">
       <thead>
-        <tr><th>Регион (ОКАТО)</th><th>Формат</th><th>Статус</th><th>Создан</th><th></th></tr>
+        <tr><th>{% trans "Регион (ОКАТО)" %}</th><th>{% trans "Формат" %}</th><th>{% trans "Статус" %}</th><th>{% trans "Создан" %}</th><th></th></tr>
       </thead>
       <tbody>
         {% for job in jobs %}
@@ -24,14 +25,13 @@
             <td>{{ job.get_fmt_display }}</td>
             <td>{{ job.get_status_display }}</td>
             <td>{{ job.created|date:"d.m.Y H:i" }}</td>
-            <td>{% if job.file %}<a class="btn ghost" href="{{ job.file.url }}">Скачать</a>{% else %}—{% endif %}</td>
+            <td>{% if job.file %}<a class="btn ghost" href="{{ job.file.url }}">{% trans "Скачать" %}</a>{% else %}—{% endif %}</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 {% else %}
-  <p style="color:var(--ink-faint);">Экспортов пока нет. Кнопки экспорта появятся на страницах региона
-    после подключения модуля отчётов.</p>
+  <p style="color:var(--ink-faint);">{% trans "Экспортов пока нет. Кнопки экспорта появятся на страницах региона после подключения модуля отчётов." %}</p>
 {% endif %}
 {% endblock %}

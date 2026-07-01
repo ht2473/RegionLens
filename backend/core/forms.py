@@ -12,12 +12,13 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
+from django.utils.translation import gettext_lazy as _
 
 from core.models import UserProfile
 
 # Меры карты и схемы весов индекса — согласованы с REFERENCE §1 и эндпойнтами Ф6.
-_MEASURE_CHOICES = [("cluster", "Тип (кластер)"), ("index", "Индекс развития")]
-_SCHEME_CHOICES = [("equal", "Равные веса"), ("pca", "PCA"), ("expert", "Экспертные")]
+_MEASURE_CHOICES = [("cluster", _("Тип (кластер)")), ("index", _("Индекс развития"))]
+_SCHEME_CHOICES = [("equal", _("Равные веса")), ("pca", "PCA"), ("expert", _("Экспертные"))]
 
 
 # Имя пользователя: только буквы (латиница/кириллица) и цифры, без пробелов и символов.
@@ -25,7 +26,7 @@ USERNAME_RE = r"^[0-9A-Za-zА-Яа-яЁё]+$"
 USERNAME_MAX = 40
 _username_validator = RegexValidator(
     USERNAME_RE,
-    "Имя пользователя может содержать только буквы и цифры (без пробелов и символов).",
+    _("Имя пользователя может содержать только буквы и цифры (без пробелов и символов)."),
 )
 
 
@@ -33,12 +34,12 @@ class RegistrationForm(UserCreationForm):
     """Регистрация пользователя: имя, e-mail (необязательно) и пароль с подтверждением."""
 
     username = forms.CharField(
-        label="Имя пользователя",
+        label=_("Имя пользователя"),
         max_length=USERNAME_MAX,
         validators=[_username_validator],
-        help_text="Только буквы и цифры, до 40 символов.",
+        help_text=_("Только буквы и цифры, до 40 символов."),
     )
-    email = forms.EmailField(required=False, label="E-mail (необязательно)")
+    email = forms.EmailField(required=False, label=_("E-mail (необязательно)"))
 
     class Meta(UserCreationForm.Meta):
         model = User
@@ -48,7 +49,7 @@ class RegistrationForm(UserCreationForm):
 class ProfileForm(forms.ModelForm):
     """Редактирование профиля: организация, заметка о роли и e-mail (хранится в `User`)."""
 
-    email = forms.EmailField(required=False, label="E-mail")
+    email = forms.EmailField(required=False, label=_("E-mail"))
 
     class Meta:
         model = UserProfile
@@ -58,11 +59,11 @@ class ProfileForm(forms.ModelForm):
 class SavedViewForm(forms.Form):
     """Параметры сохранённого вида. `to_config()` собирает JSON-конфиг экрана (без данных)."""
 
-    name = forms.CharField(max_length=200, label="Название")
-    year = forms.IntegerField(min_value=2010, max_value=2024, initial=2024, label="Год")
-    measure = forms.ChoiceField(choices=_MEASURE_CHOICES, label="Мера карты")
-    scheme = forms.ChoiceField(choices=_SCHEME_CHOICES, label="Схема индекса")
-    okato = forms.CharField(max_length=20, required=False, label="ОКАТО региона (необязательно)")
+    name = forms.CharField(max_length=200, label=_("Название"))
+    year = forms.IntegerField(min_value=2010, max_value=2024, initial=2024, label=_("Год"))
+    measure = forms.ChoiceField(choices=_MEASURE_CHOICES, label=_("Мера карты"))
+    scheme = forms.ChoiceField(choices=_SCHEME_CHOICES, label=_("Схема индекса"))
+    okato = forms.CharField(max_length=20, required=False, label=_("ОКАТО региона (необязательно)"))
 
     def to_config(self) -> dict[str, object]:
         """Собрать конфиг экрана из очищенных данных (только параметры, не аналитика)."""

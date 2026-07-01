@@ -1,37 +1,39 @@
 {% extends "base.html" %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Вход — RegionLens{% endblock %}
+{% block title %}{% trans "Вход" %} — RegionLens{% endblock %}
 
 {% block content %}
 <div class="auth-wrap">
   <div class="auth-card">
-    <p class="eyebrow">Учётная запись</p>
-    <h1 class="auth-title">Вход</h1>
-    <p class="auth-sub">Войдите, чтобы сохранять виды, экспортировать отчёты и пользоваться личным кабинетом.</p>
+    <p class="eyebrow">{% trans "Учётная запись" %}</p>
+    <h1 class="auth-title">{% trans "Вход" %}</h1>
+    <p class="auth-sub">{% trans "Войдите, чтобы сохранять виды, экспортировать отчёты и пользоваться личным кабинетом." %}</p>
 
     {% if form.errors %}
-      <div class="auth-error">Неверное имя пользователя или пароль. Попробуйте ещё раз.</div>
+      <div class="auth-error">{% trans "Неверное имя пользователя или пароль. Попробуйте ещё раз." %}</div>
     {% endif %}
 
     <form method="post" action="{% url 'login' %}">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ next }}">
       <div class="field">
-        <label for="{{ form.username.id_for_label }}">Имя пользователя</label>
+        <label for="{{ form.username.id_for_label }}">{% trans "Имя пользователя" %}</label>
         {{ form.username }}
       </div>
       <div class="field">
-        <label for="{{ form.password.id_for_label }}">Пароль</label>
+        <label for="{{ form.password.id_for_label }}">{% trans "Пароль" %}</label>
         <div class="pass-box">
           {{ form.password }}
-          <button type="button" class="pass-toggle" aria-label="Показать или скрыть пароль">Показать</button>
+          <button type="button" class="pass-toggle" aria-label="{% trans 'Показать или скрыть пароль' %}">{% trans "Показать" %}</button>
         </div>
       </div>
-      <button class="btn btn-block" type="submit">Войти</button>
+      <button class="btn btn-block" type="submit">{% trans "Войти" %}</button>
     </form>
 
-    <p class="auth-alt">Нет учётной записи? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+    {% url 'register' as register_url %}
+    <p class="auth-alt">{% blocktrans %}Нет учётной записи? <a href="{{ register_url }}">Зарегистрироваться</a>{% endblocktrans %}</p>
   </div>
 </div>
 {% endblock %}

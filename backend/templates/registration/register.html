@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Регистрация — RegionLens{% endblock %}
+{% block title %}{% trans "Регистрация" %} — RegionLens{% endblock %}
 
 {% block content %}
 <div class="auth-wrap">
   <div class="auth-card">
-    <p class="eyebrow">Учётная запись</p>
-    <h1 class="auth-title">Регистрация</h1>
-    <p class="auth-sub">Создайте учётную запись (роль «viewer»): сохраняйте виды, экспортируйте отчёты и ведите личный кабинет.</p>
+    <p class="eyebrow">{% trans "Учётная запись" %}</p>
+    <h1 class="auth-title">{% trans "Регистрация" %}</h1>
+    <p class="auth-sub">{% trans "Создайте учётную запись (роль «viewer»): сохраняйте виды, экспортируйте отчёты и ведите личный кабинет." %}</p>
 
     {% if form.non_field_errors %}
       <div class="auth-error">{{ form.non_field_errors }}</div>
@@ -18,10 +19,10 @@
       {% csrf_token %}
 
       <div class="field">
-        <label for="{{ form.username.id_for_label }}">Имя пользователя</label>
+        <label for="{{ form.username.id_for_label }}">{% trans "Имя пользователя" %}</label>
         {{ form.username }}
         <div class="uname-hint" id="uname-hint">
-          <span class="uname-msg">Только буквы и цифры</span>
+          <span class="uname-msg">{% trans "Только буквы и цифры" %}</span>
           <span class="uname-count">0/40</span>
         </div>
         {% for error in form.username.errors %}<p class="field-err">{{ error }}</p>{% endfor %}
@@ -34,28 +35,29 @@
       </div>
 
       <div class="field">
-        <label for="{{ form.password1.id_for_label }}">Пароль</label>
+        <label for="{{ form.password1.id_for_label }}">{% trans "Пароль" %}</label>
         <div class="pass-box">
           {{ form.password1 }}
-          <button type="button" class="pass-toggle" aria-label="Показать или скрыть пароль">Показать</button>
+          <button type="button" class="pass-toggle" aria-label="{% trans 'Показать или скрыть пароль' %}">{% trans "Показать" %}</button>
         </div>
         {% if form.password1.help_text %}<div class="field-help">{{ form.password1.help_text|safe }}</div>{% endif %}
         {% for error in form.password1.errors %}<p class="field-err">{{ error }}</p>{% endfor %}
       </div>
 
       <div class="field">
-        <label for="{{ form.password2.id_for_label }}">Повторите пароль</label>
+        <label for="{{ form.password2.id_for_label }}">{% trans "Повторите пароль" %}</label>
         <div class="pass-box">
           {{ form.password2 }}
-          <button type="button" class="pass-toggle" aria-label="Показать или скрыть пароль">Показать</button>
+          <button type="button" class="pass-toggle" aria-label="{% trans 'Показать или скрыть пароль' %}">{% trans "Показать" %}</button>
         </div>
         {% for error in form.password2.errors %}<p class="field-err">{{ error }}</p>{% endfor %}
       </div>
 
-      <button class="btn btn-block" type="submit">Зарегистрироваться</button>
+      <button class="btn btn-block" type="submit">{% trans "Зарегистрироваться" %}</button>
     </form>
 
-    <p class="auth-alt">Уже есть учётная запись? <a href="{% url 'login' %}">Войти</a></p>
+    {% url 'login' as login_url %}
+    <p class="auth-alt">{% blocktrans %}Уже есть учётная запись? <a href="{{ login_url }}">Войти</a>{% endblocktrans %}</p>
   </div>
 </div>
 {% endblock %}

@@ -1,12 +1,13 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Личный кабинет — RegionLens{% endblock %}
+{% block title %}{% trans "Личный кабинет" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Личный кабинет</p>
-  <h1>Здравствуйте, {{ user.get_username }}</h1>
-  <p class="lead">Здесь — ваш профиль, сохранённые виды и история экспортов отчётов.</p>
+  <p class="eyebrow">{% trans "Личный кабинет" %}</p>
+  <h1>{% blocktrans with name=user.get_username %}Здравствуйте, {{ name }}{% endblocktrans %}</h1>
+  <p class="lead">{% trans "Здесь — ваш профиль, сохранённые виды и история экспортов отчётов." %}</p>
 </section>
 
 {% include "account/_tabs.html" %}
@@ -14,19 +15,19 @@
 <div class="grid cols-3">
   <div class="card">
     <div class="num">{{ saved_count }}</div>
-    <p>Сохранённых видов</p>
-    <p><a href="{% url 'account_views' %}">Управлять →</a></p>
+    <p>{% trans "Сохранённых видов" %}</p>
+    <p><a href="{% url 'account_views' %}">{% trans "Управлять →" %}</a></p>
   </div>
   <div class="card">
     <div class="num">{{ export_count }}</div>
-    <p>Экспортов отчётов</p>
-    <p><a href="{% url 'account_exports' %}">История →</a></p>
+    <p>{% trans "Экспортов отчётов" %}</p>
+    <p><a href="{% url 'account_exports' %}">{% trans "История →" %}</a></p>
   </div>
   <div class="card">
-    <h3 style="margin-top:0;">Доступ</h3>
-    <p>Роли: {% for r in roles %}<strong>{{ r }}</strong>{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</p>
+    <h3 style="margin-top:0;">{% trans "Доступ" %}</h3>
+    <p>{% trans "Роли" %}: {% for r in roles %}<strong>{{ r }}</strong>{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</p>
     {% if profile.organization %}<p style="color:var(--ink-faint);">{{ profile.organization }}</p>{% endif %}
-    <p><a href="{% url 'account_profile' %}">Редактировать профиль →</a></p>
+    <p><a href="{% url 'account_profile' %}">{% trans "Редактировать профиль →" %}</a></p>
   </div>
 </div>
 {% endblock %}

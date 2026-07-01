@@ -121,3 +121,31 @@ def test_analytics_cluster_translated_to_english() -> None:
         html = client.get(reverse(name)).content.decode()
         assert english in html, name
         assert russian not in html, name
+
+
+def test_auth_and_feedback_pages_translated_to_english() -> None:
+    """Формы входа/регистрации и обратная связь переведены на английский."""
+    client = Client()
+    client.post(reverse("set_language"), {"language": "en", "next": "/"})
+    login = client.get(reverse("login")).content.decode()
+    assert "Sign in" in login and "No account?" in login
+    register = client.get(reverse("register")).content.decode()
+    assert "Sign up" in register and "Repeat the password" in register
+    assert "Регистрация" not in register
+    feedback = client.get(reverse("feedback")).content.decode()
+    assert "Contact the author" in feedback and "Send" in feedback
+
+
+def test_account_pages_translated_to_english(client: Client, django_user_model: object) -> None:
+    """Личный кабинет (обзор, виды) переведён, включая хлебные крошки."""
+    user = django_user_model.objects.create_user(  # type: ignore[attr-defined]
+        username="i18ntester", password="Pw!23456xyz"
+    )
+    client.force_login(user)
+    client.post(reverse("set_language"), {"language": "en", "next": "/"})
+    overview = client.get(reverse("account")).content.decode()
+    assert "Overview" in overview and "Access" in overview
+    assert "Личный кабинет" not in overview
+    views = client.get(reverse("account_views")).content.decode()
+    assert "My views" in views and "Save a new view" in views
+    assert "Мои виды" not in views

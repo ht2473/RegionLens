@@ -1,19 +1,19 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Сохранённые виды — RegionLens{% endblock %}
+{% block title %}{% trans "Сохранённые виды" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
-  <p class="eyebrow">Личный кабинет</p>
-  <h1>Сохранённые виды</h1>
-  <p class="lead">Именованные наборы параметров экрана (год, мера, схема, регион). Хранится только
-    конфигурация — аналитика всегда перечитывается из хранилища.</p>
+  <p class="eyebrow">{% trans "Личный кабинет" %}</p>
+  <h1>{% trans "Сохранённые виды" %}</h1>
+  <p class="lead">{% trans "Именованные наборы параметров экрана (год, мера, схема, регион). Хранится только конфигурация — аналитика всегда перечитывается из хранилища." %}</p>
 </section>
 
 {% include "account/_tabs.html" %}
 
 <div class="card" style="max-width: 640px;">
-  <h3 style="margin-top:0;">Сохранить новый вид</h3>
+  <h3 style="margin-top:0;">{% trans "Сохранить новый вид" %}</h3>
   <form method="post" action="{% url 'account_views' %}">
     {% csrf_token %}
     {% for field in form %}
@@ -25,16 +25,16 @@
         {% endfor %}
       </div>
     {% endfor %}
-    <button class="btn" type="submit">Сохранить вид</button>
+    <button class="btn" type="submit">{% trans "Сохранить вид" %}</button>
   </form>
 </div>
 
-<h2 style="margin-top:28px;">Мои виды</h2>
+<h2 style="margin-top:28px;">{% trans "Мои виды" %}</h2>
 {% if views %}
   <div class="table-wrap">
     <table class="table">
       <thead>
-        <tr><th>Название</th><th>Параметры</th><th>Создан</th><th></th></tr>
+        <tr><th>{% trans "Название" %}</th><th>{% trans "Параметры" %}</th><th>{% trans "Создан" %}</th><th></th></tr>
       </thead>
       <tbody>
         {% for v in views %}
@@ -43,17 +43,17 @@
             <td style="color:var(--ink-soft);">{{ v.config }}</td>
             <td>{{ v.created|date:"d.m.Y H:i" }}</td>
             <td style="white-space:nowrap;">
-              <a class="btn ghost" href="{% url 'account_view_open' v.pk %}">Открыть</a>
+              <a class="btn ghost" href="{% url 'account_view_open' v.pk %}">{% trans "Открыть" %}</a>
               <form method="post" action="{% url 'account_view_share' v.pk %}" style="display:inline;">
                 {% csrf_token %}
-                <button class="btn ghost" type="submit">{% if v.is_shared %}Закрыть доступ{% else %}Открыть доступ{% endif %}</button>
+                <button class="btn ghost" type="submit">{% if v.is_shared %}{% trans "Закрыть доступ" %}{% else %}{% trans "Открыть доступ" %}{% endif %}</button>
               </form>
               {% if v.is_shared %}
-                <button type="button" class="btn ghost" data-share-path="{{ v.public_url }}">Скопировать ссылку</button>
+                <button type="button" class="btn ghost" data-share-path="{{ v.public_url }}">{% trans "Скопировать ссылку" %}</button>
               {% endif %}
               <form method="post" action="{% url 'account_view_delete' v.pk %}" style="display:inline;">
                 {% csrf_token %}
-                <button class="btn ghost" type="submit">Удалить</button>
+                <button class="btn ghost" type="submit">{% trans "Удалить" %}</button>
               </form>
             </td>
           </tr>
@@ -62,19 +62,19 @@
     </table>
   </div>
 {% else %}
-  <p style="color:var(--ink-faint);">Пока нет сохранённых видов.</p>
+  <p style="color:var(--ink-faint);">{% trans "Пока нет сохранённых видов." %}</p>
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script>
-  // Копирование публичной ссылки на вид: относительный путь + текущий origin.
+  // Копирование публичной ссылки на вид: относительный путь дополняется текущим origin.
   document.querySelectorAll("[data-share-path]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var url = window.location.origin + btn.getAttribute("data-share-path");
       var done = function () {
         var prev = btn.textContent;
-        btn.textContent = "Скопировано";
+        btn.textContent = "{% trans 'Скопировано' %}";
         setTimeout(function () { btn.textContent = prev; }, 1500);
       };
       if (navigator.clipboard && navigator.clipboard.writeText) {
