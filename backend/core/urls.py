@@ -54,6 +54,18 @@ urlpatterns = [
     path("account/favorites/", cabinet.favorites_list, name="account_favorites"),
     path("account/favorites/toggle/", cabinet.favorite_toggle, name="favorite_toggle"),
     path("account/activity/", cabinet.activity_feed, name="account_activity"),
+    path("account/comparisons/", cabinet.comparison_sets, name="account_comparisons"),
+    path("account/comparisons/save/", cabinet.comparison_save, name="comparison_save"),
+    path(
+        "account/comparisons/<int:pk>/open/",
+        cabinet.comparison_open,
+        name="comparison_open",
+    ),
+    path(
+        "account/comparisons/<int:pk>/delete/",
+        cabinet.comparison_delete,
+        name="comparison_delete",
+    ),
     path(
         "account/password/",
         auth_views.PasswordChangeView.as_view(

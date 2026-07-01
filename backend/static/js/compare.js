@@ -25,6 +25,18 @@
 
   function setMsg(t) { if (msg) msg.textContent = t || ""; }
 
+  // Deep-link: предвыбор регионов и года из URL (?okato=..&okato=..&year=..) — для наборов сравнения.
+  var params = new URLSearchParams(window.location.search);
+  var urlOkatos = params.getAll("okato").slice(0, 3);
+  var urlYear = parseInt(params.get("year"), 10);
+  if (urlYear >= 2010 && urlYear <= 2024) {
+    state.year = urlYear;
+    var _sl = document.getElementById("year-slider");
+    var _lb = document.getElementById("year-label");
+    if (_sl) _sl.value = urlYear;
+    if (_lb) _lb.textContent = urlYear;
+  }
+
   // Заполнить выпадающие списки регионами
   fetch("/api/regions/")
     .then(function (r) { return r.json(); })
@@ -37,7 +49,9 @@
           .join("");
         sel.innerHTML = opts;
       });
-      if (rows.length >= 2) {
+      if (urlOkatos.length >= 2) {
+        urlOkatos.forEach(function (o, i) { if (selects[i]) selects[i].value = o; });
+      } else if (rows.length >= 2) {
         selects[0].value = rows[0].okato;
         selects[1].value = rows[1].okato;
       }
@@ -132,5 +146,43 @@
       if (label) label.textContent = state.year;
     });
     slider.addEventListener("change", run);
+  }
+
+  // Сохранение текущего сравнения как именованного набора (только для вошедших).
+  var saveBtn = document.getElementById("cmp-save");
+  var saveMsg = document.getElementById("cmp-save-msg");
+  if (saveBtn && window.RL && RL.csrfToken) {
+    saveBtn.addEventListener("click", function () {
+      var okatos = selectedOkatos();
+      if (okatos.length < 2) {
+        if (saveMsg) saveMsg.textContent = gettext("Выберите минимум 2 разных региона.");
+        return;
+      }
+      var name = window.prompt(gettext("Название набора сравнения:"));
+      if (!name) return;
+      var body = new URLSearchParams();
+      body.set("name", name);
+      body.set("year", state.year);
+      okatos.forEach(function (o) { body.append("okato", o); });
+      fetch("/account/comparisons/save/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRFToken": RL.csrfToken(),
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: body.toString(),
+      })
+        .then(function (r) {
+          if (saveMsg) {
+            saveMsg.textContent = r.ok
+              ? gettext("Набор сохранён.")
+              : gettext("Не удалось сохранить набор.");
+          }
+        })
+        .catch(function () {
+          if (saveMsg) saveMsg.textContent = gettext("Не удалось сохранить набор.");
+        });
+    });
   }
 })();

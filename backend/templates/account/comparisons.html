@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Наборы сравнения" %} — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{% trans "Личный кабинет" %}</p>
+  <h1>{% trans "Наборы сравнения" %}</h1>
+  <p class="lead">{% trans "Сохранённые группы регионов для быстрого сравнения. Создать набор можно на странице «Сравнение», нажав «Сохранить набор»." %}</p>
+</section>
+
+{% include "account/_tabs.html" %}
+
+{% if sets %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>{% trans "Название" %}</th><th>{% trans "Регионы" %}</th><th class="num">{% trans "Год" %}</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for s in sets %}
+          <tr>
+            <td>{{ s.name }}</td>
+            <td style="color:var(--ink-soft);">{{ s.regions|join:", " }}</td>
+            <td class="num">{{ s.year }}</td>
+            <td style="white-space:nowrap;">
+              <a class="btn ghost" href="{% url 'comparison_open' s.id %}">{% trans "Открыть" %}</a>
+              <form method="post" action="{% url 'comparison_delete' s.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button class="btn ghost" type="submit">{% trans "Удалить" %}</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  {% url 'compare' as compare_url %}
+  <p style="color:var(--ink-faint);">{% blocktrans %}Пока нет наборов сравнения. Откройте <a href="{{ compare_url }}">страницу сравнения</a>, выберите регионы и нажмите «Сохранить набор».{% endblocktrans %}</p>
+{% endif %}
+{% endblock %}

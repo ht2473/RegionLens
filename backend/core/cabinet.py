@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+import re
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -16,8 +18,9 @@ from django.views.decorators.http import require_POST
 
 from .audit import record
 from .forms import ProfileForm, SavedViewForm
-from .models import AuditLog, ExportJob, Favorite, SavedView, UserProfile
+from .models import AuditLog, ComparisonSet, ExportJob, Favorite, SavedView, UserProfile
 from .permissions import effective_roles
+from .queries import region_names_ru
 
 
 def _crumbs(tail_title: str) -> list[dict[str, str | None]]:
@@ -180,6 +183,10 @@ def _describe_action(action: str) -> tuple[str, str]:
         return ("favorite", gettext("Регион добавлен в избранное"))
     if head == "favorite:remove":
         return ("favorite", gettext("Удалено из избранного"))
+    if head == "comparison:save":
+        return ("view", gettext("Сохранён набор сравнения «%(name)s»") % {"name": rest})
+    if head == "comparison:delete":
+        return ("view", gettext("Удалён набор сравнения «%(name)s»") % {"name": rest})
     return ("other", action)
 
 
@@ -262,3 +269,89 @@ def activity_feed(request: HttpRequest) -> HttpResponse:
         "events": _activity_events(request.user, limit=100),
     }
     return render(request, "account/activity.html", ctx)
+
+
+# ── Наборы сравнения (Ф10·5): именованные группы регионов для страницы «Сравнение» ──
+_OKATO_RE = re.compile(r"^\d{2,12}$")
+
+
+def _comparison_display(user: object) -> list[dict[str, object]]:
+    """Наборы сравнения пользователя с локализованными подписями регионов."""
+    sets = list(ComparisonSet.objects.filter(user=user))
+    all_okatos = sorted({o for cs in sets for o in (cs.okatos or [])})
+    names = region_names_ru(all_okatos)
+    out = []
+    for cs in sets:
+        regions = []
+        for okato in cs.okatos or []:
+            raw = names.get(okato, "")
+            # Имена регионов есть в каталоге переводов — локализуем по активному языку.
+            regions.append(gettext(raw) if raw else okato)
+        out.append(
+            {
+                "id": cs.pk,
+                "name": cs.name,
+                "year": cs.year,
+                "regions": regions,
+                "url": cs.target_url(),
+            }
+        )
+    return out
+
+
+@login_required
+def comparison_sets(request: HttpRequest) -> HttpResponse:
+    """Страница «Наборы сравнения»: список сохранённых групп регионов с открытием/удалением."""
+    ctx = {
+        "active": "account",
+        "cabinet_tab": "comparisons",
+        "breadcrumbs": _crumbs(gettext("Наборы сравнения")),
+        "sets": _comparison_display(request.user),
+    }
+    return render(request, "account/comparisons.html", ctx)
+
+
+@login_required
+@require_POST
+def comparison_save(request: HttpRequest) -> JsonResponse:
+    """Сохранить текущее сравнение как именованный набор (POST со страницы «Сравнение»).
+
+    Принимает имя, список ОКАТО (2–3) и год; валидирует коды регионов строгим шаблоном.
+    Обновляет набор с тем же именем (update_or_create), возвращает статус в JSON.
+    """
+    name = request.POST.get("name", "").strip()[:200]
+    okatos = [o.strip() for o in request.POST.getlist("okato") if o.strip()]
+    okatos = [o for o in okatos if _OKATO_RE.match(o)]
+    # Уникализируем, сохраняя порядок.
+    okatos = list(dict.fromkeys(okatos))
+    try:
+        year = int(request.POST.get("year", "2024"))
+    except (TypeError, ValueError):
+        year = 2024
+    if not name or not (2 <= len(okatos) <= 3):
+        return JsonResponse({"error": "bad_request"}, status=400)
+    obj, _created = ComparisonSet.objects.update_or_create(
+        user=request.user,
+        name=name,
+        defaults={"okatos": okatos, "year": year},
+    )
+    record(request.user, f"comparison:save {name}")
+    return JsonResponse({"ok": True, "id": obj.pk, "name": name})
+
+
+@login_required
+def comparison_open(request: HttpRequest, pk: int) -> HttpResponse:
+    """Открыть набор: перейти на страницу сравнения с предвыбранными регионами и годом."""
+    cs = get_object_or_404(ComparisonSet, pk=pk, user=request.user)
+    return redirect(cs.target_url())
+
+
+@login_required
+@require_POST
+def comparison_delete(request: HttpRequest, pk: int) -> HttpResponse:
+    """Удалить набор сравнения (только свой; только POST)."""
+    cs = get_object_or_404(ComparisonSet, pk=pk, user=request.user)
+    name = cs.name
+    cs.delete()
+    record(request.user, f"comparison:delete {name}")
+    return redirect("account_comparisons")

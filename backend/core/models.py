@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import secrets
+from urllib.parse import urlencode
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -264,3 +265,40 @@ class Favorite(models.Model):
         if self.kind == self.Kind.REGION:
             return reverse("region-dashboard-page", args=[self.ref])
         return f"{reverse('explore')}?metric={self.ref}"
+
+
+class ComparisonSet(models.Model):
+    """Набор сравнения — именованная группа регионов (2–3) для страницы «Сравнение» (Ф10·5).
+
+    Как и `SavedView`, хранит ТОЛЬКО ссылки на регионы (список ОКАТО) и год — не сами
+    аналитические данные. При открытии набора страница сравнения перечитывает аналитику
+    из DuckDB по этим параметрам: инвариант «двух миров» (Хартия §5) сохраняется.
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="comparison_sets",
+        verbose_name="Пользователь",
+    )
+    name = models.CharField("Название", max_length=200)
+    okatos = models.JSONField("Регионы (ОКАТО)", default=list)
+    year = models.PositiveIntegerField("Год", default=2024)
+    created = models.DateTimeField("Создано", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Набор сравнения"
+        verbose_name_plural = "Наборы сравнения"
+        ordering = ["-created", "-id"]
+        constraints = [
+            models.UniqueConstraint(fields=["user", "name"], name="uniq_comparisonset_user_name"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.user.get_username()})"
+
+    def target_url(self) -> str:
+        """Ссылка на страницу сравнения с предвыбранными регионами и годом."""
+        params: list[tuple[str, str]] = [("okato", o) for o in (self.okatos or [])]
+        params.append(("year", str(self.year)))
+        return f"{reverse('compare')}?{urlencode(params)}"

@@ -21,6 +21,13 @@
   <div class="field" style="align-self:end;"><button class="btn" id="cmp-go">{% trans "Сравнить" %}</button></div>
 </div>
 
+{% if user.is_authenticated %}
+<div class="compare-save" style="margin:4px 0 12px;">
+  <button type="button" class="btn ghost" id="cmp-save">{% trans "Сохранить набор" %}</button>
+  <span id="cmp-save-msg" class="chart-note" style="margin-left:10px;"></span>
+</div>
+{% endif %}
+
 <div id="compare-msg" class="chart-note"></div>
 <div class="card"><div id="chart-compare" class="chart"></div></div>
 <div id="compare-summary"></div>

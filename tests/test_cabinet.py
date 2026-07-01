@@ -22,6 +22,7 @@ _CABINET_PAGES = [
     "account_views",
     "account_favorites",
     "account_activity",
+    "account_comparisons",
     "account_exports",
     "account_password",
 ]
@@ -267,3 +268,67 @@ def test_overview_shows_favorite_count(client_alice: Client, alice: User) -> Non
     Favorite.objects.create(user=alice, kind="region", ref="45000000", label="Москва")
     html = client_alice.get(reverse("account")).content.decode()
     assert "В избранном" in html
+
+
+# ── Наборы сравнения (Ф10·5): сохранение, валидация, изоляция, открытие, удаление ──
+def test_comparison_save_creates_set(client_alice: Client, alice: User) -> None:
+    """POST со страницы сравнения создаёт набор из 2–3 регионов и года."""
+    from core.models import ComparisonSet
+
+    resp = client_alice.post(
+        reverse("comparison_save"),
+        {"name": "ЦФО тройка", "okato": ["45000000", "46000000", "17000000"], "year": "2023"},
+    )
+    assert resp.status_code == 200 and resp.json()["ok"] is True
+    cs = ComparisonSet.objects.get(user=alice, name="ЦФО тройка")
+    assert cs.okatos == ["45000000", "46000000", "17000000"] and cs.year == 2023
+
+
+def test_comparison_save_rejects_wrong_count(client_alice: Client) -> None:
+    """Набор из одного региона отклоняется (нужно 2–3)."""
+    resp = client_alice.post(
+        reverse("comparison_save"), {"name": "Один", "okato": ["45000000"], "year": "2024"}
+    )
+    assert resp.status_code == 400
+
+
+def test_comparison_save_rejects_bad_okato(client_alice: Client) -> None:
+    """Нецифровой код региона отбраковывается — остаётся меньше двух → 400."""
+    resp = client_alice.post(
+        reverse("comparison_save"),
+        {"name": "Кривой", "okato": ["45000000", "../etc"], "year": "2024"},
+    )
+    assert resp.status_code == 400
+
+
+def test_comparison_open_redirects_to_compare(client_alice: Client, alice: User) -> None:
+    """Открытие набора ведёт на страницу сравнения с предвыбранными регионами и годом."""
+    from core.models import ComparisonSet
+
+    cs = ComparisonSet.objects.create(
+        user=alice, name="Пара", okatos=["45000000", "78000000"], year=2022
+    )
+    resp = client_alice.get(reverse("comparison_open", args=[cs.pk]))
+    assert resp.status_code == 302
+    loc = resp["Location"]
+    assert "okato=45000000" in loc and "okato=78000000" in loc and "year=2022" in loc
+
+
+def test_comparison_delete_and_owner_isolation(client_alice: Client, alice: User) -> None:
+    """Удалять можно только свой набор; чужой недоступен (404)."""
+    from core.models import ComparisonSet
+
+    mine = ComparisonSet.objects.create(user=alice, name="Моё", okatos=["45000000", "78000000"])
+    other = User.objects.create_user("bob", password=_PW)
+    theirs = ComparisonSet.objects.create(
+        user=other, name="Чужое", okatos=["45000000", "78000000"]
+    )
+    assert client_alice.post(reverse("comparison_delete", args=[mine.pk])).status_code == 302
+    assert not ComparisonSet.objects.filter(pk=mine.pk).exists()
+    assert client_alice.post(reverse("comparison_delete", args=[theirs.pk])).status_code == 404
+
+
+def test_comparison_save_requires_login(client: Client) -> None:
+    """Аноним не может сохранять наборы — редирект на вход."""
+    resp = client.post(reverse("comparison_save"), {"name": "x", "okato": ["45000000", "78000000"]})
+    assert resp.status_code == 302 and "/accounts/login/" in resp["Location"]

@@ -678,6 +678,24 @@ VALUE_TYPE_LABELS_RU = {
 }
 
 
+def region_names_ru(okatos: list[str]) -> dict[str, str]:
+    """Канонические (русские) имена по списку ОКАТО одним запросом (подписи наборов сравнения).
+
+    Возвращает отображение ОКАТО → имя; при недоступном хранилище — пустой словарь.
+    """
+    if not okatos:
+        return {}
+    placeholders = ", ".join("?" for _ in okatos)
+    try:
+        rows = q(
+            f"SELECT okato, region_name FROM region_dim WHERE okato IN ({placeholders})",
+            list(okatos),
+        )
+    except Exception:  # noqa: BLE001 — граница мягкой деградации: нет хранилища → нет имён
+        return {}
+    return {str(row["okato"]): row["region_name"] for row in rows}
+
+
 def region_name_ru(okato: str) -> str:
     """Каноническое (русское) имя региона по ОКАТО для денормализованных подписей.
 
