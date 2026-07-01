@@ -7,5 +7,6 @@
   <a href="{% url 'account_activity' %}" class="{% if cabinet_tab == 'activity' %}is-active{% endif %}">{% trans "Активность" %}</a>
   <a href="{% url 'account_exports' %}" class="{% if cabinet_tab == 'exports' %}is-active{% endif %}">{% trans "Экспорт-центр" %}</a>
   <a href="{% url 'account_profile' %}" class="{% if cabinet_tab == 'profile' %}is-active{% endif %}">{% trans "Профиль" %}</a>
+  <a href="{% url 'account_settings' %}" class="{% if cabinet_tab == 'settings' %}is-active{% endif %}">{% trans "Настройки" %}</a>
   <a href="{% url 'account_password' %}" class="{% if cabinet_tab == 'password' %}is-active{% endif %}">{% trans "Смена пароля" %}</a>
 </nav>

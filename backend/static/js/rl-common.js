@@ -71,6 +71,33 @@
     });
   };
 
+  // Разрешение начальных значений контролов: URL-параметр > предпочтение (RL_PREFS) > запасное.
+  window.RL.prefYear = function (fallback) {
+    var u = parseInt(new URLSearchParams(window.location.search).get("year"), 10);
+    if (u >= 2010 && u <= 2024) return u;
+    var pref = window.RL_PREFS && RL_PREFS.year;
+    return pref >= 2010 && pref <= 2024 ? pref : fallback;
+  };
+  window.RL.prefScheme = function (fallback) {
+    var p = new URLSearchParams(window.location.search).get("scheme");
+    if (p === "equal" || p === "pca" || p === "expert") return p;
+    var pref = window.RL_PREFS && RL_PREFS.scheme;
+    return pref || fallback;
+  };
+  window.RL.prefMeasure = function (fallback) {
+    var p = new URLSearchParams(window.location.search).get("measure");
+    if (p === "cluster" || p === "index") return p;
+    var pref = window.RL_PREFS && RL_PREFS.measure;
+    return pref || fallback;
+  };
+  // Синхронизировать стандартный ползунок года и его подпись с разрешённым значением.
+  window.RL.syncYearControl = function (year) {
+    var slider = document.getElementById("year-slider");
+    var label = document.getElementById("year-label");
+    if (slider) slider.value = year;
+    if (label) label.textContent = year;
+  };
+
   window.RL.cssVar = function (name, fallback) {
     try {
       var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();

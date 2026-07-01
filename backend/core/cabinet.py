@@ -17,7 +17,7 @@ from django.utils.translation import gettext
 from django.views.decorators.http import require_POST
 
 from .audit import record
-from .forms import ProfileForm, SavedViewForm
+from .forms import PreferencesForm, ProfileForm, SavedViewForm
 from .models import AuditLog, ComparisonSet, ExportJob, Favorite, SavedView, UserProfile
 from .permissions import effective_roles
 from .queries import region_names_ru
@@ -194,6 +194,8 @@ def _describe_action(action: str) -> tuple[str, str]:
         return ("view", gettext("Сохранён набор сравнения «%(name)s»") % {"name": rest})
     if head == "comparison:delete":
         return ("view", gettext("Удалён набор сравнения «%(name)s»") % {"name": rest})
+    if head == "settings:update":
+        return ("other", gettext("Обновлены настройки отображения"))
     return ("other", action)
 
 
@@ -362,3 +364,26 @@ def comparison_delete(request: HttpRequest, pk: int) -> HttpResponse:
     cs.delete()
     record(request.user, f"comparison:delete {name}")
     return redirect("account_comparisons")
+
+
+@login_required
+def settings_edit(request: HttpRequest) -> HttpResponse:
+    """Настройки отображения: дефолтные год, схема весов и мера карты (применяются глобально)."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    saved = False
+    if request.method == "POST":
+        form = PreferencesForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            record(request.user, "settings:update")
+            saved = True
+    else:
+        form = PreferencesForm(instance=profile)
+    ctx = {
+        "active": "account",
+        "cabinet_tab": "settings",
+        "breadcrumbs": _crumbs(gettext("Настройки")),
+        "form": form,
+        "saved": saved,
+    }
+    return render(request, "account/settings.html", ctx)

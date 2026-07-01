@@ -16,7 +16,12 @@
     ["infrastructure", gettext("Инфр.")],
     ["health_edu", gettext("Здр./обр.")],
   ];
-  var state = { year: 2024, scheme: "equal" };
+  var state = { year: RL.prefYear(2024), scheme: RL.prefScheme("equal") };
+  RL.syncYearControl(state.year);
+  (function () {
+    var ss = document.getElementById("scheme-select");
+    if (ss) ss.value = state.scheme;
+  })();
   var names = null; // okato -> region_name
 
   function num(x, d) { return x == null ? "—" : Number(x).toFixed(d == null ? 2 : d); }

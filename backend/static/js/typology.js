@@ -12,7 +12,8 @@
 
   var PALETTE = ["#c46a3f", "#1f6f63", "#3b6ea5", "#8a6fab", "#b0a44e"];
   var POS = "#1f6f63", NEG = "#b4532a", INK = "#1b2430", GRID = "#e9e3d6";
-  var state = { year: 2024 };
+  var state = { year: RL.prefYear(2024) };
+  RL.syncYearControl(state.year);
   var names = null;
 
   // Подпись метрики: схлопнуть дубликат «X: X» (артефакт metric_name). 

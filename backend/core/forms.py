@@ -76,3 +76,30 @@ class SavedViewForm(forms.Form):
         if okato:
             config["okato"] = okato
         return config
+
+
+class PreferencesForm(forms.ModelForm):
+    """Пользовательские предпочтения отображения: дефолтные год, схема весов и мера карты.
+
+    Значения применяются как начальные на аналитических страницах (через глобальный
+    `window.RL_PREFS`); URL-параметр всегда важнее предпочтения (deep-link не ломается).
+    """
+
+    default_scheme = forms.ChoiceField(choices=_SCHEME_CHOICES, label=_("Схема весов по умолчанию"))
+    default_measure = forms.ChoiceField(
+        choices=_MEASURE_CHOICES, label=_("Мера карты по умолчанию")
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = ["default_year", "default_scheme", "default_measure"]
+        labels = {
+            "default_year": _("Год по умолчанию"),
+        }
+
+    def clean_default_year(self) -> int:
+        """Ограничить год окном доступных данных (2010–2024)."""
+        year = self.cleaned_data["default_year"]
+        if not (2010 <= year <= 2024):
+            raise forms.ValidationError(_("Год должен быть в диапазоне 2010–2024."))
+        return year

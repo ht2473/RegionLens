@@ -18,7 +18,7 @@
   var FONT = { family: "Golos Text, sans-serif", color: RL.cssVar("--ink-soft", "#51606e") };
   var GRID = RL.cssVar("--line-soft", "#e9e3d6");
 
-  var state = { year: 2024 };
+  var state = { year: RL.prefYear(2024) };
   var names = null; // okato -> region_name
 
   function shell(id, msg) {
@@ -161,6 +161,9 @@
   var $yearLabel = document.getElementById("lab-year-label");
   var $a = document.getElementById("lab-a");
   var $b = document.getElementById("lab-b");
+  if ($year) $year.value = state.year;
+  if ($yearLabel) $yearLabel.textContent = state.year;
+  if ($a) $a.value = RL.prefScheme("equal");
 
   $year.addEventListener("input", function () {
     state.year = parseInt($year.value, 10);

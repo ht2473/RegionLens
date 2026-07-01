@@ -20,6 +20,7 @@
 
   var $measure = document.getElementById("cv-measure");
   var $scheme = document.getElementById("cv-scheme");
+  if ($scheme) $scheme.value = RL.prefScheme("equal");
   var $chart = document.getElementById("cv-chart");
   var $readout = document.getElementById("cv-readout");
   var $betaChart = document.getElementById("beta-chart");

@@ -9,6 +9,7 @@
   var root = document.getElementById("rank-stability-root");
   var scheme = document.getElementById("scheme-select");
   if (!root || !scheme) return;
+  scheme.value = RL.prefScheme("equal");
 
   function num(x, d) {
     return x == null ? "—" : Number(x).toFixed(d == null ? 2 : d);

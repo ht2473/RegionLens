@@ -13,7 +13,8 @@
   var NODATA = RL.cssVar("--map-nodata", "#dcdcdc");
 
   var root = document.getElementById("map");
-  var state = { year: parseInt((root && root.dataset.year) || "2020", 10) };
+  var state = { year: RL.prefYear(parseInt((root && root.dataset.year) || "2020", 10)) };
+  RL.syncYearControl(state.year);
   var geo = null;
 
   // ── Списки (не зависят от года): структурные сдвиги и кандидаты методологии ──

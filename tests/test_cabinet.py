@@ -23,6 +23,7 @@ _CABINET_PAGES = [
     "account_favorites",
     "account_activity",
     "account_comparisons",
+    "account_settings",
     "account_exports",
     "account_password",
 ]
@@ -347,3 +348,41 @@ def test_export_center_lists_favorite_region_shortcuts(client_alice: Client, ali
     html = client_alice.get(reverse("account_exports")).content.decode()
     assert "/regions/45000000/export/?format=xlsx" in html
     assert "/regions/45000000/export/?format=docx" in html
+
+
+# ── Настройки (Ф10·5): дефолтные год/схема/мера, применяемые через RL_PREFS ──────
+def test_settings_save_updates_preferences(client_alice: Client, alice: User) -> None:
+    """Сохранение настроек обновляет дефолтные год, схему и меру в профиле."""
+    from core.models import UserProfile
+
+    resp = client_alice.post(
+        reverse("account_settings"),
+        {"default_year": "2019", "default_scheme": "pca", "default_measure": "index"},
+    )
+    assert resp.status_code == 200
+    profile = UserProfile.objects.get(user=alice)
+    assert profile.default_year == 2019
+    assert profile.default_scheme == "pca"
+    assert profile.default_measure == "index"
+
+
+def test_settings_rejects_year_out_of_range(client_alice: Client) -> None:
+    """Год вне окна 2010–2024 отклоняется формой (профиль не меняется на невалидное)."""
+    resp = client_alice.post(
+        reverse("account_settings"),
+        {"default_year": "1999", "default_scheme": "equal", "default_measure": "cluster"},
+    )
+    assert resp.status_code == 200
+    assert b"2010" in resp.content  # сообщение об ошибке диапазона отображено
+
+
+def test_preferences_injected_into_rl_prefs(client_alice: Client, alice: User) -> None:
+    """Предпочтения пользователя прокидываются в глобальный window.RL_PREFS."""
+    from core.models import UserProfile
+
+    UserProfile.objects.filter(user=alice).update(
+        default_year=2018, default_scheme="expert", default_measure="index"
+    )
+    html = client_alice.get(reverse("rankings")).content.decode()
+    assert "window.RL_PREFS" in html
+    assert "year: 2018" in html and '"expert"' in html and '"index"' in html

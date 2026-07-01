@@ -40,6 +40,19 @@ class UserProfile(models.Model):
     )
     role_note = models.CharField("Заметка о роли", max_length=200, blank=True, default="")
     organization = models.CharField("Организация", max_length=200, blank=True, default="")
+    default_year = models.PositiveIntegerField("Год по умолчанию", default=2024)
+    default_scheme = models.CharField(
+        "Схема весов по умолчанию",
+        max_length=16,
+        choices=[("equal", "Равные веса"), ("pca", "PCA"), ("expert", "Экспертные")],
+        default="equal",
+    )
+    default_measure = models.CharField(
+        "Мера карты по умолчанию",
+        max_length=16,
+        choices=[("cluster", "Тип (кластер)"), ("index", "Индекс развития")],
+        default="cluster",
+    )
     created = models.DateTimeField("Создан", auto_now_add=True)
 
     class Meta:

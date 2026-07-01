@@ -134,6 +134,11 @@
     </div>
   </div>
 
+  <script>
+    // Пользовательские предпочтения отображения (год/схема/мера) для начальных значений
+    // контролов на аналитических страницах. URL-параметр на странице всегда важнее.
+    window.RL_PREFS = { year: {{ prefs.year }}, scheme: "{{ prefs.scheme }}", measure: "{{ prefs.measure }}" };
+  </script>
   <script src="{% url 'javascript-catalog' %}"></script>
   <script src="{% static 'js/rl-common.js' %}"></script>
   <script src="{% static 'js/search.js' %}"></script>

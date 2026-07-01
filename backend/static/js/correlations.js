@@ -11,6 +11,11 @@
   var slider = document.getElementById("year-slider");
   var label = document.getElementById("year-label");
   if (!root || !select) return;
+  if (slider) {
+    var _cy = RL.prefYear(parseInt(slider.value, 10) || 2024);
+    slider.value = _cy;
+    if (label) label.textContent = _cy;
+  }
 
   function num(x, d) {
     return x == null ? "—" : Number(x).toFixed(d == null ? 2 : d);

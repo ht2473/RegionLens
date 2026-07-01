@@ -19,7 +19,8 @@
   ];
   var PALETTE = ["#1f6f63", "#b4532a", "#3b6ea5"];
   var INK = RL.cssVar("--ink", "#1b2430"), GRID = RL.cssVar("--line-soft", "#e9e3d6");
-  var state = { year: 2024 };
+  var state = { year: RL.prefYear(2024) };
+  RL.syncYearControl(state.year);
   var selects = ["cmp-1", "cmp-2", "cmp-3"].map(function (id) { return document.getElementById(id); });
   var msg = document.getElementById("compare-msg");
 

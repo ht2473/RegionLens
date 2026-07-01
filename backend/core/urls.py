@@ -54,6 +54,7 @@ urlpatterns = [
     path("account/favorites/", cabinet.favorites_list, name="account_favorites"),
     path("account/favorites/toggle/", cabinet.favorite_toggle, name="favorite_toggle"),
     path("account/activity/", cabinet.activity_feed, name="account_activity"),
+    path("account/settings/", cabinet.settings_edit, name="account_settings"),
     path("account/comparisons/", cabinet.comparison_sets, name="account_comparisons"),
     path("account/comparisons/save/", cabinet.comparison_save, name="comparison_save"),
     path(

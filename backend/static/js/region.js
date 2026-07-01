@@ -11,9 +11,9 @@
   if (!root || typeof Plotly === "undefined") return;
 
   var OKATO = root.dataset.okato;
-  var qy = new URLSearchParams(window.location.search).get("year");
-  var initYear = qy && /^\d{4}$/.test(qy) ? parseInt(qy, 10) : parseInt(root.dataset.year || "2024", 10);
+  var initYear = RL.prefYear(parseInt(root.dataset.year || "2024", 10));
   var state = { year: Math.min(2024, Math.max(2010, initYear)) };
+  RL.syncYearControl(state.year);
 
   function writeUrlState() {
     var p = new URLSearchParams(window.location.search);

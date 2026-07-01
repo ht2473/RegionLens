@@ -25,12 +25,11 @@
 
   function readUrlState() {
     var p = new URLSearchParams(window.location.search);
-    var y = parseInt(p.get("year") || root.dataset.year || "2020", 10);
-    if (isNaN(y)) y = parseInt(root.dataset.year || "2020", 10);
+    var y = RL.prefYear(parseInt(root.dataset.year || "2020", 10));
     var m = p.get("measure");
     return {
       year: Math.min(yMax, Math.max(yMin, y)),
-      measure: MEASURES.indexOf(m) === -1 ? "cluster" : m,
+      measure: MEASURES.indexOf(m) === -1 ? RL.prefMeasure("cluster") : m,
     };
   }
 
@@ -42,6 +41,8 @@
   }
 
   var state = readUrlState();
+  if (slider) slider.value = state.year;
+  if (yearLabel) yearLabel.textContent = state.year;
   var geo = null; // загруженный FeatureCollection (мутируем properties при обновлении)
 
   var map = new maplibregl.Map({
