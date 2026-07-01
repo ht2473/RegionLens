@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-07-01 12:20+0000\n"
+"PO-Revision-Date: 2026-07-01 12:40+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1501,3 +1501,282 @@ msgstr "rates (year-over-year)"
 
 msgid "индексы"
 msgstr "indices"
+
+msgid "Алтайский край"
+msgstr "Altai Krai"
+
+msgid "Амурская область"
+msgstr "Amur Oblast"
+
+msgid "Архангельская область (без автономного округа)"
+msgstr "Arkhangelsk Oblast (excluding the autonomous okrug)"
+
+msgid "Астраханская область"
+msgstr "Astrakhan Oblast"
+
+msgid "Белгородская область"
+msgstr "Belgorod Oblast"
+
+msgid "Брянская область"
+msgstr "Bryansk Oblast"
+
+msgid "Владимирская область"
+msgstr "Vladimir Oblast"
+
+msgid "Волгоградская область"
+msgstr "Volgograd Oblast"
+
+msgid "Вологодская область"
+msgstr "Vologda Oblast"
+
+msgid "Воронежская область"
+msgstr "Voronezh Oblast"
+
+msgid "Еврейская автономная область"
+msgstr "Jewish Autonomous Oblast"
+
+msgid "Забайкальский край"
+msgstr "Zabaykalsky Krai"
+
+msgid "Ивановская область"
+msgstr "Ivanovo Oblast"
+
+msgid "Иркутская область"
+msgstr "Irkutsk Oblast"
+
+msgid "Кабардино-Балкарская Республика"
+msgstr "Kabardino-Balkarian Republic"
+
+msgid "Калининградская область"
+msgstr "Kaliningrad Oblast"
+
+msgid "Калужская область"
+msgstr "Kaluga Oblast"
+
+msgid "Камчатский край"
+msgstr "Kamchatka Krai"
+
+msgid "Карачаево-Черкесская Республика"
+msgstr "Karachay-Cherkess Republic"
+
+msgid "Кемеровская область"
+msgstr "Kemerovo Oblast"
+
+msgid "Кировская область"
+msgstr "Kirov Oblast"
+
+msgid "Костромская область"
+msgstr "Kostroma Oblast"
+
+msgid "Краснодарский край"
+msgstr "Krasnodar Krai"
+
+msgid "Красноярский край"
+msgstr "Krasnoyarsk Krai"
+
+msgid "Курганская область"
+msgstr "Kurgan Oblast"
+
+msgid "Курская область"
+msgstr "Kursk Oblast"
+
+msgid "Ленинградская область"
+msgstr "Leningrad Oblast"
+
+msgid "Липецкая область"
+msgstr "Lipetsk Oblast"
+
+msgid "Магаданская область"
+msgstr "Magadan Oblast"
+
+msgid "Москва"
+msgstr "Moscow"
+
+msgid "Московская область"
+msgstr "Moscow Oblast"
+
+msgid "Мурманская область"
+msgstr "Murmansk Oblast"
+
+msgid "Ненецкий автономный округ"
+msgstr "Nenets Autonomous Okrug"
+
+msgid "Нижегородская область"
+msgstr "Nizhny Novgorod Oblast"
+
+msgid "Новгородская область"
+msgstr "Novgorod Oblast"
+
+msgid "Новосибирская область"
+msgstr "Novosibirsk Oblast"
+
+msgid "Омская область"
+msgstr "Omsk Oblast"
+
+msgid "Оренбургская область"
+msgstr "Orenburg Oblast"
+
+msgid "Орловская область"
+msgstr "Oryol Oblast"
+
+msgid "Пензенская область"
+msgstr "Penza Oblast"
+
+msgid "Пермский край"
+msgstr "Perm Krai"
+
+msgid "Приморский край"
+msgstr "Primorsky Krai"
+
+msgid "Псковская область"
+msgstr "Pskov Oblast"
+
+msgid "Республика Адыгея"
+msgstr "Republic of Adygea"
+
+msgid "Республика Алтай"
+msgstr "Altai Republic"
+
+msgid "Республика Башкортостан"
+msgstr "Republic of Bashkortostan"
+
+msgid "Республика Бурятия"
+msgstr "Republic of Buryatia"
+
+msgid "Республика Дагестан"
+msgstr "Republic of Dagestan"
+
+msgid "Республика Ингушетия"
+msgstr "Republic of Ingushetia"
+
+msgid "Республика Калмыкия"
+msgstr "Republic of Kalmykia"
+
+msgid "Республика Карелия"
+msgstr "Republic of Karelia"
+
+msgid "Республика Коми"
+msgstr "Komi Republic"
+
+msgid "Республика Крым"
+msgstr "Republic of Crimea"
+
+msgid "Республика Марий Эл"
+msgstr "Mari El Republic"
+
+msgid "Республика Мордовия"
+msgstr "Republic of Mordovia"
+
+msgid "Республика Саха (Якутия)"
+msgstr "Republic of Sakha (Yakutia)"
+
+msgid "Республика Северная Осетия — Алания"
+msgstr "Republic of North Ossetia–Alania"
+
+msgid "Республика Татарстан"
+msgstr "Republic of Tatarstan"
+
+msgid "Республика Тыва"
+msgstr "Tyva Republic"
+
+msgid "Республика Хакасия"
+msgstr "Republic of Khakassia"
+
+msgid "Ростовская область"
+msgstr "Rostov Oblast"
+
+msgid "Рязанская область"
+msgstr "Ryazan Oblast"
+
+msgid "Самарская область"
+msgstr "Samara Oblast"
+
+msgid "Санкт-Петербург"
+msgstr "Saint Petersburg"
+
+msgid "Саратовская область"
+msgstr "Saratov Oblast"
+
+msgid "Сахалинская область"
+msgstr "Sakhalin Oblast"
+
+msgid "Свердловская область"
+msgstr "Sverdlovsk Oblast"
+
+msgid "Севастополь"
+msgstr "Sevastopol"
+
+msgid "Смоленская область"
+msgstr "Smolensk Oblast"
+
+msgid "Ставропольский край"
+msgstr "Stavropol Krai"
+
+msgid "Тамбовская область"
+msgstr "Tambov Oblast"
+
+msgid "Тверская область"
+msgstr "Tver Oblast"
+
+msgid "Томская область"
+msgstr "Tomsk Oblast"
+
+msgid "Тульская область"
+msgstr "Tula Oblast"
+
+msgid "Тюменская область (без автономных округов)"
+msgstr "Tyumen Oblast (excluding the autonomous okrugs)"
+
+msgid "Удмуртская Республика"
+msgstr "Udmurt Republic"
+
+msgid "Ульяновская область"
+msgstr "Ulyanovsk Oblast"
+
+msgid "Хабаровский край"
+msgstr "Khabarovsk Krai"
+
+msgid "Ханты-Мансийский автономный округ — Югра"
+msgstr "Khanty-Mansi Autonomous Okrug – Yugra"
+
+msgid "Челябинская область"
+msgstr "Chelyabinsk Oblast"
+
+msgid "Чеченская Республика"
+msgstr "Chechen Republic"
+
+msgid "Чувашская Республика"
+msgstr "Chuvash Republic"
+
+msgid "Чукотский автономный округ"
+msgstr "Chukotka Autonomous Okrug"
+
+msgid "Ямало-Ненецкий автономный округ"
+msgstr "Yamalo-Nenets Autonomous Okrug"
+
+msgid "Ярославская область"
+msgstr "Yaroslavl Oblast"
+
+msgid "Дальневосточный"
+msgstr "Far Eastern"
+
+msgid "Приволжский"
+msgstr "Volga"
+
+msgid "Северо-Западный"
+msgstr "Northwestern"
+
+msgid "Северо-Кавказский"
+msgstr "North Caucasian"
+
+msgid "Сибирский"
+msgstr "Siberian"
+
+msgid "Уральский"
+msgstr "Ural"
+
+msgid "Центральный"
+msgstr "Central"
+
+msgid "Южный"
+msgstr "Southern"

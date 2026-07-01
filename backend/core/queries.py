@@ -21,6 +21,21 @@ from .duck import q
 MAP_CLUSTER_ALGO = "kmeans"
 MAP_INDEX_SCHEME = "equal"
 
+# Витринные подписи (имя региона, федеральный округ) хранятся в данных по-русски.
+# Для англоязычного интерфейса переводим их по активному языку через каталог gettext
+# в точке чтения — это презентационная локализация, ключом остаётся ОКАТО.
+_LOCALIZED_LABEL_FIELDS = ("region_name", "federal_district")
+
+
+def _loc(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Перевести витринные подписи в строках результата по активному языку (in-place)."""
+    for row in rows:
+        for field in _LOCALIZED_LABEL_FIELDS:
+            value = row.get(field)
+            if value:
+                row[field] = gettext(value)
+    return rows
+
 
 def geo_layer(year: int, measure: str) -> list[dict[str, Any]]:
     """Слой карты на год: значения по регионам для раскраски (стыковка по okato).
@@ -49,9 +64,11 @@ def regions() -> list[dict[str, Any]]:
     Варианты-агрегаты «с/без АО» отфильтрованы (included_flag=false) — остаются только
     85 непересекающихся субъектов. Сортировка по имени — для удобного отображения.
     """
-    return q(
-        "SELECT okato, region_name, federal_district "
-        "FROM region_dim WHERE included_flag = TRUE ORDER BY region_name"
+    return _loc(
+        q(
+            "SELECT okato, region_name, federal_district "
+            "FROM region_dim WHERE included_flag = TRUE ORDER BY region_name"
+        )
     )
 
 
@@ -63,11 +80,13 @@ def search(query: str, limit: int = 6) -> dict[str, list[dict[str, Any]]]:
     (coverage) показываются выше как более релевантные. Страницы сайта ищет вью.
     """
     like = f"%{query.lower()}%"
-    regions = q(
-        "SELECT okato, region_name, federal_district FROM region_dim "
-        "WHERE included_flag = TRUE AND lower(region_name) LIKE ? "
-        "ORDER BY region_name LIMIT ?",
-        [like, limit],
+    regions = _loc(
+        q(
+            "SELECT okato, region_name, federal_district FROM region_dim "
+            "WHERE included_flag = TRUE AND lower(region_name) LIKE ? "
+            "ORDER BY region_name LIMIT ?",
+            [like, limit],
+        )
     )
     metrics = q(
         "SELECT metric_id, metric_name, unit, domain FROM metric_dim "
@@ -154,12 +173,14 @@ def rank_robustness_list(year: int) -> list[dict[str, Any]]:
     rank_worst — худшая, rank_range — ширина коридора. Показывает, насколько место региона
     зависит от произвольного выбора схемы весов. Сортировка по лучшей позиции. Read-only.
     """
-    return q(
-        "SELECT rr.okato, r.region_name, rr.n_schemes, rr.rank_best, rr.rank_worst, "
-        "rr.rank_range, rr.rank_mean, rr.score_min, rr.score_max "
-        "FROM rank_robustness rr LEFT JOIN region_dim r ON r.okato = rr.okato "
-        "WHERE rr.year = ? ORDER BY rr.rank_best",
-        [year],
+    return _loc(
+        q(
+            "SELECT rr.okato, r.region_name, rr.n_schemes, rr.rank_best, rr.rank_worst, "
+            "rr.rank_range, rr.rank_mean, rr.score_min, rr.score_max "
+            "FROM rank_robustness rr LEFT JOIN region_dim r ON r.okato = rr.okato "
+            "WHERE rr.year = ? ORDER BY rr.rank_best",
+            [year],
+        )
     )
 
 
@@ -262,8 +283,10 @@ def region_dashboard(
     return {
         "okato": okato,
         "year": year,
-        "region_name": reg["region_name"],
-        "federal_district": reg["federal_district"],
+        "region_name": gettext(reg["region_name"]) if reg["region_name"] else reg["region_name"],
+        "federal_district": gettext(reg["federal_district"])
+        if reg["federal_district"]
+        else reg["federal_district"],
         "index": {
             "total_score": total,
             "total_score_prev": total_prev,
@@ -284,11 +307,13 @@ def region_twins(okato: str, year: int) -> list[dict[str, Any]]:
     причинность и НЕ прогноз. Возвращает двойников по возрастанию rank (1 — самый
     похожий) с именем и федеральным округом региона-двойника.
     """
-    return q(
-        "SELECT t.twin_okato, r.region_name, r.federal_district, t.similarity, t.rank "
-        "FROM region_twins t JOIN region_dim r ON r.okato = t.twin_okato "
-        "WHERE t.okato = ? AND t.year = ? ORDER BY t.rank",
-        [okato, year],
+    return _loc(
+        q(
+            "SELECT t.twin_okato, r.region_name, r.federal_district, t.similarity, t.rank "
+            "FROM region_twins t JOIN region_dim r ON r.okato = t.twin_okato "
+            "WHERE t.okato = ? AND t.year = ? ORDER BY t.rank",
+            [okato, year],
+        )
     )
 
 
@@ -363,11 +388,13 @@ def compare(okatos: list[str], year: int, scheme: str = MAP_INDEX_SCHEME) -> lis
     """Сравнение регионов на год: индекс по доменам + тип — для gap-анализа на фронте."""
     placeholders = ", ".join(["?"] * len(okatos))
     cols = "d.okato, r.region_name, d.total_score, " + ", ".join(f"d.{c}" for c in INDEX_DOMAINS)
-    rows = q(
-        f"SELECT {cols} FROM dev_index d JOIN region_dim r USING(okato) "
-        f"WHERE d.year = ? AND d.weighting_scheme = ? AND d.okato IN ({placeholders}) "
-        "ORDER BY d.total_score DESC",
-        [year, scheme, *okatos],
+    rows = _loc(
+        q(
+            f"SELECT {cols} FROM dev_index d JOIN region_dim r USING(okato) "
+            f"WHERE d.year = ? AND d.weighting_scheme = ? AND d.okato IN ({placeholders}) "
+            "ORDER BY d.total_score DESC",
+            [year, scheme, *okatos],
+        )
     )
     clus = q(
         f"SELECT okato, cluster_id, cluster_label FROM clusters "
@@ -403,13 +430,15 @@ def anomalies_list(
         clauses.append("a.kind = ?")
         params.append(kind)
     where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
-    return q(
-        "SELECT a.okato, r.region_name, a.metric_id, m.metric_name, a.year, "
-        "a.score, a.is_anomaly, a.kind FROM anomalies a "
-        "LEFT JOIN region_dim r ON r.okato = a.okato "
-        "LEFT JOIN metric_dim m ON m.metric_id = a.metric_id"
-        f"{where} ORDER BY a.kind, a.year, a.score DESC",
-        params,
+    return _loc(
+        q(
+            "SELECT a.okato, r.region_name, a.metric_id, m.metric_name, a.year, "
+            "a.score, a.is_anomaly, a.kind FROM anomalies a "
+            "LEFT JOIN region_dim r ON r.okato = a.okato "
+            "LEFT JOIN metric_dim m ON m.metric_id = a.metric_id"
+            f"{where} ORDER BY a.kind, a.year, a.score DESC",
+            params,
+        )
     )
 
 
@@ -458,12 +487,14 @@ def rank_stability_list(scheme: str = MAP_INDEX_SCHEME) -> list[dict[str, Any]]:
     изменения ранга. Сортировка по rank_std — самые стабильные первыми. Имя региона —
     LEFT JOIN из region_dim. Описательная мера волатильности ранга, не прогноз.
     """
-    return q(
-        "SELECT s.okato, r.region_name, s.weighting_scheme, s.n_years, "
-        "s.rank_mean, s.rank_std, s.rank_min, s.rank_max, s.rank_range, s.mean_abs_change "
-        "FROM rank_stability s LEFT JOIN region_dim r ON r.okato = s.okato "
-        "WHERE s.weighting_scheme = ? ORDER BY s.rank_std, s.okato",
-        [scheme],
+    return _loc(
+        q(
+            "SELECT s.okato, r.region_name, s.weighting_scheme, s.n_years, "
+            "s.rank_mean, s.rank_std, s.rank_min, s.rank_max, s.rank_range, s.mean_abs_change "
+            "FROM rank_stability s LEFT JOIN region_dim r ON r.okato = s.okato "
+            "WHERE s.weighting_scheme = ? ORDER BY s.rank_std, s.okato",
+            [scheme],
+        )
     )
 
 
@@ -511,12 +542,14 @@ def decomposition_list(
         clauses.append("d.year = ?")
         params.append(year)
     where = " WHERE " + " AND ".join(clauses)
-    return q(
-        "SELECT d.okato, r.region_name, d.year, d.weighting_scheme, d.domain, "
-        "d.delta_total_score, d.domain_delta, d.weight, d.contribution "
-        "FROM index_decomposition d LEFT JOIN region_dim r ON r.okato = d.okato"
-        f"{where} ORDER BY d.year, ABS(d.contribution) DESC",
-        params,
+    return _loc(
+        q(
+            "SELECT d.okato, r.region_name, d.year, d.weighting_scheme, d.domain, "
+            "d.delta_total_score, d.domain_delta, d.weight, d.contribution "
+            "FROM index_decomposition d LEFT JOIN region_dim r ON r.okato = d.okato"
+            f"{where} ORDER BY d.year, ABS(d.contribution) DESC",
+            params,
+        )
     )
 
 
@@ -606,12 +639,14 @@ def metric_values(metric_id: int, year: int) -> list[dict[str, Any]]:
     непустым значением, отсортированные по убыванию значения. Основа explore-режима: показать
     любой показатель по регионам за выбранный год.
     """
-    return q(
-        "SELECT f.okato, r.region_name, f.value "
-        "FROM fact_region f JOIN region_dim r ON r.okato = f.okato "
-        "WHERE f.metric_id = ? AND f.year = ? AND r.included_flag AND f.value IS NOT NULL "
-        "ORDER BY f.value DESC",
-        [metric_id, year],
+    return _loc(
+        q(
+            "SELECT f.okato, r.region_name, f.value "
+            "FROM fact_region f JOIN region_dim r ON r.okato = f.okato "
+            "WHERE f.metric_id = ? AND f.year = ? AND r.included_flag AND f.value IS NOT NULL "
+            "ORDER BY f.value DESC",
+            [metric_id, year],
+        )
     )
 
 
