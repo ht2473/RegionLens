@@ -14,7 +14,8 @@
   <p class="lead">{% trans "Любой из сотен показателей Росстата — по всем регионам за выбранный год. Найдите показатель в каталоге слева, выберите год и сравните регионы." %}</p>
 </section>
 
-<div class="explore" id="explore-root">
+<div class="explore" id="explore-root" data-auth="{{ user.is_authenticated|yesno:'1,0' }}">
+{{ favorite_metric_ids|json_script:"ex-favorites" }}
   <aside class="explore-catalog">
     <div class="explore-filters">
       <input type="search" id="ex-search" placeholder="{% trans 'Поиск показателя…' %}" autocomplete="off">

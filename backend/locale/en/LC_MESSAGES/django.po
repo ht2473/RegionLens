@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-07-01 12:40+0000\n"
+"PO-Revision-Date: 2026-07-01 17:13+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1780,3 +1780,107 @@ msgstr "Central"
 
 msgid "Южный"
 msgstr "Southern"
+
+msgid "Избранное"
+msgstr "Favorites"
+
+msgid ""
+"Закладки на регионы и показатели — быстрый доступ к тому, что вы "
+"отслеживаете."
+msgstr ""
+"Bookmarks for regions and indicators — quick access to what you track."
+
+msgid ""
+"Пока нет избранных регионов. Откройте дашборд региона и нажмите «В "
+"избранное»."
+msgstr ""
+"No favorite regions yet. Open a region dashboard and click “Add to "
+"favorites”."
+
+msgid ""
+"Пока нет избранных показателей. Откройте показатель в разделе «Показатели» и"
+" добавьте его."
+msgstr ""
+"No favorite indicators yet. Open an indicator in the “Indicators” section "
+"and add it."
+
+msgid "Активность"
+msgstr "Activity"
+
+msgid ""
+"Последние действия в вашей учётной записи: входы, экспорты, сохранённые виды"
+" и избранное."
+msgstr ""
+"Recent actions in your account: logins, exports, saved views, and favorites."
+
+msgid "Пока нет записей активности."
+msgstr "No activity records yet."
+
+msgid ""
+"Ваша сводка: избранное, сохранённые виды, история экспортов и последняя "
+"активность."
+msgstr ""
+"Your summary: favorites, saved views, export history, and recent activity."
+
+msgid "В избранном"
+msgstr "In favorites"
+
+msgid "Открыть →"
+msgstr "Open →"
+
+msgid "Профиль →"
+msgstr "Profile →"
+
+msgid "Всё избранное →"
+msgstr "All favorites →"
+
+msgid "Пока пусто. Добавляйте регионы и показатели в избранное со звёздочкой."
+msgstr "Empty for now. Add regions and indicators to favorites with the star."
+
+msgid "Последняя активность"
+msgstr "Recent activity"
+
+msgid "Вся активность →"
+msgstr "All activity →"
+
+msgid "В избранное"
+msgstr "Add to favorites"
+
+msgid "Вход в систему"
+msgstr "Signed in"
+
+msgid "Выход из системы"
+msgstr "Signed out"
+
+msgid "Отправлена обратная связь"
+msgstr "Feedback submitted"
+
+msgid "Регистрация учётной записи"
+msgstr "Account registered"
+
+msgid "Экспорт отчёта (XLSX)"
+msgstr "Report export (XLSX)"
+
+msgid "Экспорт отчёта (DOCX)"
+msgstr "Report export (DOCX)"
+
+msgid "Создан сохранённый вид «%(name)s»"
+msgstr "Saved view “%(name)s” created"
+
+msgid "Открыт публичный доступ к виду «%(name)s»"
+msgstr "Public access to view “%(name)s” enabled"
+
+msgid "Закрыт публичный доступ к виду «%(name)s»"
+msgstr "Public access to view “%(name)s” disabled"
+
+msgid "Удалён сохранённый вид «%(name)s»"
+msgstr "Saved view “%(name)s” deleted"
+
+msgid "Показатель добавлен в избранное"
+msgstr "Indicator added to favorites"
+
+msgid "Регион добавлен в избранное"
+msgstr "Region added to favorites"
+
+msgid "Удалено из избранного"
+msgstr "Removed from favorites"

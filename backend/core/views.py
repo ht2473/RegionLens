@@ -19,7 +19,7 @@ from django.utils.translation import gettext
 from . import queries, reports
 from .audit import record
 from .forms import RegistrationForm
-from .models import ExportJob, FeedbackMessage, SavedView
+from .models import ExportJob, Favorite, FeedbackMessage, SavedView
 from .permissions import ROLE_VIEWER
 
 
@@ -62,7 +62,20 @@ def map_page(request: HttpRequest) -> HttpResponse:
 
 def explore_page(request: HttpRequest) -> HttpResponse:
     """Обзор показателей: любой показатель каталога по регионам за выбранный год (explore)."""
-    return _page(request, "pages/explore.html", active="explore", title=gettext("Показатели"))
+    favorite_metric_ids = []
+    if request.user.is_authenticated:
+        favorite_metric_ids = list(
+            Favorite.objects.filter(user=request.user, kind=Favorite.Kind.METRIC).values_list(
+                "ref", flat=True
+            )
+        )
+    return _page(
+        request,
+        "pages/explore.html",
+        active="explore",
+        title=gettext("Показатели"),
+        extra={"favorite_metric_ids": favorite_metric_ids},
+    )
 
 
 def index_lab_page(request: HttpRequest) -> HttpResponse:
@@ -148,6 +161,13 @@ def region_dashboard_page(request: HttpRequest, okato: str) -> HttpResponse:
         {"title": gettext("Регионы"), "url": reverse("regions")},
         {"title": gettext("Регион")},
     ]
+    is_favorited = (
+        request.user.is_authenticated
+        and Favorite.objects.filter(
+            user=request.user, kind=Favorite.Kind.REGION, ref=okato
+        ).exists()
+    )
+    region_label = queries.region_name_ru(okato)
     return render(
         request,
         "pages/region.html",
@@ -156,6 +176,8 @@ def region_dashboard_page(request: HttpRequest, okato: str) -> HttpResponse:
             "breadcrumbs": crumbs,
             "okato": okato,
             "export_year": request.GET.get("year", "2024"),
+            "is_favorited": is_favorited,
+            "region_label": region_label,
         },
     )
 

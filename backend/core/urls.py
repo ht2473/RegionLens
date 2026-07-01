@@ -51,6 +51,9 @@ urlpatterns = [
     path("account/views/<int:pk>/share/", cabinet.saved_view_share, name="account_view_share"),
     path("account/views/<int:pk>/delete/", cabinet.saved_view_delete, name="account_view_delete"),
     path("account/exports/", cabinet.export_history, name="account_exports"),
+    path("account/favorites/", cabinet.favorites_list, name="account_favorites"),
+    path("account/favorites/toggle/", cabinet.favorite_toggle, name="favorite_toggle"),
+    path("account/activity/", cabinet.activity_feed, name="account_activity"),
     path(
         "account/password/",
         auth_views.PasswordChangeView.as_view(

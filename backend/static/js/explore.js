@@ -28,6 +28,19 @@
   var $year = document.getElementById("ex-year");
   var $yearLabel = document.getElementById("ex-year-label");
   var $copy = document.getElementById("ex-copy-link");
+
+  // Избранные показатели пользователя (для состояния звезды в мета-заголовке).
+  var favAuth = !!(root && root.dataset.auth === "1");
+  var favSet = new Set();
+  (function () {
+    var el = document.getElementById("ex-favorites");
+    if (!el) return;
+    try {
+      (JSON.parse(el.textContent) || []).forEach(function (id) { favSet.add(String(id)); });
+    } catch (e) { /* пустой/битый список — оставляем набор пустым */ }
+  })();
+
+  function favLabel(on) { return on ? gettext("В избранном") : gettext("В избранное"); }
   var $values = document.getElementById("ex-values");
   var $series = document.getElementById("ex-series");
   var $viewToggle = document.getElementById("ex-view-toggle");
@@ -159,6 +172,24 @@
       " · " + tierLabel +
       (m.year_min != null ? " · " + m.year_min + "–" + m.year_max : "") +
       "</p>";
+    if (favAuth && window.RL && RL.toggleFavorite) {
+      var favd = favSet.has(String(m.metric_id));
+      var favBtn = document.createElement("button");
+      favBtn.type = "button";
+      favBtn.className = "fav-toggle" + (favd ? " is-active" : "");
+      favBtn.style.marginTop = "8px";
+      favBtn.innerHTML = '<span class="fav-star">\u2605</span><span class="fav-label"></span>';
+      favBtn.querySelector(".fav-label").textContent = favLabel(favd);
+      favBtn.addEventListener("click", function () {
+        RL.toggleFavorite("metric", m.metric_id, m.metric_name).then(function (res) {
+          if (res.favorited) favSet.add(String(m.metric_id));
+          else favSet.delete(String(m.metric_id));
+          favBtn.classList.toggle("is-active", res.favorited);
+          favBtn.querySelector(".fav-label").textContent = favLabel(res.favorited);
+        });
+      });
+      $meta.appendChild(favBtn);
+    }
   }
 
   // ── Значения по регионам за год (правая панель) ──────────────────────────

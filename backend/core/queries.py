@@ -678,6 +678,20 @@ VALUE_TYPE_LABELS_RU = {
 }
 
 
+def region_name_ru(okato: str) -> str:
+    """Каноническое (русское) имя региона по ОКАТО для денормализованных подписей.
+
+    Возвращает имя как оно хранится в region_dim (без локализации) — чтобы сохранённая
+    подпись избранного корректно переводилась gettext по активному языку при показе.
+    При недоступном хранилище возвращает пустую строку (мягкая деградация).
+    """
+    try:
+        rows = q("SELECT region_name FROM region_dim WHERE okato = ?", [okato])
+    except Exception:  # noqa: BLE001 — граница мягкой деградации: нет хранилища → нет имени
+        return ""
+    return rows[0]["region_name"] if rows else ""
+
+
 def data_profile() -> dict[str, Any] | None:
     """Сводка фактов о данных и методике из контрактных таблиц DuckDB.
 

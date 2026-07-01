@@ -20,6 +20,8 @@ _CABINET_PAGES = [
     "account",
     "account_profile",
     "account_views",
+    "account_favorites",
+    "account_activity",
     "account_exports",
     "account_password",
 ]
@@ -206,3 +208,62 @@ def test_password_change_flow(client: Client) -> None:
     )
     assert resp.status_code == 302
     assert reverse("account_password_done") in resp["Location"]
+
+
+# ── Избранное (Ф10·5): переключение, изоляция владельца, требование входа ───────
+def test_favorite_toggle_add_and_remove(client_alice: Client, alice: User) -> None:
+    """Первый POST добавляет закладку, повторный — снимает (идемпотентно по kind+ref)."""
+    from core.models import Favorite
+
+    url = reverse("favorite_toggle")
+    resp = client_alice.post(url, {"kind": "region", "ref": "45000000", "label": "Москва"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["favorited"] is True and body["count"] == 1
+    assert Favorite.objects.filter(user=alice, kind="region", ref="45000000").exists()
+
+    resp = client_alice.post(url, {"kind": "region", "ref": "45000000", "label": "Москва"})
+    assert resp.json()["favorited"] is False
+    assert not Favorite.objects.filter(user=alice, kind="region", ref="45000000").exists()
+
+
+def test_favorite_toggle_rejects_bad_kind(client_alice: Client) -> None:
+    """Неизвестный тип закладки отклоняется (400)."""
+    resp = client_alice.post(reverse("favorite_toggle"), {"kind": "planet", "ref": "1"})
+    assert resp.status_code == 400
+
+
+def test_favorite_toggle_requires_login(client: Client) -> None:
+    """Аноним не может переключать избранное — редирект на вход."""
+    resp = client.post(reverse("favorite_toggle"), {"kind": "region", "ref": "45000000"})
+    assert resp.status_code == 302 and "/accounts/login/" in resp["Location"]
+
+
+def test_favorites_list_shows_only_own(client_alice: Client, alice: User) -> None:
+    """На странице «Избранное» видны только свои закладки (изоляция владельца)."""
+    from core.models import Favorite
+
+    Favorite.objects.create(user=alice, kind="metric", ref="123", label="Некий показатель")
+    other = User.objects.create_user("mallory", password=_PW)
+    Favorite.objects.create(user=other, kind="metric", ref="999", label="Чужой показатель")
+    html = client_alice.get(reverse("account_favorites")).content.decode()
+    assert "Некий показатель" in html
+    assert "Чужой показатель" not in html
+
+
+def test_activity_feed_lists_user_actions(client_alice: Client, alice: User) -> None:
+    """Лента активности показывает описанные действия из журнала аудита пользователя."""
+    from core.audit import record
+
+    record(alice, "saved_view:create Мой вид")
+    html = client_alice.get(reverse("account_activity")).content.decode()
+    assert "Мой вид" in html
+
+
+def test_overview_shows_favorite_count(client_alice: Client, alice: User) -> None:
+    """Обзор кабинета отражает число закладок в персональной сводке."""
+    from core.models import Favorite
+
+    Favorite.objects.create(user=alice, kind="region", ref="45000000", label="Москва")
+    html = client_alice.get(reverse("account")).content.decode()
+    assert "В избранном" in html

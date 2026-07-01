@@ -16,6 +16,14 @@
     </div>
     <button type="button" id="region-copy-link" class="map-share" style="margin-top:8px;">{% trans "Скопировать ссылку" %}</button>
     {% if user.is_authenticated %}
+      <button type="button" id="region-fav"
+              class="fav-toggle {% if is_favorited %}is-active{% endif %}"
+              data-okato="{{ okato }}" data-label="{{ region_label }}"
+              aria-pressed="{% if is_favorited %}true{% else %}false{% endif %}"
+              style="margin-top:8px;">
+        <span class="fav-star">★</span>
+        <span class="fav-label">{% if is_favorited %}{% trans "В избранном" %}{% else %}{% trans "В избранное" %}{% endif %}</span>
+      </button>
       <div class="export-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
         <a class="btn ghost" id="export-xlsx"
            href="{% url 'export_region' okato %}?format=xlsx&year={{ export_year }}">{% trans "Экспорт XLSX" %}</a>
@@ -92,6 +100,21 @@
     }
     slider.addEventListener("input", sync);
     sync();
+  })();
+</script>
+<script>
+  // Переключение закладки региона (кнопка-звезда): POST на operational-эндпоинт избранного.
+  (function () {
+    var btn = document.getElementById("region-fav");
+    if (!btn || !window.RL || !RL.toggleFavorite) return;
+    btn.addEventListener("click", function () {
+      RL.toggleFavorite("region", btn.dataset.okato, btn.dataset.label).then(function (res) {
+        btn.classList.toggle("is-active", res.favorited);
+        btn.setAttribute("aria-pressed", res.favorited ? "true" : "false");
+        var lbl = btn.querySelector(".fav-label");
+        if (lbl) lbl.textContent = res.favorited ? "{% trans 'В избранном' %}" : "{% trans 'В избранное' %}";
+      });
+    });
   })();
 </script>
 {% endblock %}

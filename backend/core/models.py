@@ -219,3 +219,48 @@ class AuditLog(models.Model):
     def __str__(self) -> str:
         author = self.user.get_username() if self.user else "система"
         return f"{author}: {self.action}"
+
+
+class Favorite(models.Model):
+    """Избранное пользователя: закладки на регионы и показатели (Ф10·5).
+
+    Хранит ТОЛЬКО ссылку на сущность аналитического мира (`kind` + `ref`) и
+    денормализованную подпись (`label`) — чтобы показывать список в кабинете без
+    обращения к DuckDB. Сами аналитические данные не дублируются: инвариант «двух
+    миров» (Хартия §5) сохраняется, при открытии закладки экран перечитывается из
+    хранилища по ссылке (окато региона или идентификатор показателя).
+    """
+
+    class Kind(models.TextChoices):
+        REGION = "region", "Регион"
+        METRIC = "metric", "Показатель"
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="favorites",
+        verbose_name="Пользователь",
+    )
+    kind = models.CharField("Тип", max_length=16, choices=Kind.choices)
+    ref = models.CharField("Ссылка", max_length=64, help_text="ОКАТО региона или ID показателя.")
+    label = models.CharField("Подпись", max_length=300, blank=True, default="")
+    created = models.DateTimeField("Создано", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Избранное"
+        verbose_name_plural = "Избранное"
+        ordering = ["-created", "-id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "kind", "ref"], name="uniq_favorite_user_kind_ref"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.get_kind_display()}: {self.label or self.ref} ({self.user.get_username()})"
+
+    def target_url(self) -> str:
+        """Ссылка на объект закладки: регион → дашборд; показатель → explore с метрикой."""
+        if self.kind == self.Kind.REGION:
+            return reverse("region-dashboard-page", args=[self.ref])
+        return f"{reverse('explore')}?metric={self.ref}"

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Активность" %} — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{% trans "Личный кабинет" %}</p>
+  <h1>{% trans "Активность" %}</h1>
+  <p class="lead">{% trans "Последние действия в вашей учётной записи: входы, экспорты, сохранённые виды и избранное." %}</p>
+</section>
+
+{% include "account/_tabs.html" %}
+
+{% if events %}
+  <ul class="activity-feed">
+    {% for e in events %}
+      <li class="activity-item activity-{{ e.category }}">
+        <span class="activity-dot"></span>
+        <span class="activity-text">{{ e.text }}</span>
+        <time class="activity-ts">{{ e.ts|date:"d.m.Y H:i" }}</time>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p style="color:var(--ink-faint);">{% trans "Пока нет записей активности." %}</p>
+{% endif %}
+{% endblock %}

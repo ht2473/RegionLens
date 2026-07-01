@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Избранное" %} — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{% trans "Личный кабинет" %}</p>
+  <h1>{% trans "Избранное" %}</h1>
+  <p class="lead">{% trans "Закладки на регионы и показатели — быстрый доступ к тому, что вы отслеживаете." %}</p>
+</section>
+
+{% include "account/_tabs.html" %}
+
+<h2 style="margin-top:24px;">{% trans "Регионы" %}</h2>
+{% if regions %}
+  <div class="region-grid">
+    {% for f in regions %}<a class="region-chip" href="{{ f.url }}">{{ f.label }}</a>{% endfor %}
+  </div>
+{% else %}
+  <p style="color:var(--ink-faint);">{% trans "Пока нет избранных регионов. Откройте дашборд региона и нажмите «В избранное»." %}</p>
+{% endif %}
+
+<h2 style="margin-top:24px;">{% trans "Показатели" %}</h2>
+{% if metrics %}
+  <ul class="fav-list">
+    {% for f in metrics %}<li><a href="{{ f.url }}">{{ f.label }}</a></li>{% endfor %}
+  </ul>
+{% else %}
+  <p style="color:var(--ink-faint);">{% trans "Пока нет избранных показателей. Откройте показатель в разделе «Показатели» и добавьте его." %}</p>
+{% endif %}
+{% endblock %}

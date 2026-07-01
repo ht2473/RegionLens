@@ -48,6 +48,29 @@
     return _fdMap[name] || name;
   };
 
+  // CSRF-токен из cookie (Django) — для операционных POST-запросов из JS (избранное и т.п.).
+  window.RL.csrfToken = function () {
+    var m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : "";
+  };
+
+  // Переключить закладку (регион/показатель). Возвращает промис с { favorited, count }.
+  window.RL.toggleFavorite = function (kind, ref, label) {
+    var body = new URLSearchParams({ kind: kind, ref: String(ref), label: label || "" });
+    return fetch("/account/favorites/toggle/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "X-CSRFToken": window.RL.csrfToken(),
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body: body.toString(),
+    }).then(function (r) {
+      if (!r.ok) throw new Error("favorite toggle failed");
+      return r.json();
+    });
+  };
+
   window.RL.cssVar = function (name, fallback) {
     try {
       var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();

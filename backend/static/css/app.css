@@ -226,7 +226,9 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .grid { display: grid; gap: 18px; }
 .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-@media (max-width: 760px) { .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; } }
+.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 980px) { .grid.cols-4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 760px) { .grid.cols-2, .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; } }
 
 .card {
   background: var(--surface); border: 1px solid var(--line);
@@ -580,3 +582,33 @@ body.search-open { overflow: hidden; }
 .uname-count { font-variant-numeric: tabular-nums; }
 .field-help { font-size: 0.82rem; color: var(--ink-faint); margin: 6px 0 0; line-height: 1.45; }
 .field-err { color: var(--bad); font-size: 0.85rem; margin: 6px 0 0; }
+
+/* Личный кабинет: лента активности, список избранного, кнопка-звезда «в избранное» */
+.fav-list { list-style: none; margin: 6px 0 0; padding: 0; }
+.fav-list li { padding: 5px 0; border-bottom: 1px solid var(--line-soft); }
+.fav-list li:last-child { border-bottom: none; }
+
+.activity-feed { list-style: none; margin: 6px 0 0; padding: 0; }
+.activity-item {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 7px 0; border-bottom: 1px solid var(--line-soft);
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-faint); transform: translateY(-1px); }
+.activity-auth .activity-dot { background: var(--accent); }
+.activity-export .activity-dot { background: var(--clay); }
+.activity-view .activity-dot { background: #3b6ea5; }
+.activity-favorite .activity-dot { background: #d1a13a; }
+.activity-feedback .activity-dot { background: #5fa896; }
+.activity-text { flex: 1 1 auto; color: var(--ink-soft); }
+.activity-ts { flex: 0 0 auto; font-size: 0.82rem; color: var(--ink-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.fav-toggle {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px;
+  background: var(--surface); color: var(--ink-soft); font-size: 0.9rem;
+}
+.fav-toggle:hover { border-color: var(--accent); background: var(--accent-soft); }
+.fav-toggle .fav-star { font-size: 1rem; line-height: 1; color: var(--ink-faint); }
+.fav-toggle.is-active { border-color: #d1a13a; background: rgba(209,161,58,0.10); color: var(--ink); }
+.fav-toggle.is-active .fav-star { color: #d1a13a; }
