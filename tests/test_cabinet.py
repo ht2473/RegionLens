@@ -330,3 +330,20 @@ def test_comparison_save_requires_login(client: Client) -> None:
     """Аноним не может сохранять наборы — редирект на вход."""
     resp = client.post(reverse("comparison_save"), {"name": "x", "okato": ["45000000", "78000000"]})
     assert resp.status_code == 302 and "/accounts/login/" in resp["Location"]
+
+
+# ── Экспорт-центр (Ф10·5): быстрый экспорт + ярлыки избранного + история ────────
+def test_export_center_shows_quick_export(client_alice: Client) -> None:
+    """Экспорт-центр показывает форму быстрого экспорта."""
+    html = client_alice.get(reverse("account_exports")).content.decode()
+    assert "qe-region" in html and "qe-go" in html
+
+
+def test_export_center_lists_favorite_region_shortcuts(client_alice: Client, alice: User) -> None:
+    """Избранные регионы появляются как ярлыки быстрого экспорта (XLSX/DOCX)."""
+    from core.models import Favorite
+
+    Favorite.objects.create(user=alice, kind="region", ref="45000000", label="Москва")
+    html = client_alice.get(reverse("account_exports")).content.decode()
+    assert "/regions/45000000/export/?format=xlsx" in html
+    assert "/regions/45000000/export/?format=docx" in html

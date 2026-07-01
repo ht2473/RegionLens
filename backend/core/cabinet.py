@@ -138,12 +138,19 @@ def saved_view_delete(request: HttpRequest, pk: int) -> HttpResponse:
 
 @login_required
 def export_history(request: HttpRequest) -> HttpResponse:
-    """История заданий экспорта пользователя (со ссылками на готовые файлы)."""
+    """Экспорт-центр: быстрый экспорт региона, ярлыки из избранного и история заданий."""
+    favorite_regions = [
+        {"okato": fav.ref, "label": gettext(fav.label) if fav.label else fav.ref}
+        for fav in Favorite.objects.filter(user=request.user, kind=Favorite.Kind.REGION)
+    ]
     ctx = {
         "active": "account",
         "cabinet_tab": "exports",
-        "breadcrumbs": _crumbs(gettext("История экспортов")),
+        "breadcrumbs": _crumbs(gettext("Экспорт-центр")),
         "jobs": ExportJob.objects.filter(user=request.user),
+        "favorite_regions": favorite_regions,
+        "default_year": 2024,
+        "year_range": range(2024, 2009, -1),
     }
     return render(request, "account/exports.html", ctx)
 

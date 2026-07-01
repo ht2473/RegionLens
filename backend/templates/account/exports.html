@@ -1,17 +1,59 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "История экспортов" %} — RegionLens{% endblock %}
+{% block title %}{% trans "Экспорт-центр" %} — RegionLens{% endblock %}
 
 {% block content %}
 <section class="hero">
   <p class="eyebrow">{% trans "Личный кабинет" %}</p>
-  <h1>{% trans "История экспортов" %}</h1>
-  <p class="lead">{% trans "Сформированные отчёты по регионам в форматах xlsx и docx." %}</p>
+  <h1>{% trans "Экспорт-центр" %}</h1>
+  <p class="lead">{% trans "Сформируйте отчёт по любому региону в форматах xlsx и docx, повторно скачайте прошлые выгрузки — всё в одном месте." %}</p>
 </section>
 
 {% include "account/_tabs.html" %}
 
+<div class="card" style="max-width:680px;">
+  <h3 style="margin-top:0;">{% trans "Быстрый экспорт" %}</h3>
+  <div class="compare-controls" style="margin:0;">
+    <div class="field" style="min-width:220px;">
+      <label for="qe-region">{% trans "Регион" %}</label>
+      <select id="qe-region"><option>{% trans "Загрузка…" %}</option></select>
+    </div>
+    <div class="field">
+      <label for="qe-year">{% trans "Год" %}</label>
+      <select id="qe-year">
+        {% for y in year_range %}<option value="{{ y }}"{% if y == default_year %} selected{% endif %}>{{ y }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="qe-format">{% trans "Формат" %}</label>
+      <select id="qe-format"><option value="xlsx">Excel (.xlsx)</option><option value="docx">Word (.docx)</option></select>
+    </div>
+    <div class="field" style="align-self:end;"><button class="btn" id="qe-go">{% trans "Экспортировать" %}</button></div>
+  </div>
+</div>
+
+{% if favorite_regions %}
+<h2 style="margin-top:24px;">{% trans "Из избранного" %}</h2>
+<div class="table-wrap">
+  <table class="table">
+    <thead><tr><th>{% trans "Регион" %}</th><th></th></tr></thead>
+    <tbody>
+      {% for f in favorite_regions %}
+        <tr>
+          <td>{{ f.label }}</td>
+          <td style="white-space:nowrap;">
+            <a class="btn ghost" href="{% url 'export_region' f.okato %}?format=xlsx&year={{ default_year }}">XLSX</a>
+            <a class="btn ghost" href="{% url 'export_region' f.okato %}?format=docx&year={{ default_year }}">DOCX</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<h2 style="margin-top:24px;">{% trans "История выгрузок" %}</h2>
 {% if jobs %}
   <div class="table-wrap">
     <table class="table">
@@ -32,6 +74,35 @@
     </table>
   </div>
 {% else %}
-  <p style="color:var(--ink-faint);">{% trans "Экспортов пока нет. Кнопки экспорта появятся на страницах региона после подключения модуля отчётов." %}</p>
+  <p style="color:var(--ink-faint);">{% trans "Выгрузок пока нет. Сформируйте первый отчёт через «Быстрый экспорт» выше или на странице региона." %}</p>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Быстрый экспорт: список регионов из API, переход на endpoint экспорта с выбранными параметрами.
+  (function () {
+    var sel = document.getElementById("qe-region");
+    var go = document.getElementById("qe-go");
+    if (!sel || !go) return;
+    fetch("/api/regions/")
+      .then(function (r) { return r.json(); })
+      .then(function (rows) {
+        rows.sort(function (a, b) {
+          return (a.region_name || "").localeCompare(b.region_name || "");
+        });
+        sel.innerHTML = rows
+          .map(function (r) { return '<option value="' + r.okato + '">' + r.region_name + "</option>"; })
+          .join("");
+      })
+      .catch(function () { /* каталог недоступен — оставляем плейсхолдер */ });
+    go.addEventListener("click", function () {
+      var okato = sel.value;
+      if (!okato) return;
+      var year = document.getElementById("qe-year").value;
+      var fmt = document.getElementById("qe-format").value;
+      window.location.href = "/regions/" + okato + "/export/?format=" + fmt + "&year=" + year;
+    });
+  })();
+</script>
 {% endblock %}

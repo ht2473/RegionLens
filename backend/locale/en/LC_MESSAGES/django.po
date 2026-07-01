@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-07-01 17:42+0000\n"
+"PO-Revision-Date: 2026-07-01 18:02+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1910,3 +1910,32 @@ msgstr "Comparison set “%(name)s” saved"
 
 msgid "Удалён набор сравнения «%(name)s»"
 msgstr "Comparison set “%(name)s” deleted"
+
+msgid "Экспорт-центр"
+msgstr "Export center"
+
+msgid ""
+"Сформируйте отчёт по любому региону в форматах xlsx и docx, повторно "
+"скачайте прошлые выгрузки — всё в одном месте."
+msgstr ""
+"Generate a report for any region in xlsx and docx formats, and re-download "
+"past exports — all in one place."
+
+msgid "Быстрый экспорт"
+msgstr "Quick export"
+
+msgid "Экспортировать"
+msgstr "Export"
+
+msgid "Из избранного"
+msgstr "From favorites"
+
+msgid "История выгрузок"
+msgstr "Export history"
+
+msgid ""
+"Выгрузок пока нет. Сформируйте первый отчёт через «Быстрый экспорт» выше или"
+" на странице региона."
+msgstr ""
+"No exports yet. Generate your first report via “Quick export” above or on a "
+"region page."
