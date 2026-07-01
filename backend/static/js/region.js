@@ -22,23 +22,23 @@
   }
 
   var DOMAIN_RU = {
-    economy: "Экономика",
-    income: "Доходы",
-    demography: "Демография",
-    labor: "Труд",
-    infrastructure: "Инфраструктура",
-    health_edu: "Здоровье/образование",
+    economy: gettext("Экономика"),
+    income: gettext("Доходы"),
+    demography: gettext("Демография"),
+    labor: gettext("Труд"),
+    infrastructure: gettext("Инфраструктура"),
+    health_edu: gettext("Здоровье/образование"),
   };
   var DOMAIN_ORDER = ["economy", "income", "demography", "labor", "infrastructure", "health_edu"];
   var TRAJ_RU = {
-    stable_high: "устойчиво высокий",
-    stable_mid: "устойчиво средний",
-    stable_low: "устойчиво низкий",
-    converger: "догоняющий",
-    diverger: "отстающий",
-    leapfrogger: "рывок",
-    volatile: "волатильный",
-    drifting: "дрейфующий",
+    stable_high: gettext("устойчиво высокий"),
+    stable_mid: gettext("устойчиво средний"),
+    stable_low: gettext("устойчиво низкий"),
+    converger: gettext("догоняющий"),
+    diverger: gettext("отстающий"),
+    leapfrogger: gettext("рывок"),
+    volatile: gettext("волатильный"),
+    drifting: gettext("дрейфующий"),
   };
   var POS = "#1f6f63",
     NEG = "#b4532a",
@@ -70,8 +70,8 @@
       fetch(dc),
     ])
       .then(function (rs) {
-        if (rs[0].status === 404) throw new Error("Регион не найден или нет данных за год.");
-        if (!rs[0].ok) throw new Error("Ошибка загрузки (" + rs[0].status + ").");
+        if (rs[0].status === 404) throw new Error(gettext("Регион не найден или нет данных за год."));
+        if (!rs[0].ok) throw new Error(gettext("Ошибка загрузки") + " (" + rs[0].status + ").");
         return Promise.all([
           rs[0].json(),
           rs[1].ok ? rs[1].json() : [],
@@ -92,24 +92,24 @@
     document.getElementById("region-title").textContent = d.region_name || OKATO;
     var typeLabel = d.cluster ? d.cluster.cluster_label : "—";
     document.getElementById("region-sub").textContent =
-      (d.federal_district ? d.federal_district + " · " : "") + "тип: " + typeLabel;
+      (d.federal_district ? d.federal_district + " · " : "") + gettext("тип") + ": " + typeLabel;
 
     // KPI
     document.getElementById("kpi-total").textContent = fmt(d.index.total_score);
     var dl = document.getElementById("kpi-delta");
     if (d.index.total_delta == null) {
-      dl.textContent = "нет пред. года";
+      dl.textContent = gettext("нет пред. года");
       dl.style.color = "#8a96a1";
     } else {
       var up = d.index.total_delta >= 0;
-      dl.textContent = (up ? "▲ +" : "▼ ") + fmt(d.index.total_delta) + " к пред. году";
+      dl.textContent = (up ? "▲ +" : "▼ ") + fmt(d.index.total_delta) + " " + gettext("к пред. году");
       dl.style.color = up ? POS : NEG;
     }
     document.getElementById("kpi-rank").textContent = d.rank ? d.rank.rank : "—";
-    document.getElementById("kpi-rank-sub").textContent = d.rank ? "из " + d.rank.of : "";
+    document.getElementById("kpi-rank-sub").textContent = d.rank ? gettext("из") + " " + d.rank.of : "";
     document.getElementById("kpi-type").textContent = typeLabel;
     document.getElementById("kpi-typicality").textContent = d.cluster
-      ? "удалённость от центра типа: " + fmt(d.cluster.distance_to_centroid, 2)
+      ? gettext("удалённость от центра типа") + ": " + fmt(d.cluster.distance_to_centroid, 2)
       : "";
     var traj = (transitions[0] && transitions[0].trajectory_type) || null;
     document.getElementById("kpi-traj").textContent = traj ? TRAJ_RU[traj] || traj : "—";
@@ -134,10 +134,10 @@
       [
         { type: "scatterpolar", r: DOMAIN_ORDER.map(function () { return 0; }).concat([0]),
           theta: theta.concat([theta[0]]), mode: "lines",
-          line: { color: RADARGRID, dash: "dot", width: 1.6 }, name: "среднее РФ", hoverinfo: "skip" },
+          line: { color: RADARGRID, dash: "dot", width: 1.6 }, name: gettext("среднее РФ"), hoverinfo: "skip" },
         { type: "scatterpolar", r: r.concat([r[0]]), theta: theta.concat([theta[0]]),
           fill: "toself", fillcolor: "rgba(31,111,99,0.18)",
-          line: { color: POS, width: 2 }, name: "регион" },
+          line: { color: POS, width: 2 }, name: gettext("регион") },
       ],
       { polar: { bgcolor: "rgba(0,0,0,0)",
           radialaxis: { range: [lo, hi], gridcolor: RADARGRID, gridwidth: 1.2, tickfont: { size: 10 } },
@@ -167,7 +167,7 @@
     var withDelta = domains.filter(function (x) { return x.delta != null; });
     if (!withDelta.length) {
       document.getElementById("chart-b4").innerHTML =
-        '<p class="chart-note">Нет предыдущего года для сравнения.</p>';
+        '<p class="chart-note">' + gettext("Нет предыдущего года для сравнения.") + "</p>";
       return;
     }
     var labels = withDelta.map(function (x) { return DOMAIN_RU[x.domain] || x.domain; });
@@ -178,7 +178,7 @@
   function drawDecomp(rows) {
     if (!rows.length) {
       document.getElementById("chart-decomp").innerHTML =
-        '<p class="chart-note">Нет предыдущего года для разложения индекса.</p>';
+        '<p class="chart-note">' + gettext("Нет предыдущего года для разложения индекса.") + "</p>";
       return;
     }
     var labels = rows.map(function (x) { return DOMAIN_RU[x.domain] || x.domain; });
@@ -189,7 +189,7 @@
   function drawShap(shap) {
     if (!shap.length) {
       document.getElementById("chart-shap").innerHTML =
-        '<p class="chart-note">Нет данных SHAP за год.</p>';
+        '<p class="chart-note">' + gettext("Нет данных SHAP за год.") + "</p>";
       return;
     }
     var ordered = shap.slice().reverse(); // крупнейший |вклад| — сверху
@@ -204,7 +204,7 @@
   function drawTrajectory(transitions) {
     if (!transitions.length) {
       document.getElementById("chart-traj").innerHTML =
-        '<p class="chart-note">Нет данных о переходах.</p>';
+        '<p class="chart-note">' + gettext("Нет данных о переходах.") + "</p>";
       return;
     }
     var sorted = transitions.slice().sort(function (a, b) { return a.year_from - b.year_from; });
@@ -214,11 +214,11 @@
     Plotly.newPlot(
       "chart-traj",
       [{ type: "scatter", mode: "lines+markers", x: years, y: clusters, line: { shape: "hv", color: POS, width: 2 },
-        marker: { size: 7, color: POS }, hovertemplate: "%{x}: тип %{y}<extra></extra>" }],
+        marker: { size: 7, color: POS }, hovertemplate: "%{x}: " + gettext("тип") + " %{y}<extra></extra>" }],
       { font: FONT, margin: { t: 10, b: 30, l: 40, r: 20 }, height: 300,
         paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
         xaxis: { gridcolor: GRID, dtick: 2 },
-        yaxis: { title: "тип", dtick: 1, gridcolor: GRID, zeroline: false } },
+        yaxis: { title: gettext("тип"), dtick: 1, gridcolor: GRID, zeroline: false } },
       CFG
     );
   }
@@ -230,7 +230,7 @@
     if (!twins.length) {
       var empty = document.createElement("li");
       empty.className = "twins-empty";
-      empty.textContent = "Нет данных о двойниках за выбранный год.";
+      empty.textContent = gettext("Нет данных о двойниках за выбранный год.");
       box.appendChild(empty);
       return;
     }
@@ -253,7 +253,7 @@
 
       var sim = document.createElement("span");
       sim.className = "twin-sim";
-      sim.title = "косинусная близость профиля z-оценок (1.00 — идентичный профиль)";
+      sim.title = gettext("косинусная близость профиля z-оценок (1.00 — идентичный профиль)");
       sim.textContent = fmt(t.similarity, 2);
 
       li.appendChild(rank);
@@ -285,7 +285,7 @@
     copyBtn.addEventListener("click", function () {
       var flash = function () {
         var prev = copyBtn.textContent;
-        copyBtn.textContent = "Ссылка скопирована";
+        copyBtn.textContent = gettext("Ссылка скопирована");
         setTimeout(function () {
           copyBtn.textContent = prev;
         }, 1500);

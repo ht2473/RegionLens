@@ -23,28 +23,28 @@
   function loadMetrics() {
     return fetch("/api/metrics/")
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка каталога метрик (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка каталога метрик") + " (" + r.status + ")");
         return r.json();
       })
       .then(function (rows) {
-        var opts = ['<option value="">Все пары</option>'];
+        var opts = ['<option value="">' + gettext("Все пары") + "</option>"];
         rows.forEach(function (m) {
           opts.push('<option value="' + m.metric_id + '">' + m.metric_name + "</option>");
         });
         select.innerHTML = opts.join("");
-        if (window.RL && RL.enhanceSelect) RL.enhanceSelect(select, "Поиск показателя…");
+        if (window.RL && RL.enhanceSelect) RL.enhanceSelect(select, gettext("Поиск показателя…"));
       });
   }
 
   function load() {
-    shell("Загрузка…");
+    shell(gettext("Загрузка…"));
     var metricId = select.value;
     var year = slider ? slider.value : "";
     var url = "/api/correlations/?year=" + encodeURIComponent(year);
     if (metricId) url += "&metric_id=" + encodeURIComponent(metricId);
     fetch(url)
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка загрузки (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка загрузки") + " (" + r.status + ")");
         return r.json();
       })
       .then(function (rows) {
@@ -57,7 +57,7 @@
 
   function render(rows, metricId) {
     if (!rows.length) {
-      shell("Нет пар корреляций за выбранный год.");
+      shell(gettext("Нет пар корреляций за выбранный год."));
       return;
     }
     // в режиме фильтра показываем выбранную метрику первой
@@ -79,8 +79,8 @@
     var maxAbs = 1; // корреляция по модулю ≤ 1 — нормируем бар по 1
 
     var head =
-      "<tr><th>Показатель A</th><th>Показатель B</th>" +
-      "<th class='num'>Корреляция</th><th class='num'>Регионов</th></tr>";
+      "<tr><th>" + gettext("Показатель A") + "</th><th>" + gettext("Показатель B") + "</th>" +
+      "<th class='num'>" + gettext("Корреляция") + "</th><th class='num'>" + gettext("Регионов") + "</th></tr>";
     var body = rows
       .map(function (r) {
         var w = Math.max(2, Math.min(100, (Math.abs(r.correlation) / maxAbs) * 100));
@@ -95,10 +95,15 @@
       .join("");
 
     root.innerHTML =
-      "<p class='chart-note'>Год: " + year + " · метод: " + method +
-      " · пар: " + rows.length +
-      " · бар — |корреляция| (0…1), знак указан в числе. Сильнейшие связи — сверху. " +
-      "Связь не означает причинности.</p>" +
+      "<p class='chart-note'>" +
+      interpolate(
+        gettext(
+          "Год: %(year)s · метод: %(method)s · пар: %(n)s · бар — |корреляция| (0…1), знак указан в числе. Сильнейшие связи — сверху. Связь не означает причинности."
+        ),
+        { year: year, method: method, n: rows.length },
+        true
+      ) +
+      "</p>" +
       "<div class='table-wrap'><table class='table'><thead>" +
       head +
       "</thead><tbody>" +
@@ -138,7 +143,7 @@
     copyBtn.addEventListener("click", function () {
       var flash = function () {
         var prev = copyBtn.textContent;
-        copyBtn.textContent = "Ссылка скопирована";
+        copyBtn.textContent = gettext("Ссылка скопирована");
         setTimeout(function () {
           copyBtn.textContent = prev;
         }, 1500);

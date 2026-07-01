@@ -12,13 +12,13 @@
   if (!root) return;
 
   var DOMAIN_RU = {
-    economy: "Экономика",
-    income: "Доходы",
-    demography: "Демография",
-    labor: "Рынок труда",
-    infrastructure: "Инфраструктура",
-    health_edu: "Здоровье и образование",
-    excluded: "Вне аналитики",
+    economy: gettext("Экономика"),
+    income: gettext("Доходы"),
+    demography: gettext("Демография"),
+    labor: gettext("Рынок труда"),
+    infrastructure: gettext("Инфраструктура"),
+    health_edu: gettext("Здоровье и образование"),
+    excluded: gettext("Вне аналитики"),
   };
 
   function pct(x) {
@@ -64,8 +64,8 @@
       return Number(a.key) - Number(b.key);
     });
     var head =
-      "<tr><th>Год</th><th class='num'>Полнота сырья</th>" +
-      "<th class='num'>Импутаций</th></tr>";
+      "<tr><th>" + gettext("Год") + "</th><th class='num'>" + gettext("Полнота сырья") + "</th>" +
+      "<th class='num'>" + gettext("Импутаций") + "</th></tr>";
     var body = agg
       .map(function (a) {
         return (
@@ -77,10 +77,12 @@
       })
       .join("");
     return (
-      "<h2>Полнота по годам</h2>" +
-      "<p class='chart-note'>Полнота сырья — доля ячеек «регион×метрика» с непустым исходным " +
-      "значением Росстата за год (бар к 100%). Импутаций — доля достроенных ячеек " +
-      "гармонизированной сетки. 2024 — неполный год: часть индикаторов ещё не вышла.</p>" +
+      "<h2>" + gettext("Полнота по годам") + "</h2>" +
+      "<p class='chart-note'>" +
+      gettext(
+        "Полнота сырья — доля ячеек «регион×метрика» с непустым исходным значением Росстата за год (бар к 100%). Импутаций — доля достроенных ячеек гармонизированной сетки. 2024 — неполный год: часть индикаторов ещё не вышла."
+      ) +
+      "</p>" +
       "<div class='table-wrap'><table class='table'><thead>" + head +
       "</thead><tbody>" + body + "</tbody></table></div>"
     );
@@ -93,8 +95,8 @@
       return (b.impute_share || 0) - (a.impute_share || 0);
     });
     var head =
-      "<tr><th>Домен</th><th class='num'>Полнота сырья</th>" +
-      "<th class='num'>Импутаций</th></tr>";
+      "<tr><th>" + gettext("Домен") + "</th><th class='num'>" + gettext("Полнота сырья") + "</th>" +
+      "<th class='num'>" + gettext("Импутаций") + "</th></tr>";
     var body = agg
       .map(function (a) {
         var label = DOMAIN_RU[a.key] || a.key;
@@ -106,10 +108,12 @@
       })
       .join("");
     return (
-      "<h2>Импутации по доменам</h2>" +
-      "<p class='chart-note'>Свод по доменам индекса (отсортировано по доле импутаций). " +
-      "Различие полноты сырья и импутаций возникает у абсолютных показателей: их пересчёт " +
-      "на душу требует населения, и его пропуск даёт импутацию.</p>" +
+      "<h2>" + gettext("Импутации по доменам") + "</h2>" +
+      "<p class='chart-note'>" +
+      gettext(
+        "Свод по доменам индекса (отсортировано по доле импутаций). Различие полноты сырья и импутаций возникает у абсолютных показателей: их пересчёт на душу требует населения, и его пропуск даёт импутацию."
+      ) +
+      "</p>" +
       "<div class='table-wrap'><table class='table'><thead>" + head +
       "</thead><tbody>" + body + "</tbody></table></div>"
     );
@@ -132,8 +136,8 @@
       return Math.max(m, a.impute_share || 0);
     }, 0);
     var head =
-      "<tr><th>Показатель</th><th>Домен</th><th class='num'>Покрытие сырья</th>" +
-      "<th class='num'>Импутаций</th></tr>";
+      "<tr><th>" + gettext("Показатель") + "</th><th>" + gettext("Домен") + "</th><th class='num'>" + gettext("Покрытие сырья") + "</th>" +
+      "<th class='num'>" + gettext("Импутаций") + "</th></tr>";
     var body = agg
       .map(function (a) {
         return (
@@ -146,10 +150,12 @@
       })
       .join("");
     return (
-      "<h2>По показателям ядра</h2>" +
-      "<p class='chart-note'>Покрытие сырья — оконная доля заполненных «регион×год» по метрике " +
-      "(совпадает с порогом отбора ядра). Импутаций — доля достроенных ячеек (бар нормирован " +
-      "по максимуму ряда). Самые проблемные показатели — сверху.</p>" +
+      "<h2>" + gettext("По показателям ядра") + "</h2>" +
+      "<p class='chart-note'>" +
+      gettext(
+        "Покрытие сырья — оконная доля заполненных «регион×год» по метрике (совпадает с порогом отбора ядра). Импутаций — доля достроенных ячеек (бар нормирован по максимуму ряда). Самые проблемные показатели — сверху."
+      ) +
+      "</p>" +
       "<div class='table-wrap'><table class='table'><thead>" + head +
       "</thead><tbody>" + body + "</tbody></table></div>"
     );
@@ -157,16 +163,16 @@
 
   function render(rows) {
     if (!rows.length) {
-      shell("Нет данных о качестве (хранилище ещё не собрано).");
+      shell(gettext("Нет данных о качестве (хранилище ещё не собрано)."));
       return;
     }
     root.innerHTML = byYearTable(rows) + byDomainTable(rows) + byMetricTable(rows);
   }
 
-  shell("Загрузка…");
+  shell(gettext("Загрузка…"));
   fetch("/api/data-quality/")
     .then(function (r) {
-      if (!r.ok) throw new Error("Ошибка загрузки (" + r.status + ")");
+      if (!r.ok) throw new Error(gettext("Ошибка загрузки") + " (" + r.status + ")");
       return r.json();
     })
     .then(render)

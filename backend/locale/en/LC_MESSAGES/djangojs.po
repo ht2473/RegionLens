@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RegionLens (djangojs)\n"
 "POT-Creation-Date: 2026-07-01 02:48+0000\n"
-"PO-Revision-Date: 2026-07-01 03:02+0000\n"
+"PO-Revision-Date: 2026-07-01 03:13+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -360,3 +360,258 @@ msgstr "β-convergence: initial laggards grew faster (catch-up)"
 
 msgid "β-дивергенция: лидеры росли быстрее"
 msgstr "β-divergence: leaders grew faster"
+
+msgid "Здоровье/образование"
+msgstr "Health/education"
+
+msgid "устойчиво высокий"
+msgstr "stably high"
+
+msgid "устойчиво средний"
+msgstr "stably mid"
+
+msgid "устойчиво низкий"
+msgstr "stably low"
+
+msgid "догоняющий"
+msgstr "catching up"
+
+msgid "отстающий"
+msgstr "falling behind"
+
+msgid "рывок"
+msgstr "leapfrog"
+
+msgid "волатильный"
+msgstr "volatile"
+
+msgid "дрейфующий"
+msgstr "drifting"
+
+msgid "Регион не найден или нет данных за год."
+msgstr "Region not found or no data for the year."
+
+msgid "нет пред. года"
+msgstr "no previous year"
+
+msgid "к пред. году"
+msgstr "vs the previous year"
+
+msgid "из"
+msgstr "of"
+
+msgid "удалённость от центра типа"
+msgstr "distance from the type centre"
+
+msgid "среднее РФ"
+msgstr "national average"
+
+msgid "Нет предыдущего года для сравнения."
+msgstr "No previous year to compare."
+
+msgid "Нет предыдущего года для разложения индекса."
+msgstr "No previous year for the index decomposition."
+
+msgid "Нет данных SHAP за год."
+msgstr "No SHAP data for the year."
+
+msgid "Нет данных о переходах."
+msgstr "No transition data."
+
+msgid "Нет данных о двойниках за выбранный год."
+msgstr "No twins data for the selected year."
+
+msgid "косинусная близость профиля z-оценок (1.00 — идентичный профиль)"
+msgstr "cosine similarity of the z-score profile (1.00 — identical profile)"
+
+msgid "Все пары"
+msgstr "All pairs"
+
+msgid "Нет пар корреляций за выбранный год."
+msgstr "No correlation pairs for the selected year."
+
+msgid "Показатель A"
+msgstr "Indicator A"
+
+msgid "Показатель B"
+msgstr "Indicator B"
+
+msgid "Корреляция"
+msgstr "Correlation"
+
+msgid "Регионов"
+msgstr "Regions"
+
+msgid ""
+"Год: %(year)s · метод: %(method)s · пар: %(n)s · бар — |корреляция| (0…1), "
+"знак указан в числе. Сильнейшие связи — сверху. Связь не означает "
+"причинности."
+msgstr ""
+"Year: %(year)s · method: %(method)s · pairs: %(n)s · the bar is "
+"|correlation| (0…1), the sign is in the number. Strongest links on top. "
+"Association does not imply causation."
+
+msgid "Ничего не найдено."
+msgstr "Nothing found."
+
+msgid "…и ещё %(n)s (показаны первые 50)."
+msgstr "…and %(n)s more (first 50 shown)."
+
+msgid "Не удалось загрузить данные."
+msgstr "Could not load the data."
+
+msgid "величина сдвига уровня (в единицах показателя)"
+msgstr "magnitude of the level shift (in the indicator’s units)"
+
+msgid "метрика"
+msgstr "metric"
+
+msgid "доля регионов с синхронным сдвигом (кандидат, не вывод)"
+msgstr ""
+"share of regions with a synchronous shift (candidate, not a conclusion)"
+
+msgid ""
+"Не удалось загрузить границы регионов. Сформируйте "
+"<code>static/geo/regions.geojson</code> (см. README)."
+msgstr ""
+"Could not load region boundaries. Generate "
+"<code>static/geo/regions.geojson</code> (see README)."
+
+msgid "Пространственные выбросы"
+msgstr "Spatial outliers"
+
+msgid "помеченный выброс"
+msgstr "flagged outlier"
+
+msgid "в норме"
+msgstr "normal"
+
+msgid "Нетипичность профиля региона в этот год (IsolationForest)."
+msgstr "Atypicality of the region profile in this year (IsolationForest)."
+
+msgid "выброс"
+msgstr "outlier"
+
+msgid "оценка"
+msgstr "score"
+
+msgid "Рынок труда"
+msgstr "Labour market"
+
+msgid "Здоровье и образование"
+msgstr "Health and education"
+
+msgid "Вне аналитики"
+msgstr "Outside analytics"
+
+msgid "Полнота сырья"
+msgstr "Raw completeness"
+
+msgid "Импутаций"
+msgstr "Imputed"
+
+msgid "Полнота по годам"
+msgstr "Completeness by year"
+
+msgid ""
+"Полнота сырья — доля ячеек «регион×метрика» с непустым исходным значением "
+"Росстата за год (бар к 100%). Импутаций — доля достроенных ячеек "
+"гармонизированной сетки. 2024 — неполный год: часть индикаторов ещё не "
+"вышла."
+msgstr ""
+"Raw completeness is the share of “region×metric” cells with a non-empty "
+"original Rosstat value for the year (the bar is out of 100%). Imputed is the"
+" share of filled cells in the harmonised grid. 2024 is an incomplete year: "
+"some indicators have not been released yet."
+
+msgid "Домен"
+msgstr "Domain"
+
+msgid "Импутации по доменам"
+msgstr "Imputation by domain"
+
+msgid ""
+"Свод по доменам индекса (отсортировано по доле импутаций). Различие полноты "
+"сырья и импутаций возникает у абсолютных показателей: их пересчёт на душу "
+"требует населения, и его пропуск даёт импутацию."
+msgstr ""
+"A summary by index domains (sorted by imputation share). Raw completeness "
+"and imputation diverge for absolute indicators: per-capita conversion needs "
+"population, and a missing value causes imputation."
+
+msgid "Показатель"
+msgstr "Indicator"
+
+msgid "Покрытие сырья"
+msgstr "Raw coverage"
+
+msgid "По показателям ядра"
+msgstr "By core indicators"
+
+msgid ""
+"Покрытие сырья — оконная доля заполненных «регион×год» по метрике (совпадает"
+" с порогом отбора ядра). Импутаций — доля достроенных ячеек (бар нормирован "
+"по максимуму ряда). Самые проблемные показатели — сверху."
+msgstr ""
+"Raw coverage is the windowed share of filled “region×year” cells per metric "
+"(matching the core-selection threshold). Imputed is the share of filled "
+"cells (the bar is normalised to the series maximum). The most problematic "
+"indicators are on top."
+
+msgid "Нет данных о качестве (хранилище ещё не собрано)."
+msgstr "No quality data (the store is not built yet)."
+
+msgid "покрытие"
+msgstr "coverage"
+
+msgid "Показаны первые %(n)s. Уточните поиск."
+msgstr "First %(n)s shown. Refine the search."
+
+msgid "Ошибка каталога"
+msgstr "Catalogue error"
+
+msgid "У показателя нет данных по годам."
+msgstr "The indicator has no data across years."
+
+msgid "ядро индекса"
+msgstr "index core"
+
+msgid "основной"
+msgstr "main"
+
+msgid "разрежен"
+msgstr "sparse"
+
+msgid "Нет данных за %(year)s год."
+msgstr "No data for %(year)s."
+
+msgid "Значение"
+msgstr "Value"
+
+msgid ""
+"%(n)s регионов · %(year)s год · бар нормирован по максимуму ряда · кликните "
+"регион — его динамика по годам."
+msgstr ""
+"%(n)s regions · %(year)s · the bar is normalised to the series maximum · "
+"click a region for its yearly dynamics."
+
+msgid "Ошибка значений"
+msgstr "Values error"
+
+msgid "Загрузка ряда…"
+msgstr "Loading the series…"
+
+msgid "Ошибка ряда"
+msgstr "Series error"
+
+msgid "У региона нет ряда по этому показателю."
+msgstr "The region has no series for this indicator."
+
+msgid "Закрыть"
+msgstr "Close"
+
+msgid "Не удалось загрузить границы регионов."
+msgstr "Could not load region boundaries."
+
+msgid "Светлее — меньше, темнее — больше. Серый — нет данных."
+msgstr "Lighter is lower, darker is higher. Grey is no data."

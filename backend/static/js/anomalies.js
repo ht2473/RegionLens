@@ -30,19 +30,19 @@
       .then(function (rows) {
         box.innerHTML = "";
         if (!rows.length) {
-          box.appendChild(note("Ничего не найдено."));
+          box.appendChild(note(gettext("Ничего не найдено.")));
           return;
         }
         rows.slice(0, 50).forEach(function (d) {
           box.appendChild(renderRow(d));
         });
         if (rows.length > 50) {
-          box.appendChild(note("…и ещё " + (rows.length - 50) + " (показаны первые 50)."));
+          box.appendChild(note(interpolate(gettext("…и ещё %(n)s (показаны первые 50)."), { n: rows.length - 50 }, true)));
         }
       })
       .catch(function () {
         box.innerHTML = "";
-        box.appendChild(note("Не удалось загрузить данные."));
+        box.appendChild(note(gettext("Не удалось загрузить данные.")));
       });
   }
 
@@ -68,10 +68,10 @@
     a.href = "/regions/" + encodeURIComponent(d.okato) + "/?year=" + d.year;
     a.textContent = d.region_name || d.okato;
     var mag = span("anom-val", "Δ " + Number(d.score).toFixed(1));
-    mag.title = "величина сдвига уровня (в единицах показателя)";
+    mag.title = gettext("величина сдвига уровня (в единицах показателя)");
     li.appendChild(span("anom-year", d.year));
     li.appendChild(a);
-    li.appendChild(span("anom-metric", d.metric_name || "метрика " + d.metric_id));
+    li.appendChild(span("anom-metric", d.metric_name || gettext("метрика") + " " + d.metric_id));
     li.appendChild(mag);
     return li;
   }
@@ -80,9 +80,9 @@
     var li = document.createElement("li");
     li.className = "anom-item";
     var frac = span("anom-val", Math.round(Number(d.score) * 100) + "%");
-    frac.title = "доля регионов с синхронным сдвигом (кандидат, не вывод)";
+    frac.title = gettext("доля регионов с синхронным сдвигом (кандидат, не вывод)");
     li.appendChild(span("anom-year", d.year));
-    li.appendChild(span("anom-name", d.metric_name || "метрика " + d.metric_id));
+    li.appendChild(span("anom-name", d.metric_name || gettext("метрика") + " " + d.metric_id));
     li.appendChild(frac);
     return li;
   }
@@ -142,8 +142,11 @@
       })
       .catch(function () {
         root.innerHTML =
-          '<div class="shell"><p>Не удалось загрузить границы регионов. ' +
-          "Сформируйте <code>static/geo/regions.geojson</code> (см. README).</p></div>";
+          '<div class="shell"><p>' +
+          gettext(
+            "Не удалось загрузить границы регионов. Сформируйте <code>static/geo/regions.geojson</code> (см. README)."
+          ) +
+          "</p></div>";
       });
   });
 
@@ -178,14 +181,14 @@
     var el = document.getElementById("map-legend");
     if (!el) return;
     el.innerHTML =
-      "<div class='legend-title'>Пространственные выбросы</div>" +
+      "<div class='legend-title'>" + gettext("Пространственные выбросы") + "</div>" +
       "<div class='legend-row'><span class='swatch' style='background:" +
       FLAG +
-      "'></span>помеченный выброс</div>" +
+      "'></span>" + gettext("помеченный выброс") + "</div>" +
       "<div class='legend-row'><span class='swatch' style='background:" +
       CALM +
-      "'></span>в норме</div>" +
-      "<div class='legend-note'>Нетипичность профиля региона в этот год (IsolationForest).</div>";
+      "'></span>" + gettext("в норме") + "</div>" +
+      "<div class='legend-note'>" + gettext("Нетипичность профиля региона в этот год (IsolationForest).") + "</div>";
   }
 
   function wire() {
@@ -196,7 +199,7 @@
         .setLngLat(e.lngLat)
         .setHTML(
           "<strong>" + (p.name || p.okato) + "</strong><br>" +
-            (p.flagged == 1 ? "выброс · " : "в норме · ") + "оценка: " + (p.score || "—")
+            (p.flagged == 1 ? gettext("выброс") + " · " : gettext("в норме") + " · ") + gettext("оценка") + ": " + (p.score || "—")
         )
         .addTo(map);
     });

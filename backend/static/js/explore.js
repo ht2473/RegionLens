@@ -10,12 +10,12 @@
   if (!root) return;
 
   var DOMAIN_RU = {
-    economy: "Экономика",
-    income: "Доходы",
-    labor: "Труд",
-    demography: "Демография",
-    infrastructure: "Инфраструктура",
-    health_edu: "Здоровье и образование",
+    economy: gettext("Экономика"),
+    income: gettext("Доходы"),
+    labor: gettext("Труд"),
+    demography: gettext("Демография"),
+    infrastructure: gettext("Инфраструктура"),
+    health_edu: gettext("Здоровье и образование"),
   };
   var CATALOG_LIMIT = 400;
 
@@ -78,7 +78,7 @@
 
   function renderList(rows) {
     if (!rows.length) {
-      $list.innerHTML = '<li class="explore-muted">Ничего не найдено.</li>';
+      $list.innerHTML = '<li class="explore-muted">' + gettext("Ничего не найдено.") + "</li>";
       return;
     }
     var html = rows
@@ -89,12 +89,15 @@
           '<li class="explore-item' + active + '" data-id="' + m.metric_id + '" tabindex="0">' +
           '<span class="explore-item-name">' + esc(m.metric_name) + "</span>" +
           '<span class="explore-item-meta">' + esc(domainRu(m.domain)) +
-          (cov ? " · покрытие " + cov : "") + "</span></li>"
+          (cov ? " · " + gettext("покрытие") + " " + cov : "") + "</span></li>"
         );
       })
       .join("");
     if (rows.length >= CATALOG_LIMIT) {
-      html += '<li class="explore-muted">Показаны первые ' + CATALOG_LIMIT + ". Уточните поиск.</li>";
+      html +=
+        '<li class="explore-muted">' +
+        interpolate(gettext("Показаны первые %(n)s. Уточните поиск."), { n: CATALOG_LIMIT }, true) +
+        "</li>";
     }
     $list.innerHTML = html;
     // карта metric_id → строка каталога для быстрого выбора
@@ -105,7 +108,7 @@
   function loadCatalog() {
     fetch(catalogUrl())
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка каталога (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка каталога") + " (" + r.status + ")");
         return r.json();
       })
       .then(renderList)
@@ -126,7 +129,7 @@
       hi = m.year_max;
     if (lo == null || hi == null) {
       $yearWrap.hidden = true;
-      shell($values, "У показателя нет данных по годам.");
+      shell($values, gettext("У показателя нет данных по годам."));
       return;
     }
     $year.min = lo;
@@ -142,13 +145,17 @@
   }
 
   function renderMeta(m) {
-    var tierLabel = m.is_core ? "ядро индекса" : m.tier === "extended" ? "основной" : "разрежен";
+    var tierLabel = m.is_core
+      ? gettext("ядро индекса")
+      : m.tier === "extended"
+        ? gettext("основной")
+        : gettext("разрежен");
     $meta.innerHTML =
       "<h2>" + esc(m.metric_name) + "</h2>" +
       '<p class="explore-meta-line">' +
       esc(domainRu(m.domain)) +
       (m.unit ? " · " + esc(m.unit) : "") +
-      (m.value_type ? " · тип: " + esc(m.value_type) : "") +
+      (m.value_type ? " · " + gettext("тип") + ": " + esc(m.value_type) : "") +
       " · " + tierLabel +
       (m.year_min != null ? " · " + m.year_min + "–" + m.year_max : "") +
       "</p>";
@@ -157,7 +164,7 @@
   // ── Значения по регионам за год (правая панель) ──────────────────────────
   function renderValues(rows) {
     if (!rows.length) {
-      shell($values, "Нет данных за " + state.year + " год.");
+      shell($values, interpolate(gettext("Нет данных за %(year)s год."), { year: state.year }, true));
       return;
     }
     var maxAbs = rows.reduce(function (mx, r) {
@@ -178,18 +185,25 @@
       .join("");
     $values.innerHTML =
       "<div class='table-wrap'><table class='table'><thead>" +
-      "<tr><th class='num'>#</th><th>Регион</th><th class='num'>Значение</th></tr>" +
+      "<tr><th class='num'>#</th><th>" + gettext("Регион") + "</th><th class='num'>" + gettext("Значение") + "</th></tr>" +
       "</thead><tbody>" + body + "</tbody></table></div>" +
-      "<p class='chart-note'>" + rows.length + " регионов · " + state.year +
-      " год · бар нормирован по максимуму ряда · кликните регион — его динамика по годам.</p>";
+      "<p class='chart-note'>" +
+      interpolate(
+        gettext(
+          "%(n)s регионов · %(year)s год · бар нормирован по максимуму ряда · кликните регион — его динамика по годам."
+        ),
+        { n: rows.length, year: state.year },
+        true
+      ) +
+      "</p>";
   }
 
   function loadValues() {
     if (!state.metric) return;
-    if (state.view !== "map") shell($values, "Загрузка…");
+    if (state.view !== "map") shell($values, gettext("Загрузка…"));
     fetch("/api/metric-values/?metric_id=" + state.metric.metric_id + "&year=" + state.year)
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка значений (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка значений") + " (" + r.status + ")");
         return r.json();
       })
       .then(function (rows) {
@@ -220,10 +234,10 @@
   function selectRegion(okato, name) {
     if (!state.metric) return;
     $series.hidden = false;
-    $series.innerHTML = '<div class="shell"><p>Загрузка ряда…</p></div>';
+    $series.innerHTML = '<div class="shell"><p>' + gettext("Загрузка ряда…") + "</p></div>";
     fetch("/api/metrics/" + state.metric.metric_id + "/series/?okato=" + encodeURIComponent(okato))
       .then(function (r) {
-        if (!r.ok) throw new Error("Ошибка ряда (" + r.status + ")");
+        if (!r.ok) throw new Error(gettext("Ошибка ряда") + " (" + r.status + ")");
         return r.json();
       })
       .then(function (rows) { renderSeries(rows, name); })
@@ -233,13 +247,13 @@
   function renderSeries(rows, name) {
     var pts = rows.filter(function (r) { return r.value != null; });
     if (!pts.length) {
-      shell($series, "У региона нет ряда по этому показателю.");
+      shell($series, gettext("У региона нет ряда по этому показателю."));
       return;
     }
     $series.innerHTML =
       '<div class="explore-series-head"><strong>' + esc(name) + "</strong> · " +
       esc(state.metric.metric_name) +
-      '<button type="button" class="explore-series-close" aria-label="Закрыть">×</button></div>' +
+      '<button type="button" class="explore-series-close" aria-label="' + gettext("Закрыть") + '">×</button></div>' +
       '<div id="ex-series-chart"></div>';
     Plotly.newPlot(
       "ex-series-chart",
@@ -339,7 +353,7 @@
           .catch(function () {
             var el = document.getElementById("ex-map");
             if (el) {
-              el.innerHTML = '<div class="shell"><p>Не удалось загрузить границы регионов.</p></div>';
+              el.innerHTML = '<div class="shell"><p>' + gettext("Не удалось загрузить границы регионов.") + "</p></div>";
             }
           });
       });
@@ -349,7 +363,7 @@
       map.on("mousemove", "fill", function (e) {
         map.getCanvas().style.cursor = "pointer";
         var p = e.features[0].properties;
-        var v = p.exdisp != null && p.exdisp !== "" ? p.exdisp : "нет данных";
+        var v = p.exdisp != null && p.exdisp !== "" ? p.exdisp : gettext("нет данных");
         popup
           .setLngLat(e.lngLat)
           .setHTML("<strong>" + (p.name || p.okato) + "</strong><br>" + v)
@@ -386,10 +400,10 @@
       if (!el) return;
       var unit = state.metric && state.metric.unit ? " · " + esc(state.metric.unit) : "";
       el.innerHTML =
-        "<div class='legend-title'>Значение" + unit + "</div>" +
+        "<div class='legend-title'>" + gettext("Значение") + unit + "</div>" +
         "<div class='legend-gradient'></div>" +
         "<div class='legend-scale'><span>" + fmt(lo) + "</span><span>" + fmt(hi) + "</span></div>" +
-        "<div class='legend-note'>Светлее — меньше, темнее — больше. Серый — нет данных.</div>";
+        "<div class='legend-note'>" + gettext("Светлее — меньше, темнее — больше. Серый — нет данных.") + "</div>";
     }
 
     function render(rows) {
@@ -484,7 +498,7 @@
     $copy.addEventListener("click", function () {
       var flash = function () {
         var prev = $copy.textContent;
-        $copy.textContent = "Ссылка скопирована";
+        $copy.textContent = gettext("Ссылка скопирована");
         setTimeout(function () { $copy.textContent = prev; }, 1500);
       };
       if (navigator.clipboard && navigator.clipboard.writeText) {
