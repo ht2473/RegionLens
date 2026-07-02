@@ -386,3 +386,43 @@ def test_preferences_injected_into_rl_prefs(client_alice: Client, alice: User) -
     html = client_alice.get(reverse("rankings")).content.decode()
     assert "window.RL_PREFS" in html
     assert "year: 2018" in html and '"expert"' in html and '"index"' in html
+
+
+# ── Полировка кабинета: очистка истории, читаемые виды, статистика профиля ───────
+def test_export_history_clear_removes_jobs(client_alice: Client, alice: User) -> None:
+    """Очистка истории удаляет все задания экспорта пользователя."""
+    from core.models import ExportJob
+
+    ExportJob.objects.create(user=alice, okato="45000000", fmt="xlsx", status="done")
+    ExportJob.objects.create(user=alice, okato="40000000", fmt="docx", status="done")
+    assert ExportJob.objects.filter(user=alice).count() == 2
+    resp = client_alice.post(reverse("account_exports_clear"))
+    assert resp.status_code == 302
+    assert ExportJob.objects.filter(user=alice).count() == 0
+
+
+def test_export_history_clear_requires_login(client: Client) -> None:
+    """Очистка истории недоступна анониму."""
+    resp = client.post(reverse("account_exports_clear"))
+    assert resp.status_code == 302 and "/accounts/login/" in resp["Location"]
+
+
+def test_saved_view_shows_readable_summary(client_alice: Client, alice: User) -> None:
+    """Сохранённый вид показывает читаемое описание, а не сырой JSON конфигурации."""
+    from core.models import SavedView
+
+    SavedView.objects.create(
+        user=alice, name="Карта 2022", config={"year": 2022, "measure": "index", "scheme": "pca"}
+    )
+    html = client_alice.get(reverse("account_views")).content.decode()
+    assert "Год 2022" in html and "Схема:" in html
+    assert "{'year'" not in html  # питон-репр конфига не отображается
+
+
+def test_profile_shows_stats_and_account_info(client_alice: Client, alice: User) -> None:
+    """Профиль показывает личную статистику и сведения об учётной записи."""
+    from core.models import Favorite
+
+    Favorite.objects.create(user=alice, kind="region", ref="45000000", label="Москва")
+    html = client_alice.get(reverse("account_profile")).content.decode()
+    assert "Моя статистика" in html and "Последний вход" in html

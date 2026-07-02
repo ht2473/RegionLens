@@ -74,6 +74,14 @@ def profile_edit(request: HttpRequest) -> HttpResponse:
         "breadcrumbs": _crumbs(gettext("Профиль")),
         "form": form,
         "saved": saved,
+        "profile": profile,
+        "roles": sorted(effective_roles(request.user)),
+        "stats": {
+            "favorites": Favorite.objects.filter(user=request.user).count(),
+            "views": SavedView.objects.filter(user=request.user).count(),
+            "comparisons": ComparisonSet.objects.filter(user=request.user).count(),
+            "exports": ExportJob.objects.filter(user=request.user).count(),
+        },
     }
     return render(request, "account/profile.html", ctx)
 
@@ -94,12 +102,20 @@ def saved_views(request: HttpRequest) -> HttpResponse:
             return redirect("account_views")
     else:
         form = SavedViewForm()
+    views = list(SavedView.objects.filter(user=request.user))
+    okatos = [
+        v.config["okato"] for v in views if isinstance(v.config, dict) and v.config.get("okato")
+    ]
+    names = region_names_ru(okatos)
+    for view in views:
+        cfg = view.config if isinstance(view.config, dict) else {}
+        view.summary = _saved_view_summary(cfg, names.get(str(cfg.get("okato", "")), ""))
     ctx = {
         "active": "account",
         "cabinet_tab": "views",
         "breadcrumbs": _crumbs(gettext("Сохранённые виды")),
         "form": form,
-        "views": SavedView.objects.filter(user=request.user),
+        "views": views,
     }
     return render(request, "account/saved_views.html", ctx)
 
@@ -155,6 +171,46 @@ def export_history(request: HttpRequest) -> HttpResponse:
     return render(request, "account/exports.html", ctx)
 
 
+@login_required
+@require_POST
+def export_history_clear(request: HttpRequest) -> HttpResponse:
+    """Очистить историю выгрузок: удалить задания экспорта пользователя и их файлы."""
+    jobs = ExportJob.objects.filter(user=request.user)
+    for job in jobs:
+        if job.file:
+            job.file.delete(save=False)
+    count = jobs.count()
+    jobs.delete()
+    if count:
+        record(request.user, "export:clear")
+    return redirect("account_exports")
+
+
+# Человекочитаемые подписи параметров сохранённого вида (config хранит слаги).
+_VIEW_SCHEME_LABELS = {"equal": "Равные веса", "pca": "PCA", "expert": "Экспертные"}
+_VIEW_MEASURE_LABELS = {"cluster": "Тип (кластер)", "index": "Индекс развития"}
+
+
+def _saved_view_summary(config: dict[str, object], region_name: str) -> str:
+    """Собрать краткое читаемое описание вида: год, карта/регион и схема весов."""
+    parts = [gettext("Год %(year)s") % {"year": config.get("year", 2024)}]
+    okato = config.get("okato")
+    if okato:
+        label = gettext(region_name) if region_name else str(okato)
+        parts.append(gettext("Регион: %(name)s") % {"name": label})
+    else:
+        measure = str(config.get("measure", "cluster"))
+        parts.append(
+            gettext("Карта: %(measure)s")
+            % {"measure": gettext(_VIEW_MEASURE_LABELS.get(measure, measure))}
+        )
+    scheme = str(config.get("scheme", "equal"))
+    parts.append(
+        gettext("Схема: %(scheme)s") % {"scheme": gettext(_VIEW_SCHEME_LABELS.get(scheme, scheme))}
+    )
+    return " · ".join(parts)
+
+
 # ── Лента активности: человекочитаемое описание записей журнала аудита ──────────
 # Действия хранятся кодами («auth:login», «export:xlsx okato=… year=…», «saved_view:create
 # <имя>» и т.п.). Здесь код разбирается в локализованный текст и категорию (для иконки/цвета).
@@ -196,6 +252,8 @@ def _describe_action(action: str) -> tuple[str, str]:
         return ("view", gettext("Удалён набор сравнения «%(name)s»") % {"name": rest})
     if head == "settings:update":
         return ("other", gettext("Обновлены настройки отображения"))
+    if head == "export:clear":
+        return ("export", gettext("Очищена история выгрузок"))
     return ("other", action)
 
 

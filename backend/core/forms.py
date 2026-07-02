@@ -85,6 +85,11 @@ class PreferencesForm(forms.ModelForm):
     `window.RL_PREFS`); URL-параметр всегда важнее предпочтения (deep-link не ломается).
     """
 
+    default_year = forms.TypedChoiceField(
+        choices=[(y, str(y)) for y in range(2024, 2009, -1)],
+        coerce=int,
+        label=_("Год по умолчанию"),
+    )
     default_scheme = forms.ChoiceField(choices=_SCHEME_CHOICES, label=_("Схема весов по умолчанию"))
     default_measure = forms.ChoiceField(
         choices=_MEASURE_CHOICES, label=_("Мера карты по умолчанию")
@@ -93,9 +98,6 @@ class PreferencesForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ["default_year", "default_scheme", "default_measure"]
-        labels = {
-            "default_year": _("Год по умолчанию"),
-        }
 
     def clean_default_year(self) -> int:
         """Ограничить год окном доступных данных (2010–2024)."""

@@ -15,9 +15,9 @@
 <div class="card" style="max-width:680px;">
   <h3 style="margin-top:0;">{% trans "Быстрый экспорт" %}</h3>
   <div class="compare-controls" style="margin:0;">
-    <div class="field" style="min-width:220px;">
+    <div class="field" style="flex:1 1 100%; min-width:260px;">
       <label for="qe-region">{% trans "Регион" %}</label>
-      <select id="qe-region"><option>{% trans "Загрузка…" %}</option></select>
+      <select id="qe-region" style="width:100%;"><option>{% trans "Загрузка…" %}</option></select>
     </div>
     <div class="field">
       <label for="qe-year">{% trans "Год" %}</label>
@@ -53,7 +53,16 @@
 </div>
 {% endif %}
 
-<h2 style="margin-top:24px;">{% trans "История выгрузок" %}</h2>
+<div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:24px; flex-wrap:wrap;">
+  <h2 style="margin:0;">{% trans "История выгрузок" %}</h2>
+  {% if jobs %}
+    <form method="post" action="{% url 'account_exports_clear' %}"
+          onsubmit="return confirm('{% trans "Очистить всю историю выгрузок? Файлы отчётов будут удалены." %}');">
+      {% csrf_token %}
+      <button class="btn ghost" type="submit">{% trans "Очистить историю" %}</button>
+    </form>
+  {% endif %}
+</div>
 {% if jobs %}
   <div class="table-wrap">
     <table class="table">

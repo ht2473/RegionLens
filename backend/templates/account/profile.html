@@ -7,9 +7,31 @@
 <section class="hero">
   <p class="eyebrow">{% trans "Личный кабинет" %}</p>
   <h1>{% trans "Профиль" %}</h1>
+  <p class="lead">{% trans "Учётная запись, доступ и личная статистика. Здесь же указываются организация и e-mail для отчётов." %}</p>
 </section>
 
 {% include "account/_tabs.html" %}
+
+<div class="grid cols-2" style="margin-bottom:20px;">
+  <div class="card">
+    <h3 style="margin-top:0;">{% trans "Учётная запись" %}</h3>
+    <p><span style="color:var(--ink-faint);">{% trans "Имя пользователя" %}:</span> <strong>{{ user.get_username }}</strong></p>
+    <p><span style="color:var(--ink-faint);">{% trans "E-mail" %}:</span> {{ user.email|default:"—" }}</p>
+    <p><span style="color:var(--ink-faint);">{% trans "Роли" %}:</span> {% for r in roles %}<strong>{{ r }}</strong>{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</p>
+    {% if profile.organization %}<p><span style="color:var(--ink-faint);">{% trans "Организация" %}:</span> {{ profile.organization }}</p>{% endif %}
+    <p><span style="color:var(--ink-faint);">{% trans "Регистрация" %}:</span> {{ user.date_joined|date:"d.m.Y" }}</p>
+    <p style="margin-bottom:0;"><span style="color:var(--ink-faint);">{% trans "Последний вход" %}:</span> {{ user.last_login|date:"d.m.Y H:i"|default:"—" }}</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0;">{% trans "Моя статистика" %}</h3>
+    <div class="grid cols-2">
+      <div><div class="num">{{ stats.favorites }}</div><p style="margin:0;">{% trans "В избранном" %}</p></div>
+      <div><div class="num">{{ stats.views }}</div><p style="margin:0;">{% trans "Сохранённых видов" %}</p></div>
+      <div><div class="num">{{ stats.comparisons }}</div><p style="margin:0;">{% trans "Наборов сравнения" %}</p></div>
+      <div><div class="num">{{ stats.exports }}</div><p style="margin:0;">{% trans "Экспортов" %}</p></div>
+    </div>
+  </div>
+</div>
 
 {% if saved %}
   <div class="card" style="border-color: var(--accent); background: var(--accent-soft); max-width:520px;">
@@ -17,6 +39,7 @@
   </div>
 {% endif %}
 
+<h2 style="margin-top:8px;">{% trans "Редактировать профиль" %}</h2>
 <form method="post" action="{% url 'account_profile' %}" style="max-width: 520px;">
   {% csrf_token %}
   <div class="field">
@@ -34,4 +57,6 @@
   {% endfor %}
   <button class="btn" type="submit">{% trans "Сохранить" %}</button>
 </form>
+
+<p class="chart-note" style="margin-top:16px;"><a href="{% url 'account_password' %}">{% trans "Сменить пароль →" %}</a></p>
 {% endblock %}

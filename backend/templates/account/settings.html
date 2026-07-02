@@ -7,28 +7,42 @@
 <section class="hero">
   <p class="eyebrow">{% trans "Личный кабинет" %}</p>
   <h1>{% trans "Настройки" %}</h1>
-  <p class="lead">{% trans "Значения по умолчанию для аналитических страниц: год, схема весов индекса и мера карты. Ссылка с параметрами (deep-link) всегда важнее этих настроек." %}</p>
+  <p class="lead">{% trans "Значения по умолчанию для аналитических страниц. Ссылка с параметрами (например, сохранённый вид или набор сравнения) всегда важнее этих настроек — deep-link не ломается." %}</p>
 </section>
 
 {% include "account/_tabs.html" %}
 
 {% if saved %}
-  <div class="card" style="border-color: var(--accent); background: var(--accent-soft); max-width:520px;">
+  <div class="card" style="border-color: var(--accent); background: var(--accent-soft); max-width:560px;">
     <p style="margin:0;">{% trans "Настройки сохранены." %}</p>
   </div>
 {% endif %}
 
-<form method="post" action="{% url 'account_settings' %}" style="max-width: 520px;">
+<form method="post" action="{% url 'account_settings' %}" style="max-width: 560px;">
   {% csrf_token %}
-  {% for field in form %}
-    <div class="field">
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% for error in field.errors %}
-        <p style="color:var(--bad); font-size:0.85rem; margin:6px 0 0;">{{ error }}</p>
-      {% endfor %}
-    </div>
-  {% endfor %}
+  {% if form.non_field_errors %}<div class="field">{{ form.non_field_errors }}</div>{% endif %}
+
+  <div class="field">
+    <label for="{{ form.default_year.id_for_label }}">{{ form.default_year.label }}</label>
+    {{ form.default_year }}
+    <p class="chart-note" style="margin:6px 0 0;">{% trans "Год, на который по умолчанию открываются карта, рейтинг, дашборды регионов и другие страницы." %}</p>
+    {% for e in form.default_year.errors %}<p style="color:var(--bad); font-size:0.85rem; margin:6px 0 0;">{{ e }}</p>{% endfor %}
+  </div>
+
+  <div class="field">
+    <label for="{{ form.default_scheme.id_for_label }}">{{ form.default_scheme.label }}</label>
+    {{ form.default_scheme }}
+    <p class="chart-note" style="margin:6px 0 0;">{% trans "Схема весов индекса развития: влияет на рейтинг, конвергенцию и лабораторию индекса." %}</p>
+    {% for e in form.default_scheme.errors %}<p style="color:var(--bad); font-size:0.85rem; margin:6px 0 0;">{{ e }}</p>{% endfor %}
+  </div>
+
+  <div class="field">
+    <label for="{{ form.default_measure.id_for_label }}">{{ form.default_measure.label }}</label>
+    {{ form.default_measure }}
+    <p class="chart-note" style="margin:6px 0 0;">{% trans "Чем по умолчанию раскрашивается карта: тип региона (кластер) или индекс развития." %}</p>
+    {% for e in form.default_measure.errors %}<p style="color:var(--bad); font-size:0.85rem; margin:6px 0 0;">{{ e }}</p>{% endfor %}
+  </div>
+
   <button class="btn" type="submit">{% trans "Сохранить" %}</button>
 </form>
 

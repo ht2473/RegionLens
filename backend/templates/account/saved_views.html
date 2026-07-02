@@ -7,7 +7,7 @@
 <section class="hero">
   <p class="eyebrow">{% trans "Личный кабинет" %}</p>
   <h1>{% trans "Сохранённые виды" %}</h1>
-  <p class="lead">{% trans "Именованные наборы параметров экрана (год, мера, схема, регион). Хранится только конфигурация — аналитика всегда перечитывается из хранилища." %}</p>
+  <p class="lead">{% trans "Закладка на конкретный экран: год, мера карты, схема индекса и, при необходимости, регион. Открывается в один клик, а публичной ссылкой можно поделиться — получатель увидит тот же вид без входа." %}</p>
 </section>
 
 {% include "account/_tabs.html" %}
@@ -40,7 +40,7 @@
         {% for v in views %}
           <tr>
             <td>{{ v.name }}</td>
-            <td style="color:var(--ink-soft);">{{ v.config }}</td>
+            <td style="color:var(--ink-soft);">{{ v.summary }}</td>
             <td>{{ v.created|date:"d.m.Y H:i" }}</td>
             <td style="white-space:nowrap;">
               <a class="btn ghost" href="{% url 'account_view_open' v.pk %}">{% trans "Открыть" %}</a>

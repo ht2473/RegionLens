@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-07-01 22:23+0000\n"
+"PO-Revision-Date: 2026-07-02 17:11+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1974,3 +1974,91 @@ msgstr "The year must be in the 2010–2024 range."
 
 msgid "Обновлены настройки отображения"
 msgstr "Display settings updated"
+
+msgid "Очистить всю историю выгрузок? Файлы отчётов будут удалены."
+msgstr "Clear the entire export history? The report files will be deleted."
+
+msgid "Очистить историю"
+msgstr "Clear history"
+
+msgid ""
+"Закладка на конкретный экран: год, мера карты, схема индекса и, при "
+"необходимости, регион. Открывается в один клик, а публичной ссылкой можно "
+"поделиться — получатель увидит тот же вид без входа."
+msgstr ""
+"A bookmark for a specific screen: year, map measure, index scheme, and "
+"optionally a region. Opens in one click, and a public link can be shared — "
+"the recipient sees the same view without signing in."
+
+msgid ""
+"Учётная запись, доступ и личная статистика. Здесь же указываются организация"
+" и e-mail для отчётов."
+msgstr ""
+"Account, access, and personal statistics. Organisation and e-mail for "
+"reports are set here too."
+
+msgid "Организация"
+msgstr "Organisation"
+
+msgid "Последний вход"
+msgstr "Last sign-in"
+
+msgid "Моя статистика"
+msgstr "My statistics"
+
+msgid "Наборов сравнения"
+msgstr "Comparison sets"
+
+msgid "Экспортов"
+msgstr "Exports"
+
+msgid "Редактировать профиль"
+msgstr "Edit profile"
+
+msgid "Сменить пароль →"
+msgstr "Change password →"
+
+msgid ""
+"Значения по умолчанию для аналитических страниц. Ссылка с параметрами "
+"(например, сохранённый вид или набор сравнения) всегда важнее этих настроек "
+"— deep-link не ломается."
+msgstr ""
+"Defaults for analytics pages. A parameterised link (for example, a saved "
+"view or a comparison set) always takes precedence over these settings — "
+"deep-links keep working."
+
+msgid ""
+"Год, на который по умолчанию открываются карта, рейтинг, дашборды регионов и"
+" другие страницы."
+msgstr ""
+"The year the map, rankings, region dashboards, and other pages open on by "
+"default."
+
+msgid ""
+"Схема весов индекса развития: влияет на рейтинг, конвергенцию и лабораторию "
+"индекса."
+msgstr ""
+"The development index weighting scheme: affects rankings, convergence, and "
+"the index lab."
+
+msgid ""
+"Чем по умолчанию раскрашивается карта: тип региона (кластер) или индекс "
+"развития."
+msgstr ""
+"What colours the map by default: the region type (cluster) or the "
+"development index."
+
+msgid "Год %(year)s"
+msgstr "Year %(year)s"
+
+msgid "Регион: %(name)s"
+msgstr "Region: %(name)s"
+
+msgid "Карта: %(measure)s"
+msgstr "Map: %(measure)s"
+
+msgid "Схема: %(scheme)s"
+msgstr "Scheme: %(scheme)s"
+
+msgid "Очищена история выгрузок"
+msgstr "Export history cleared"
