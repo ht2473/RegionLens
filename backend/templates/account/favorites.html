@@ -12,21 +12,46 @@
 
 {% include "account/_tabs.html" %}
 
-<h2 style="margin-top:24px;">{% trans "Регионы" %}</h2>
-{% if regions %}
-  <div class="region-grid">
-    {% for f in regions %}<a class="region-chip" href="{{ f.url }}">{{ f.label }}</a>{% endfor %}
-  </div>
-{% else %}
-  <p style="color:var(--ink-faint);">{% trans "Пока нет избранных регионов. Откройте дашборд региона и нажмите «В избранное»." %}</p>
-{% endif %}
+{% if regions or metrics %}
+<form method="post" action="{% url 'favorites_bulk_delete' %}"
+      onsubmit="return confirm('{% trans "Удалить выбранные закладки?" %}');">
+  {% csrf_token %}
 
-<h2 style="margin-top:24px;">{% trans "Показатели" %}</h2>
-{% if metrics %}
-  <ul class="fav-list">
-    {% for f in metrics %}<li><a href="{{ f.url }}">{{ f.label }}</a></li>{% endfor %}
-  </ul>
+  <h2 style="margin-top:24px;">{% trans "Регионы" %}</h2>
+  {% if regions %}
+    <ul class="fav-checklist">
+      {% for f in regions %}
+        <li>
+          <label class="fav-check"><input type="checkbox" name="ids" value="{{ f.id }}"></label>
+          <a href="{{ f.url }}">{{ f.label }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p style="color:var(--ink-faint);">{% trans "Пока нет избранных регионов. Откройте дашборд региона и нажмите «В избранное»." %}</p>
+  {% endif %}
+
+  <h2 style="margin-top:24px;">{% trans "Показатели" %}</h2>
+  {% if metrics %}
+    <ul class="fav-checklist">
+      {% for f in metrics %}
+        <li>
+          <label class="fav-check"><input type="checkbox" name="ids" value="{{ f.id }}"></label>
+          <a href="{{ f.url }}">{{ f.label }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p style="color:var(--ink-faint);">{% trans "Пока нет избранных показателей. Откройте показатель в разделе «Показатели» и добавьте его." %}</p>
+  {% endif %}
+
+  <button class="btn ghost" type="submit" style="margin-top:16px;">{% trans "Удалить выбранное" %}</button>
+</form>
 {% else %}
-  <p style="color:var(--ink-faint);">{% trans "Пока нет избранных показателей. Откройте показатель в разделе «Показатели» и добавьте его." %}</p>
+  {% url 'explore' as explore_url %}
+  <div class="card" style="margin-top:24px; max-width:560px;">
+    <p style="margin-top:0;">{% trans "Здесь появятся ваши закладки." %}</p>
+    <p style="margin-bottom:0; color:var(--ink-faint);">{% blocktrans %}Добавляйте регионы со звёздочкой на их дашбордах, а показатели — в разделе <a href="{{ explore_url }}">«Показатели»</a>.{% endblocktrans %}</p>
+  </div>
 {% endif %}
 {% endblock %}

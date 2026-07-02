@@ -111,6 +111,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # DRF: сессионная аутентификация (не JWT) + схема drf-spectacular.
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "core.api.authentication.ProfileTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",

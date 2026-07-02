@@ -19,7 +19,7 @@ from django.utils.translation import gettext
 from . import queries, reports
 from .audit import record
 from .forms import RegistrationForm
-from .models import ExportJob, Favorite, FeedbackMessage, SavedView
+from .models import ExportJob, Favorite, FeedbackMessage, SavedView, UserProfile
 from .permissions import ROLE_VIEWER
 
 
@@ -168,6 +168,9 @@ def region_dashboard_page(request: HttpRequest, okato: str) -> HttpResponse:
         ).exists()
     )
     region_label = queries.region_name_ru(okato)
+    if request.user.is_authenticated:
+        # Запоминаем последний открытый регион для быстрого возврата из обзора кабинета.
+        UserProfile.objects.filter(user=request.user).update(last_region_okato=okato)
     return render(
         request,
         "pages/region.html",

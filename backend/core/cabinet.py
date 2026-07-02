@@ -7,12 +7,14 @@
 
 from __future__ import annotations
 
+import json
 import re
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext
 from django.views.decorators.http import require_POST
 
@@ -20,7 +22,7 @@ from .audit import record
 from .forms import PreferencesForm, ProfileForm, SavedViewForm
 from .models import AuditLog, ComparisonSet, ExportJob, Favorite, SavedView, UserProfile
 from .permissions import effective_roles
-from .queries import region_names_ru
+from .queries import data_freshness, region_names_ru
 
 
 def _crumbs(tail_title: str) -> list[dict[str, str | None]]:
@@ -48,10 +50,36 @@ def overview(request: HttpRequest) -> HttpResponse:
         "saved_count": SavedView.objects.filter(user=request.user).count(),
         "export_count": ExportJob.objects.filter(user=request.user).count(),
         "favorite_count": Favorite.objects.filter(user=request.user).count(),
+        "comparison_count": ComparisonSet.objects.filter(user=request.user).count(),
         "recent_activity": _activity_events(request.user, limit=6),
         "recent_favorites": _localized_favorites(request.user)[:6],
+        "continue_links": _continue_links(request.user, profile),
+        "freshness": data_freshness(),
     }
     return render(request, "account/overview.html", ctx)
+
+
+def _continue_links(user: object, profile: UserProfile) -> list[dict[str, object]]:
+    """Быстрые ссылки «продолжить с того же места»: последний регион, вид, набор сравнения."""
+    links: list[dict[str, object]] = []
+    if profile.last_region_okato:
+        okato = profile.last_region_okato
+        raw = region_names_ru([okato]).get(okato, "")
+        label = gettext(raw) if raw else okato
+        links.append(
+            {
+                "kind": gettext("Регион"),
+                "label": label,
+                "url": reverse("region-dashboard-page", args=[okato]),
+            }
+        )
+    view = SavedView.objects.filter(user=user).first()
+    if view is not None:
+        links.append({"kind": gettext("Вид"), "label": view.name, "url": view.target_url()})
+    cs = ComparisonSet.objects.filter(user=user).first()
+    if cs is not None:
+        links.append({"kind": gettext("Сравнение"), "label": cs.name, "url": cs.target_url()})
+    return links
 
 
 @login_required
@@ -254,6 +282,16 @@ def _describe_action(action: str) -> tuple[str, str]:
         return ("other", gettext("Обновлены настройки отображения"))
     if head == "export:clear":
         return ("export", gettext("Очищена история выгрузок"))
+    if head == "favorite:bulk_delete":
+        return ("favorite", gettext("Удалено закладок: %(n)s") % {"n": rest})
+    if head == "saved_view:bulk_delete":
+        return ("view", gettext("Удалено видов: %(n)s") % {"n": rest})
+    if head == "data:export":
+        return ("other", gettext("Экспортированы личные данные"))
+    if head == "api_token:generate":
+        return ("auth", gettext("Сгенерирован токен API"))
+    if head == "api_token:revoke":
+        return ("auth", gettext("Отозван токен API"))
     return ("other", action)
 
 
@@ -276,6 +314,7 @@ def _localized_favorites(user: object) -> list[dict[str, object]]:
             label = gettext(label)
         items.append(
             {
+                "id": fav.pk,
                 "kind": fav.kind,
                 "kind_display": fav.get_kind_display(),
                 "label": label,
@@ -445,3 +484,84 @@ def settings_edit(request: HttpRequest) -> HttpResponse:
         "saved": saved,
     }
     return render(request, "account/settings.html", ctx)
+
+
+@login_required
+@require_POST
+def favorites_bulk_delete(request: HttpRequest) -> HttpResponse:
+    """Массовое удаление закладок по списку идентификаторов (только свои)."""
+    ids = request.POST.getlist("ids")
+    qs = Favorite.objects.filter(user=request.user, pk__in=ids)
+    count = qs.count()
+    qs.delete()
+    if count:
+        record(request.user, f"favorite:bulk_delete {count}")
+    return redirect("account_favorites")
+
+
+@login_required
+@require_POST
+def saved_views_bulk_delete(request: HttpRequest) -> HttpResponse:
+    """Массовое удаление сохранённых видов по списку идентификаторов (только свои)."""
+    ids = request.POST.getlist("ids")
+    qs = SavedView.objects.filter(user=request.user, pk__in=ids)
+    count = qs.count()
+    qs.delete()
+    if count:
+        record(request.user, f"saved_view:bulk_delete {count}")
+    return redirect("account_views")
+
+
+@login_required
+def data_export(request: HttpRequest) -> HttpResponse:
+    """Экспорт личных данных (избранное, виды, наборы, профиль) в JSON — «выгрузка моих данных»."""
+    user = request.user
+    profile = UserProfile.objects.filter(user=user).first()
+    payload = {
+        "username": user.get_username(),
+        "email": user.email,
+        "exported_at": timezone.now().isoformat(),
+        "profile": {
+            "organization": profile.organization if profile else "",
+            "default_year": profile.default_year if profile else None,
+            "default_scheme": profile.default_scheme if profile else None,
+            "default_measure": profile.default_measure if profile else None,
+        },
+        "favorites": [
+            {"kind": f.kind, "ref": f.ref, "label": f.label, "created": f.created.isoformat()}
+            for f in Favorite.objects.filter(user=user)
+        ],
+        "saved_views": [
+            {"name": v.name, "config": v.config, "created": v.created.isoformat()}
+            for v in SavedView.objects.filter(user=user)
+        ],
+        "comparison_sets": [
+            {"name": c.name, "okatos": c.okatos, "year": c.year, "created": c.created.isoformat()}
+            for c in ComparisonSet.objects.filter(user=user)
+        ],
+    }
+    record(user, "data:export")
+    body = json.dumps(payload, ensure_ascii=False, indent=2)
+    response = HttpResponse(body, content_type="application/json; charset=utf-8")
+    response["Content-Disposition"] = 'attachment; filename="regionlens-my-data.json"'
+    return response
+
+
+@login_required
+@require_POST
+def api_token_generate(request: HttpRequest) -> HttpResponse:
+    """Сгенерировать (или пересоздать) личный токен API."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.regenerate_api_token()
+    record(request.user, "api_token:generate")
+    return redirect("account_profile")
+
+
+@login_required
+@require_POST
+def api_token_revoke(request: HttpRequest) -> HttpResponse:
+    """Отозвать личный токен API."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    profile.revoke_api_token()
+    record(request.user, "api_token:revoke")
+    return redirect("account_profile")

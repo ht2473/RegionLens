@@ -31,14 +31,16 @@
 
 <h2 style="margin-top:28px;">{% trans "Мои виды" %}</h2>
 {% if views %}
+  <form method="post" action="{% url 'saved_views_bulk_delete' %}" id="views-bulk">{% csrf_token %}</form>
   <div class="table-wrap">
     <table class="table">
       <thead>
-        <tr><th>{% trans "Название" %}</th><th>{% trans "Параметры" %}</th><th>{% trans "Создан" %}</th><th></th></tr>
+        <tr><th></th><th>{% trans "Название" %}</th><th>{% trans "Параметры" %}</th><th>{% trans "Создан" %}</th><th></th></tr>
       </thead>
       <tbody>
         {% for v in views %}
           <tr>
+            <td><input type="checkbox" class="view-check" value="{{ v.pk }}"></td>
             <td>{{ v.name }}</td>
             <td style="color:var(--ink-soft);">{{ v.summary }}</td>
             <td>{{ v.created|date:"d.m.Y H:i" }}</td>
@@ -61,8 +63,9 @@
       </tbody>
     </table>
   </div>
+  <button type="button" class="btn ghost" id="views-bulk-btn" style="margin-top:12px;">{% trans "Удалить выбранное" %}</button>
 {% else %}
-  <p style="color:var(--ink-faint);">{% trans "Пока нет сохранённых видов." %}</p>
+  <p style="color:var(--ink-faint);">{% trans "Пока нет сохранённых видов. Настройте карту или дашборд и сохраните вид через форму выше." %}</p>
 {% endif %}
 {% endblock %}
 
@@ -84,5 +87,23 @@
       }
     });
   });
+
+  // Массовое удаление: собрать отмеченные виды в отдельную форму (без вложенных форм) и отправить.
+  var bulkBtn = document.getElementById("views-bulk-btn");
+  if (bulkBtn) {
+    bulkBtn.addEventListener("click", function () {
+      var form = document.getElementById("views-bulk");
+      form.querySelectorAll('input[name="ids"]').forEach(function (n) { n.remove(); });
+      var checked = document.querySelectorAll(".view-check:checked");
+      if (!checked.length) return;
+      if (!confirm("{% trans 'Удалить выбранные виды?' %}")) return;
+      checked.forEach(function (cb) {
+        var h = document.createElement("input");
+        h.type = "hidden"; h.name = "ids"; h.value = cb.value;
+        form.appendChild(h);
+      });
+      form.submit();
+    });
+  }
 </script>
 {% endblock %}

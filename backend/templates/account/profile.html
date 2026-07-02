@@ -33,6 +33,28 @@
   </div>
 </div>
 
+<div class="card" style="max-width:680px; margin-bottom:20px;">
+  <h3 style="margin-top:0;">{% trans "API-доступ" %}</h3>
+  <p style="color:var(--ink-soft); margin-top:0;">{% trans "Личный ключ для программного доступа к API. Передавайте его в заголовке Authorization: Token …" %}</p>
+  {% if profile.api_token %}
+    <p><code class="token-box">{{ profile.api_token }}</code></p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <form method="post" action="{% url 'api_token_generate' %}"
+            onsubmit="return confirm('{% trans "Пересоздать токен? Прежний перестанет работать." %}');">
+        {% csrf_token %}<button class="btn ghost" type="submit">{% trans "Пересоздать" %}</button>
+      </form>
+      <form method="post" action="{% url 'api_token_revoke' %}"
+            onsubmit="return confirm('{% trans "Отозвать токен?" %}');">
+        {% csrf_token %}<button class="btn ghost" type="submit">{% trans "Отозвать" %}</button>
+      </form>
+    </div>
+  {% else %}
+    <form method="post" action="{% url 'api_token_generate' %}">
+      {% csrf_token %}<button class="btn" type="submit">{% trans "Создать токен" %}</button>
+    </form>
+  {% endif %}
+</div>
+
 {% if saved %}
   <div class="card" style="border-color: var(--accent); background: var(--accent-soft); max-width:520px;">
     <p style="margin:0;">{% trans "Профиль сохранён." %}</p>
@@ -58,5 +80,8 @@
   <button class="btn" type="submit">{% trans "Сохранить" %}</button>
 </form>
 
-<p class="chart-note" style="margin-top:16px;"><a href="{% url 'account_password' %}">{% trans "Сменить пароль →" %}</a></p>
+<p class="chart-note" style="margin-top:16px;">
+  <a href="{% url 'account_data_export' %}">{% trans "Скачать мои данные (JSON) →" %}</a> ·
+  <a href="{% url 'account_password' %}">{% trans "Сменить пароль →" %}</a>
+</p>
 {% endblock %}

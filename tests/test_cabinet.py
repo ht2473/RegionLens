@@ -426,3 +426,78 @@ def test_profile_shows_stats_and_account_info(client_alice: Client, alice: User)
     Favorite.objects.create(user=alice, kind="region", ref="45000000", label="Москва")
     html = client_alice.get(reverse("account_profile")).content.decode()
     assert "Моя статистика" in html and "Последний вход" in html
+
+
+# ── Усиление кабинета: массовые действия, экспорт данных, токен API, «продолжить» ──
+def test_favorites_bulk_delete(client_alice: Client, alice: User) -> None:
+    """Массовое удаление убирает только отмеченные закладки."""
+    from core.models import Favorite
+
+    f1 = Favorite.objects.create(user=alice, kind="region", ref="45000000", label="Москва")
+    f2 = Favorite.objects.create(user=alice, kind="metric", ref="1", label="Показатель")
+    resp = client_alice.post(reverse("favorites_bulk_delete"), {"ids": [str(f1.pk)]})
+    assert resp.status_code == 302
+    assert not Favorite.objects.filter(pk=f1.pk).exists()
+    assert Favorite.objects.filter(pk=f2.pk).exists()
+
+
+def test_saved_views_bulk_delete(client_alice: Client, alice: User) -> None:
+    """Массовое удаление видов убирает отмеченные."""
+    from core.models import SavedView
+
+    v1 = SavedView.objects.create(user=alice, name="A", config={"year": 2024})
+    v2 = SavedView.objects.create(user=alice, name="B", config={"year": 2023})
+    resp = client_alice.post(reverse("saved_views_bulk_delete"), {"ids": [str(v1.pk), str(v2.pk)]})
+    assert resp.status_code == 302
+    assert SavedView.objects.filter(user=alice).count() == 0
+
+
+def test_data_export_returns_json(client_alice: Client, alice: User) -> None:
+    """Экспорт личных данных отдаёт JSON-вложение с избранным."""
+    import json as _json
+
+    from core.models import Favorite
+
+    Favorite.objects.create(user=alice, kind="region", ref="45000000", label="Москва")
+    resp = client_alice.get(reverse("account_data_export"))
+    assert resp.status_code == 200
+    assert resp["Content-Type"].startswith("application/json")
+    assert "attachment" in resp["Content-Disposition"]
+    payload = _json.loads(resp.content)
+    assert payload["username"] == alice.get_username()
+    assert len(payload["favorites"]) == 1
+
+
+def test_api_token_generate_and_revoke(client_alice: Client, alice: User) -> None:
+    """Генерация создаёт непустой токен, отзыв — очищает."""
+    from core.models import UserProfile
+
+    client_alice.post(reverse("api_token_generate"))
+    profile = UserProfile.objects.get(user=alice)
+    assert profile.api_token
+    client_alice.post(reverse("api_token_revoke"))
+    profile.refresh_from_db()
+    assert profile.api_token == ""
+
+
+def test_api_token_authenticates_api_request(client: Client, alice: User) -> None:
+    """Запрос к API с токеном аутентифицируется как пользователь."""
+    from core.models import UserProfile
+
+    profile, _ = UserProfile.objects.get_or_create(user=alice)
+    token = profile.regenerate_api_token()
+    # Валидный токен: аутентификация проходит (ответ не 401), данные эндпойнта тут неважны.
+    ok = client.get("/api/regions/", HTTP_AUTHORIZATION=f"Token {token}")
+    assert ok.status_code != 401
+    # Недействительный токен отклоняется на слое аутентификации (401).
+    bad = client.get("/api/regions/", HTTP_AUTHORIZATION="Token deadbeef")
+    assert bad.status_code == 401
+
+
+def test_overview_continue_after_region_visit(client_alice: Client, alice: User) -> None:
+    """После открытия региона обзор показывает быструю ссылку «продолжить»."""
+    from core.models import UserProfile
+
+    UserProfile.objects.filter(user=alice).update(last_region_okato="45000000")
+    html = client_alice.get(reverse("account")).content.decode()
+    assert "Продолжить с того же места" in html

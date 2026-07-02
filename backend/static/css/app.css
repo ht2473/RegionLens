@@ -612,3 +612,29 @@ body.search-open { overflow: hidden; }
 .fav-toggle .fav-star { font-size: 1rem; line-height: 1; color: var(--ink-faint); }
 .fav-toggle.is-active { border-color: #d1a13a; background: rgba(209,161,58,0.10); color: var(--ink); }
 .fav-toggle.is-active .fav-star { color: #d1a13a; }
+
+/* Кабинет: бейдж свежести данных и ссылки «продолжить с того же места» */
+.freshness-badge {
+  display: inline-block; margin: 10px 0 0; padding: 4px 12px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--surface); color: var(--ink-soft); font-size: 0.85rem;
+}
+.continue-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.continue-chip {
+  display: inline-flex; align-items: baseline; gap: 6px; padding: 7px 13px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--surface);
+  color: var(--accent-deep); text-decoration: none;
+}
+.continue-chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+.continue-kind { font-size: 0.78rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.03em; }
+
+/* Кабинет: поле токена API и чек-лист избранного */
+.token-box {
+  display: inline-block; max-width: 100%; word-break: break-all;
+  padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--code-bg, var(--surface)); font-family: ui-monospace, monospace; font-size: 0.85rem;
+}
+.fav-checklist { list-style: none; margin: 6px 0 0; padding: 0; }
+.fav-checklist li { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--line-soft); }
+.fav-checklist li:last-child { border-bottom: none; }
+.fav-check { display: inline-flex; align-items: center; margin: 0; }

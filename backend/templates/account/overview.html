@@ -8,9 +8,23 @@
   <p class="eyebrow">{% trans "Личный кабинет" %}</p>
   <h1>{% blocktrans with name=user.get_username %}Здравствуйте, {{ name }}{% endblocktrans %}</h1>
   <p class="lead">{% trans "Ваша сводка: избранное, сохранённые виды, история экспортов и последняя активность." %}</p>
+  {% if freshness.max_year %}
+    <p class="freshness-badge">{% blocktrans with year=freshness.max_year regions=freshness.regions %}Данные обновлены до {{ year }} · регионов: {{ regions }}{% endblocktrans %}</p>
+  {% endif %}
 </section>
 
 {% include "account/_tabs.html" %}
+
+{% if continue_links %}
+<div class="card" style="margin-bottom:20px;">
+  <h3 style="margin-top:0;">{% trans "Продолжить с того же места" %}</h3>
+  <div class="continue-links">
+    {% for c in continue_links %}
+      <a class="continue-chip" href="{{ c.url }}"><span class="continue-kind">{{ c.kind }}</span> {{ c.label }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
 
 <div class="grid cols-4">
   <div class="card">

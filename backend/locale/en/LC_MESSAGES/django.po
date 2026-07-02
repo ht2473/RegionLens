@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: RegionLens\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-30 21:36+0000\n"
-"PO-Revision-Date: 2026-07-02 17:11+0000\n"
+"PO-Revision-Date: 2026-07-02 17:35+0000\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -2062,3 +2062,81 @@ msgstr "Scheme: %(scheme)s"
 
 msgid "Очищена история выгрузок"
 msgstr "Export history cleared"
+
+msgid "Данные обновлены до %(year)s · регионов: %(regions)s"
+msgstr "Data updated to %(year)s · regions: %(regions)s"
+
+msgid "Продолжить с того же места"
+msgstr "Continue where you left off"
+
+msgid "Удалить выбранные закладки?"
+msgstr "Delete the selected favorites?"
+
+msgid "Удалить выбранное"
+msgstr "Delete selected"
+
+msgid "Здесь появятся ваши закладки."
+msgstr "Your favorites will appear here."
+
+msgid ""
+"Добавляйте регионы со звёздочкой на их дашбордах, а показатели — в разделе "
+"<a href=\"%(explore_url)s\">«Показатели»</a>."
+msgstr ""
+"Add regions with the star on their dashboards, and indicators in the <a "
+"href=\"%(explore_url)s\">“Indicators”</a> section."
+
+msgid ""
+"Пока нет сохранённых видов. Настройте карту или дашборд и сохраните вид "
+"через форму выше."
+msgstr ""
+"No saved views yet. Set up the map or a dashboard and save a view via the "
+"form above."
+
+msgid "Удалить выбранные виды?"
+msgstr "Delete the selected views?"
+
+msgid "API-доступ"
+msgstr "API access"
+
+msgid ""
+"Личный ключ для программного доступа к API. Передавайте его в заголовке "
+"Authorization: Token …"
+msgstr ""
+"A personal key for programmatic API access. Pass it in the Authorization: "
+"Token … header."
+
+msgid "Пересоздать токен? Прежний перестанет работать."
+msgstr "Regenerate the token? The previous one will stop working."
+
+msgid "Пересоздать"
+msgstr "Regenerate"
+
+msgid "Отозвать токен?"
+msgstr "Revoke the token?"
+
+msgid "Отозвать"
+msgstr "Revoke"
+
+msgid "Создать токен"
+msgstr "Create token"
+
+msgid "Скачать мои данные (JSON) →"
+msgstr "Download my data (JSON) →"
+
+msgid "Вид"
+msgstr "View"
+
+msgid "Удалено закладок: %(n)s"
+msgstr "Favorites deleted: %(n)s"
+
+msgid "Удалено видов: %(n)s"
+msgstr "Views deleted: %(n)s"
+
+msgid "Экспортированы личные данные"
+msgstr "Personal data exported"
+
+msgid "Сгенерирован токен API"
+msgstr "API token generated"
+
+msgid "Отозван токен API"
+msgstr "API token revoked"

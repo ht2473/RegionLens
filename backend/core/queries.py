@@ -696,6 +696,23 @@ def region_names_ru(okatos: list[str]) -> dict[str, str]:
     return {str(row["okato"]): row["region_name"] for row in rows}
 
 
+def data_freshness() -> dict[str, object]:
+    """Свежесть витрины: максимальный год данных и число включённых регионов.
+
+    Используется для бейджа «данные обновлены до …» в кабинете — связывает интерфейс с
+    офлайн-конвейером «двух миров». При недоступном хранилище — пустые значения.
+    """
+    try:
+        years = q("SELECT MAX(year) AS max_year FROM fact_region")
+        regions = q("SELECT COUNT(*) AS n FROM region_dim WHERE included_flag = TRUE")
+    except Exception:  # noqa: BLE001 — граница мягкой деградации: нет хранилища → нет свежести
+        return {"max_year": None, "regions": None}
+    return {
+        "max_year": years[0]["max_year"] if years else None,
+        "regions": regions[0]["n"] if regions else None,
+    }
+
+
 def region_name_ru(okato: str) -> str:
     """Каноническое (русское) имя региона по ОКАТО для денормализованных подписей.
 
