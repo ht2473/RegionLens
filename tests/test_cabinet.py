@@ -468,32 +468,6 @@ def test_data_export_returns_json(client_alice: Client, alice: User) -> None:
     assert len(payload["favorites"]) == 1
 
 
-def test_api_token_generate_and_revoke(client_alice: Client, alice: User) -> None:
-    """Генерация создаёт непустой токен, отзыв — очищает."""
-    from core.models import UserProfile
-
-    client_alice.post(reverse("api_token_generate"))
-    profile = UserProfile.objects.get(user=alice)
-    assert profile.api_token
-    client_alice.post(reverse("api_token_revoke"))
-    profile.refresh_from_db()
-    assert profile.api_token == ""
-
-
-def test_api_token_authenticates_api_request(client: Client, alice: User) -> None:
-    """Запрос к API с токеном аутентифицируется как пользователь."""
-    from core.models import UserProfile
-
-    profile, _ = UserProfile.objects.get_or_create(user=alice)
-    token = profile.regenerate_api_token()
-    # Валидный токен: аутентификация проходит (ответ не 401), данные эндпойнта тут неважны.
-    ok = client.get("/api/regions/", HTTP_AUTHORIZATION=f"Token {token}")
-    assert ok.status_code != 401
-    # Недействительный токен отклоняется на слое аутентификации (401).
-    bad = client.get("/api/regions/", HTTP_AUTHORIZATION="Token deadbeef")
-    assert bad.status_code == 401
-
-
 def test_overview_continue_after_region_visit(client_alice: Client, alice: User) -> None:
     """После открытия региона обзор показывает быструю ссылку «продолжить»."""
     from core.models import UserProfile

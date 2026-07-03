@@ -288,10 +288,6 @@ def _describe_action(action: str) -> tuple[str, str]:
         return ("view", gettext("Удалено видов: %(n)s") % {"n": rest})
     if head == "data:export":
         return ("other", gettext("Экспортированы личные данные"))
-    if head == "api_token:generate":
-        return ("auth", gettext("Сгенерирован токен API"))
-    if head == "api_token:revoke":
-        return ("auth", gettext("Отозван токен API"))
     return ("other", action)
 
 
@@ -545,23 +541,3 @@ def data_export(request: HttpRequest) -> HttpResponse:
     response = HttpResponse(body, content_type="application/json; charset=utf-8")
     response["Content-Disposition"] = 'attachment; filename="regionlens-my-data.json"'
     return response
-
-
-@login_required
-@require_POST
-def api_token_generate(request: HttpRequest) -> HttpResponse:
-    """Сгенерировать (или пересоздать) личный токен API."""
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    profile.regenerate_api_token()
-    record(request.user, "api_token:generate")
-    return redirect("account_profile")
-
-
-@login_required
-@require_POST
-def api_token_revoke(request: HttpRequest) -> HttpResponse:
-    """Отозвать личный токен API."""
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    profile.revoke_api_token()
-    record(request.user, "api_token:revoke")
-    return redirect("account_profile")

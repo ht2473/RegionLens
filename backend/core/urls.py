@@ -58,8 +58,6 @@ urlpatterns = [
         name="saved_views_bulk_delete",
     ),
     path("account/data-export/", cabinet.data_export, name="account_data_export"),
-    path("account/api-token/generate/", cabinet.api_token_generate, name="api_token_generate"),
-    path("account/api-token/revoke/", cabinet.api_token_revoke, name="api_token_revoke"),
     path("account/favorites/", cabinet.favorites_list, name="account_favorites"),
     path(
         "account/favorites/bulk-delete/",

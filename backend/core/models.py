@@ -56,6 +56,7 @@ class UserProfile(models.Model):
     last_region_okato = models.CharField(
         "Последний открытый регион (ОКАТО)", max_length=20, blank=True, default=""
     )
+    # Зарезервировано под персональный доступ к API (функция временно отключена).
     api_token = models.CharField(
         "Токен API",
         max_length=43,
@@ -72,17 +73,6 @@ class UserProfile(models.Model):
 
     def __str__(self) -> str:
         return f"Профиль: {self.user.get_username()}"
-
-    def regenerate_api_token(self) -> str:
-        """Сгенерировать новый непредсказуемый токен API (перезаписывает прежний)."""
-        self.api_token = secrets.token_urlsafe(32)
-        self.save(update_fields=["api_token"])
-        return self.api_token
-
-    def revoke_api_token(self) -> None:
-        """Отозвать токен API (очистить)."""
-        self.api_token = ""
-        self.save(update_fields=["api_token"])
 
 
 class SavedView(models.Model):
