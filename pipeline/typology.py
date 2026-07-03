@@ -358,7 +358,7 @@ def run_typology(
     write: bool = True,
     log_mlflow: bool = True,
 ) -> TypologyResult:
-    """Типология целиком: кластеризация (кластеры/профили) → объяснение (SHAP) → запись таблиц + MLflow."""
+    """Типология целиком: кластеризация → объяснение (SHAP) → запись таблиц + MLflow."""
     tables = build_clusters(features_wide)
     seed = int((load_config("analytics").get("clustering") or {}).get("seed", 42))
     shap_df = compute_cluster_shap(features_wide, tables.clusters, seed=seed)
