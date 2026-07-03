@@ -9,7 +9,7 @@ import pandera.polars as pa
 import polars as pl
 from pandera import Check
 
-# Контракт region_twins (C2): порядок и типы колонок top-N двойников на регион-год.
+# Контракт region_twins: порядок и типы колонок top-N двойников на регион-год.
 TWINS_SCHEMA = {
     "okato": pl.Utf8,
     "year": pl.Int32,
@@ -179,7 +179,7 @@ DATA_QUALITY_SCHEMA = {
     "impute_share": pl.Float64,
 }
 
-# Контракт fact_region (S2): типы + год в допустимом диапазоне. coerce приводит типы к схеме.
+# Контракт fact_region: типы + год в допустимом диапазоне. coerce приводит типы к схеме.
 FACT_REGION_SCHEMA = pa.DataFrameSchema(
     {
         "okato": pa.Column(pl.String),

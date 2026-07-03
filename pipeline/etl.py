@@ -1,4 +1,4 @@
-"""ETL S2: источники → уровни → metric_id → дедуп → справочники → запись в DuckDB.
+"""ETL: источники → уровни → metric_id → дедуп → справочники → запись в DuckDB.
 
 Правила грани: метрика = indicator_code × subsection (грань 1); ключ региона
 = object_okato (грань 2); при коллизии изданий — свежайшее (грань 3); аналитика только по
@@ -48,7 +48,7 @@ class LevelSplit:
 
 @dataclass
 class EtlResult:
-    """Контрактные таблицы S2 — то, что пишется в DuckDB."""
+    """Контрактные таблицы ETL — то, что пишется в DuckDB."""
 
     metric_dim: pl.DataFrame
     region_dim: pl.DataFrame
@@ -271,7 +271,7 @@ def split_by_level(df: pl.DataFrame) -> LevelSplit:
 
 
 def write_tables(result: EtlResult, duckdb_path: str) -> None:
-    """Записать контрактные таблицы S2 в DuckDB (перезаписью)."""
+    """Записать контрактные таблицы ETL в DuckDB (перезаписью)."""
     write_table(duckdb_path, "fact_region", result.fact_region)
     write_table(duckdb_path, "metric_dim", result.metric_dim)
     write_table(duckdb_path, "region_dim", result.region_dim)
@@ -291,7 +291,7 @@ def run_etl(
     *,
     write: bool = True,
 ) -> EtlResult:
-    """Полный проход S2: источники → metric_id → уровни → дедуп → справочники → fact_region.
+    """Полный проход ETL: источники → metric_id → уровни → дедуп → справочники → fact_region.
 
     При write=True пишет fact_region/metric_dim/region_dim в DuckDB. Модуль 7 добавит
     pandera-валидацию и отчёт качества (DoD Ф1).

@@ -208,7 +208,7 @@ class RegionDashboard(APIView):
 
 
 class RegionTwins(APIView):
-    """GET /api/regions/<okato>/twins/?year=<int> — статистические двойники региона (C2).
+    """GET /api/regions/<okato>/twins/?year=<int> — статистические двойники региона.
 
     top-N ближайших по косинусной близости профилей z_value за год (предрасчёт). Это
     сходство профиля показателей, НЕ причинность и НЕ прогноз. Пустой список — если у

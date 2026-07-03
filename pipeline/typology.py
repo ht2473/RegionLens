@@ -1,4 +1,4 @@
-"""Типология регионов (Ф3 / S4), блок M1: кластеризация по годам со стабильными во
+"""Типология регионов: кластеризация по годам со стабильными во
 времени метками.
 
 Из features_wide (z_value) для каждого года окна собираем матрицу (регионы × ядро),
@@ -6,7 +6,7 @@
 соседними годами венгерским алгоритмом (стабильный cluster_id), считаем профили и
 осмысленные метки кластеров. Результат — таблицы clusters и cluster_profile (в памяти).
 
-Блок M2 добавит SHAP-объяснение (cluster_shap), MLflow и запись таблиц в DuckDB.
+Дальнейшие шаги — SHAP-объяснение (cluster_shap), MLflow и запись таблиц в DuckDB.
 
 Параметры — из config/analytics.yaml (clustering); имена метрик ядра — из indicators.yaml.
 """
@@ -33,7 +33,7 @@ from pipeline.logging_setup import log
 
 @dataclass
 class TypologyTables:
-    """Результат блока M1 — вход для блока M2 (SHAP/запись)."""
+    """Результат кластеризации — вход для этапа объяснения (SHAP/запись)."""
 
     # okato, year, algo, k, cluster_id, cluster_label, silhouette, stability_flag,
     # distance_to_centroid (A1)
@@ -168,7 +168,7 @@ def _cluster_labels(profile: pl.DataFrame, names: dict[int, str], top: int = 2) 
 
 
 def build_clusters(features_wide: pl.DataFrame, *, k: int | None = None) -> TypologyTables:
-    """Блок M1 целиком: по годам кластеризуем, согласуем метки, считаем профили и метки.
+    """Кластеризация целиком: по годам кластеризуем, согласуем метки, считаем профили и метки.
 
     k берётся из аргумента (для тестов) или config (chosen_k), иначе выбирается по silhouette.
     Алгоритм и сид — из config/analytics.yaml (clustering). Имена метрик — из indicators.yaml.
@@ -273,7 +273,7 @@ def build_clusters(features_wide: pl.DataFrame, *, k: int | None = None) -> Typo
 
 
 # --------------------------------------------------------------------------- #
-# Блок M2: SHAP-объяснение принадлежности, MLflow, запись таблиц
+# Объяснение и запись: SHAP-объяснение принадлежности, MLflow, запись таблиц
 # --------------------------------------------------------------------------- #
 def _shap_to_class_array(shap_values: object, n_samples: int, n_features: int) -> np.ndarray:
     """Привести вывод shap к форме (n_samples, n_features, n_classes) для разных версий shap."""
@@ -358,7 +358,7 @@ def run_typology(
     write: bool = True,
     log_mlflow: bool = True,
 ) -> TypologyResult:
-    """Ф3 целиком: M1 (кластеры/профили) → M2 (SHAP) → запись таблиц + MLflow."""
+    """Типология целиком: кластеризация (кластеры/профили) → объяснение (SHAP) → запись таблиц + MLflow."""
     tables = build_clusters(features_wide)
     seed = int((load_config("analytics").get("clustering") or {}).get("seed", 42))
     shap_df = compute_cluster_shap(features_wide, tables.clusters, seed=seed)

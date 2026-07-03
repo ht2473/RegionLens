@@ -1,4 +1,4 @@
-"""Статистические двойники регионов (фича C2).
+"""Статистические двойники регионов.
 
 Производная мера поверх готовых z-score из features_wide: для каждого года окна считаем
 косинусную близость профилей регионов (вектор z_value по ядру метрик) и сохраняем top-N
@@ -26,7 +26,7 @@ DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
 
 @dataclass
 class TwinsResult:
-    """Итог C2: таблица region_twins (top-N двойников на регион-год)."""
+    """Итог: таблица region_twins (top-N двойников на регион-год)."""
 
     twins: pl.DataFrame
 
@@ -94,7 +94,7 @@ def run_twins(
     write: bool = True,
     top_n: int | None = None,
 ) -> TwinsResult:
-    """Фича C2 целиком: по каждому году окна — косинусная близость профилей → top-N → запись.
+    """Полный расчёт: по каждому году окна — косинусная близость профилей → top-N → запись.
 
     Итоговая таблица region_twins (контракт схемы): okato, year, twin_okato,
     similarity, rank. top_n берётся из config/analytics.yaml (twins.top_n), если не задан.

@@ -1,7 +1,7 @@
 """Оркестратор конвейера: единая воспроизводимая пересборка всей аналитики.
 
 Запуск:
-    python -m pipeline.run_all                  # весь конвейер: сырьё → DuckDB (S2 … C2)
+    python -m pipeline.run_all                  # весь конвейер: сырьё → DuckDB (ETL … двойники)
     python -m pipeline.run_all --list           # показать план (стадии и их таблицы)
     python -m pipeline.run_all --from typology  # пересобрать с указанной стадии и до конца
     python -m pipeline.run_all --only twins      # пересобрать ровно одну стадию
@@ -12,7 +12,7 @@
 этому `--from`/`--only` корректно возобновляют сборку с диска: всё, что произвели
 предыдущие стадии, уже лежит в хранилище.
 
-Прогнозирование (бывшая стадия S7) намеренно исключено из плана: платформа усиливается
+Прогнозирование (ранее — отдельная стадия конвейера) намеренно исключено из плана: платформа усиливается
 описательно-диагностической аналитикой без предсказаний.
 """
 
@@ -56,7 +56,7 @@ class Stage:
 
 
 def _stage_etl(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
-    """S2: источники → metric_id → уровни → дедуп → справочники → fact_region."""
+    """ETL: источники → metric_id → уровни → дедуп → справочники → fact_region."""
     from pipeline.etl import run_etl
 
     run_etl(sources_path, duckdb_path, write=True)
@@ -99,7 +99,7 @@ def _stage_transitions(duckdb_path: str, sources_path: str, log_mlflow: bool) ->
 
 
 def _stage_twins(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
-    """C2: косинусная близость z-профилей по годам → top-N статистических двойников."""
+    """Статистические двойники: косинусная близость z-профилей по годам → top-N статистических двойников."""
     from pipeline.twins import run_twins
 
     features_wide = read_table(duckdb_path, "features_wide")
@@ -207,7 +207,7 @@ STAGES: tuple[Stage, ...] = (
         _stage_etl,
         (),
         ("metric_dim", "region_dim", "fact_region"),
-        "S2 ETL: сырьё → справочники и факты",
+        "ETL: сырьё → справочники и факты",
     ),
     Stage(
         "features",
@@ -242,7 +242,7 @@ STAGES: tuple[Stage, ...] = (
         _stage_twins,
         ("features_wide",),
         ("region_twins",),
-        "C2 статистические двойники регионов",
+        "статистические двойники регионов",
     ),
     Stage(
         "anomalies",
