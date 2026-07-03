@@ -1,6 +1,6 @@
 """ETL S2: источники → уровни → metric_id → дедуп → справочники → запись в DuckDB.
 
-Правила грани (Хартия §3): метрика = indicator_code × subsection (грань 1); ключ региона
+Правила грани: метрика = indicator_code × subsection (грань 1); ключ региона
 = object_okato (грань 2); при коллизии изданий — свежайшее (грань 3); аналитика только по
 уровню 'Регион' (грань 4). Стадию pandera-валидации + отчёт качества добавит модуль 7.
 """
@@ -19,7 +19,7 @@ from pipeline.ingestion.base import SourceAdapter
 from pipeline.logging_setup import configure_logging, log
 from pipeline.validation import quality_report, validate_fact_region
 
-# Контролируемый словарь уровней (REFERENCE §1). Именованные константы — не «магия».
+# Контролируемый словарь уровней (справочник показателей). Именованные константы — не «магия».
 LEVEL_REGION = "Регион"
 LEVEL_OKRUG = "Федеральный округ"
 LEVEL_COUNTRY = "Страна"

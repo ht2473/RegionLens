@@ -96,7 +96,7 @@ def run_twins(
 ) -> TwinsResult:
     """Фича C2 целиком: по каждому году окна — косинусная близость профилей → top-N → запись.
 
-    Итоговая таблица region_twins (контракт REFERENCE §2): okato, year, twin_okato,
+    Итоговая таблица region_twins (контракт схемы): okato, year, twin_okato,
     similarity, rank. top_n берётся из config/analytics.yaml (twins.top_n), если не задан.
     """
     if top_n is None:

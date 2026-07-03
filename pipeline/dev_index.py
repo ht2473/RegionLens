@@ -20,7 +20,7 @@ from pipeline.config import load_config
 from pipeline.duck import write_table
 from pipeline.logging_setup import log
 
-# Порядок доменных колонок в dev_index (контракт REFERENCE §2).
+# Порядок доменных колонок в dev_index (контракт схемы таблицы).
 DOMAIN_COLS = ["economy", "income", "demography", "labor", "infrastructure", "health_edu"]
 DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
 
