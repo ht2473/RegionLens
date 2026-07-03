@@ -237,7 +237,7 @@
         .map(function (o, i) {
           var cur = o.value === select.value ? " is-current" : "";
           return (
-            '<div class="combo-opt' + cur + '" role="option" title="' + esc(o.label) + '" data-i="' + i + '">' +
+            '<div class="combo-opt' + cur + '" role="option" data-i="' + i + '">' +
             mark(o.label, q) +
             "</div>"
           );

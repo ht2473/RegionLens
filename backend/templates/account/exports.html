@@ -14,11 +14,11 @@
 
 <div class="card" style="max-width:680px;">
   <h3 style="margin-top:0;">{% trans "Быстрый экспорт" %}</h3>
+  <div class="field" style="margin:0 0 12px;">
+    <label for="qe-region">{% trans "Регион" %}</label>
+    <select id="qe-region" style="width:100%;"><option>{% trans "Загрузка…" %}</option></select>
+  </div>
   <div class="compare-controls" style="margin:0;">
-    <div class="field" style="flex:1 1 100%; min-width:260px;">
-      <label for="qe-region">{% trans "Регион" %}</label>
-      <select id="qe-region" style="width:100%;"><option>{% trans "Загрузка…" %}</option></select>
-    </div>
     <div class="field">
       <label for="qe-year">{% trans "Год" %}</label>
       <select id="qe-year">
