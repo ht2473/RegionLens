@@ -1,4 +1,4 @@
-"""Тесты записи/чтения DuckDB и сборки fact_region (Ф1, S2, модуль 6)."""
+"""Тесты записи/чтения DuckDB и сборки fact_region."""
 
 from __future__ import annotations
 

@@ -125,7 +125,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
-# Кэш: locmem по умолчанию (Redis — опционально в проде; см. Ф12/Could).
+# Кэш: locmem по умолчанию (Redis — опционально в проде).
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
@@ -133,12 +133,12 @@ CACHES = {
     }
 }
 
-# Аутентификация (используется со страницами входа в Ф10).
+# Аутентификация (используется со страницами входа).
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-# --- Безопасность боевого развёртывания (Ф12a) ---------------------------------
+# --- Безопасность развёртывания ---------------------------------
 # Принцип: локальная разработка идёт по HTTP (DEBUG=True), поэтому строгие флаги по
 # умолчанию ВЫКЛЮЧЕНЫ и не мешают `runserver`. В боевом режиме (DJANGO_DEBUG=false)
 # они автоматически ВКЛЮЧАЮТСЯ, давая чистый `manage.py check --deploy`. Каждый флаг

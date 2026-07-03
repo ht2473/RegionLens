@@ -21,7 +21,7 @@ DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
 
 @dataclass
 class TransitionsResult:
-    """Итог Ф5: таблица переходов с типом траектории."""
+    """Итог: таблица переходов с типом траектории."""
 
     transitions: pl.DataFrame
 
@@ -31,7 +31,7 @@ def cluster_rank(
 ) -> pl.DataFrame:
     """Ранг типа по среднему total_score (схема equal): 0 — самый низкий уровень развития.
 
-    cluster_id стабилен во времени (Ф3), поэтому ранг считается один на тип по всему окну.
+    cluster_id стабилен во времени, поэтому ранг считается один на тип по всему окну.
     Нужен, чтобы определять направление перехода (вверх/вниз).
     Возвращает cluster_id, cluster_rank (0..k−1), mean_score.
     """
@@ -173,7 +173,7 @@ def run_transitions(
     duckdb_path: str = DEFAULT_DUCKDB_PATH,
     write: bool = True,
 ) -> TransitionsResult:
-    """Ф5 целиком: ранг типов → переходы год-к-году → типология траекторий → запись.
+    """Полный расчёт: ранг типов → переходы год-к-году → типология траекторий → запись.
 
     Итоговая таблица transitions (контракт): okato, year_from, year_to, cluster_from,
     cluster_to, trajectory_type. trajectory_type один на регион (тип всего пути), повторяется

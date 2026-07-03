@@ -1,10 +1,11 @@
 # Автор: Кузьмин Евгений Олегович (студенческий билет № 70232275).
-"""RegionLens — точка входа для проверяющего.
+"""RegionLens — точка входа веб-приложения (Django runserver).
 
-Поднимает веб-приложение (Django runserver). Проверяющий выполняет:
+Запуск:
     pip install -r requirements.txt
     python main.py
-Адрес и порт можно переопределить переменной окружения REGIONLENS_ADDRPORT.
+
+Адрес и порт переопределяются переменной окружения REGIONLENS_ADDRPORT.
 """
 
 import os
@@ -16,7 +17,7 @@ def main() -> None:
     """Запустить веб-приложение RegionLens (Django runserver)."""
     root = Path(__file__).resolve().parent
     backend = root / "backend"
-    # Делаем пакет Django-проекта (config) и приложение (core) импортируемыми.
+    # Делает пакеты config (проект) и core (приложение) импортируемыми.
     sys.path.insert(0, str(backend))
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
     addrport = os.environ.get("REGIONLENS_ADDRPORT", "0.0.0.0:8000")

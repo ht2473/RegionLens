@@ -42,7 +42,7 @@ class CoreFeatures:
 
 @dataclass
 class FeaturesResult:
-    """Итог Ф2: матрица признаков и обогащённый справочник метрик."""
+    """Итог: матрица признаков и обогащённый справочник метрик."""
 
     features_wide: pl.DataFrame
     metric_dim: pl.DataFrame
@@ -331,7 +331,7 @@ def add_zscore(features: pl.DataFrame) -> pl.DataFrame:
 
     z = (x - среднее) / стандартное отклонение в пределах года. Если std не определён
     или равен нулю (вырожденный случай) — z=0. Направление (higher_is_better) здесь
-    НЕ применяется: знак учитывается на этапе индекса (Ф4), контракт хранит «сырой» z.
+    НЕ применяется: знак учитывается на этапе индекса, контракт хранит «сырой» z.
     """
     mean = pl.col("value_harmonized").mean().over(["metric_id", "year"])
     std = pl.col("value_harmonized").std().over(["metric_id", "year"])
@@ -366,12 +366,12 @@ def run_features(
     duckdb_path: str = DEFAULT_DUCKDB_PATH,
     write: bool = True,
 ) -> FeaturesResult:
-    """Ф2 целиком: блок A → блок B. При write=True пишет features_wide и обогащённый metric_dim."""
+    """Полный расчёт: блок A → блок B. При write=True пишет features_wide и metric_dim."""
     core = prepare_features(metric_dim, region_dim, fact_region)
     features_wide = build_features_wide(core, region_dim)
     if write:
         write_table(duckdb_path, "features_wide", features_wide)
-        # обогащённый metric_dim перезаписывает базовый из Ф1 (добавлены domain/value_type/...)
+        # обогащённый metric_dim перезаписывает базовый (добавлены domain/value_type/...)
         write_table(duckdb_path, "metric_dim", core.metric_dim)
         log.info(
             "features_written",

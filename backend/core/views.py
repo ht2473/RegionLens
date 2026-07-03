@@ -1,8 +1,8 @@
-"""Представления ядра (Ф7): серверный рендер публичных страниц + healthcheck.
+"""Представления ядра: серверный рендер публичных страниц + healthcheck.
 
 Контентные страницы (главная, методология, данные, справка) самодостаточны; интерактивные
 (карта, рейтинг, типология, сравнение, регионы) — оболочки, наполняемые JS на данных API
-в следующих модулях Ф7. Каждой странице передаётся active (подсветка меню) и breadcrumbs.
+в модулях страниц. Каждой странице передаётся active (подсветка меню) и breadcrumbs.
 """
 
 import re
@@ -106,12 +106,12 @@ def public_saved_view(request: HttpRequest, token: str) -> HttpResponse:
 
 
 def anomalies_page(request: HttpRequest) -> HttpResponse:
-    """Аномалии и структурные сдвиги (Ф9) — модуль «Аналитика» (вход для авторизованных)."""
+    """Аномалии и структурные сдвиги — модуль «Аналитика» (вход для авторизованных)."""
     return _page(request, "pages/anomalies.html", active="anomalies", title=gettext("Аномалии"))
 
 
 def correlations_page(request: HttpRequest) -> HttpResponse:
-    """Корреляции метрик (Ф15) — модуль «Аналитика» (вход для авторизованных)."""
+    """Корреляции метрик — модуль «Аналитика» (вход для авторизованных)."""
     return _page(
         request, "pages/correlations.html", active="correlations", title=gettext("Корреляции")
     )
@@ -129,7 +129,7 @@ def rankings(request: HttpRequest) -> HttpResponse:
 
 
 def rank_stability_page(request: HttpRequest) -> HttpResponse:
-    """Стабильность рейтинга (Ф14): волатильность ранга регионов — вкладка раздела «Рейтинг»."""
+    """Стабильность рейтинга: волатильность ранга регионов — вкладка раздела «Рейтинг»."""
     return _page(
         request,
         "pages/rank_stability.html",
@@ -250,7 +250,7 @@ def data_page(request: HttpRequest) -> HttpResponse:
 
 
 def data_quality_page(request: HttpRequest) -> HttpResponse:
-    """Качество данных (Ф17): полнота/импутации сетки — вкладка «Данные» (оболочка под JS)."""
+    """Качество данных: полнота/импутации сетки — вкладка «Данные» (оболочка под JS)."""
     return _page(
         request,
         "pages/data_quality.html",
@@ -261,7 +261,7 @@ def data_quality_page(request: HttpRequest) -> HttpResponse:
 
 
 def dispersion_page(request: HttpRequest) -> HttpResponse:
-    """Неравенство регионов (Ф13): разброс показателей по регионам (оболочка под JS)."""
+    """Неравенство регионов: разброс показателей по регионам (оболочка под JS)."""
     return _page(
         request,
         "pages/dispersion.html",

@@ -1,4 +1,4 @@
-"""Тесты API ядра (Ф6, модуль 1): эндпойнт geo/layer на маленьком тестовом DuckDB.
+"""Тесты API ядра: эндпойнт geo/layer на маленьком тестовом DuckDB.
 
 Без обращения к Postgres/ORM (эндпойнт читает только DuckDB), поэтому маркер
 django_db не нужен. settings.DUCKDB_PATH переключается на временный файл, кэш
@@ -156,7 +156,7 @@ def api_duckdb(tmp_path: Path, settings) -> Iterator[Path]:  # type: ignore[no-u
         "('45000000', 2019, '46000000', 0.99, 1)"  # другой год — должен отфильтроваться
     )
 
-    # anomalies (Ф9): пространственный выброс (metric_id NULL), структурный сдвиг (metric 1),
+    # anomalies: пространственный выброс (metric_id NULL), структурный сдвиг (metric 1),
     # кандидат смены методологии A3 (okato NULL, metric 2). Разные kind/год для проверки фильтров.
     con.execute(
         "CREATE TABLE anomalies (okato VARCHAR, metric_id INTEGER, year INTEGER, "

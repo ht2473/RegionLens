@@ -63,7 +63,7 @@ def _stage_etl(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
 
 
 def _stage_features(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
-    """Ф2: гармонизация форм, обогащение metric_dim, ядро, импутация, z-score."""
+    """Гармонизация форм, обогащение metric_dim, ядро, импутация, z-score."""
     from pipeline.features import run_features
 
     metric_dim = read_table(duckdb_path, "metric_dim")
@@ -73,7 +73,7 @@ def _stage_features(duckdb_path: str, sources_path: str, log_mlflow: bool) -> No
 
 
 def _stage_typology(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
-    """Ф3: кластеризация по годам со стабильными метками + SHAP-профили."""
+    """Кластеризация по годам со стабильными метками + SHAP-профили."""
     from pipeline.typology import run_typology
 
     features_wide = read_table(duckdb_path, "features_wide")
@@ -81,7 +81,7 @@ def _stage_typology(duckdb_path: str, sources_path: str, log_mlflow: bool) -> No
 
 
 def _stage_dev_index(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
-    """Ф4: доменные баллы → схемы весов → нормировка → композитный индекс развития."""
+    """Доменные баллы → схемы весов → нормировка → композитный индекс развития."""
     from pipeline.dev_index import run_dev_index
 
     features_wide = read_table(duckdb_path, "features_wide")
@@ -90,7 +90,7 @@ def _stage_dev_index(duckdb_path: str, sources_path: str, log_mlflow: bool) -> N
 
 
 def _stage_transitions(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
-    """Ф5: ранг типов по индексу → переходы год-к-году → типология траекторий."""
+    """Ранг типов по индексу → переходы год-к-году → типология траекторий."""
     from pipeline.transitions import run_transitions
 
     clusters = read_table(duckdb_path, "clusters")
@@ -107,7 +107,7 @@ def _stage_twins(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
 
 
 def _stage_anomalies(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
-    """Ф9: пространственные выбросы + структурные сдвиги + кандидаты смены методологии."""
+    """Пространственные выбросы + структурные сдвиги + кандидаты смены методологии."""
     from pipeline.anomalies import run_anomalies
 
     features_wide = read_table(duckdb_path, "features_wide")
@@ -214,28 +214,28 @@ STAGES: tuple[Stage, ...] = (
         _stage_features,
         ("metric_dim", "region_dim", "fact_region"),
         ("features_wide", "metric_dim"),
-        "Ф2 признаки: ядро, импутация, z-score",
+        "Признаки: ядро, импутация, z-score",
     ),
     Stage(
         "typology",
         _stage_typology,
         ("features_wide",),
         ("clusters", "cluster_profile", "cluster_shap"),
-        "Ф3 типология: кластеры и профили",
+        "Типология: кластеры и профили",
     ),
     Stage(
         "dev_index",
         _stage_dev_index,
         ("features_wide", "metric_dim"),
         ("dev_index",),
-        "Ф4 индекс развития (3 схемы весов)",
+        "Индекс развития (3 схемы весов)",
     ),
     Stage(
         "transitions",
         _stage_transitions,
         ("clusters", "dev_index"),
         ("transitions",),
-        "Ф5 переходы и траектории типов",
+        "Переходы и траектории типов",
     ),
     Stage(
         "twins",
@@ -249,7 +249,7 @@ STAGES: tuple[Stage, ...] = (
         _stage_anomalies,
         ("features_wide", "fact_region", "metric_dim"),
         ("anomalies",),
-        "Ф9 аномалии и структурные сдвиги",
+        "Аномалии и структурные сдвиги",
     ),
     Stage(
         "dispersion",

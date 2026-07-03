@@ -1,4 +1,4 @@
-"""Тесты ETL S2: разнос по object_level и загрузка адаптеров по конфигу."""
+"""Тесты ETL: разнос по object_level и загрузка адаптеров по конфигу."""
 
 from __future__ import annotations
 

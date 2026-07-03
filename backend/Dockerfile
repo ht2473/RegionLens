@@ -1,4 +1,4 @@
-# backend/Dockerfile — dev-образ backend RegionLens. Прод multi-stage — Ф12.
+# backend/Dockerfile — dev-образ backend RegionLens. Прод-сборка — multi-stage.
 FROM python:3.12-slim
 
 ENV PYTHONUNBUFFERED=1 \

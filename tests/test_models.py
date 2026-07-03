@@ -1,4 +1,4 @@
-"""Тесты операционных моделей (Ф10, модуль 1): создание, связи, ограничения, __str__.
+"""Тесты операционных моделей: создание, связи, ограничения, __str__.
 
 Модели живут в Postgres (в тестах — sqlite через DATABASE_URL по умолчанию), поэтому
 все тесты помечены django_db. Проверяем контракт REFERENCE §3 и инварианты:
@@ -23,7 +23,7 @@ def _user(username: str = "tester") -> User:
 def test_userprofile_one_to_one_and_str() -> None:
     """Профиль 1:1 создаётся сигналом при появлении пользователя; доступен как `user.profile`."""
     u = _user("ivan")
-    profile = u.profile  # автосоздан сигналом (Ф10·3)
+    profile = u.profile  # автосоздан сигналом
     profile.role_note = "аналитик"
     profile.organization = "РЭУ"
     profile.save()

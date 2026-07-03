@@ -1,4 +1,4 @@
-"""Тесты аномалий и структурных сдвигов (Ф9 / S8): IsolationForest + ruptures."""
+"""Тесты аномалий и структурных сдвигов: IsolationForest + ruptures."""
 
 from __future__ import annotations
 

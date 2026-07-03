@@ -27,7 +27,7 @@ DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
 
 @dataclass
 class DevIndexResult:
-    """Итог Ф4: таблица индекса по схемам весов."""
+    """Итог: таблица индекса по схемам весов."""
 
     dev_index: pl.DataFrame
 
@@ -74,7 +74,7 @@ def to_100(values: np.ndarray) -> np.ndarray:
     """Линейная нормировка в [0;100] по всему окну (единый min/max, не по годам).
 
     Единое преобразование сохраняет динамику: рост региона во времени отражается в индексе
-    (важно для траекторий Ф5). Вырожденный случай (все значения равны) → 50.
+    (важно для траекторий). Вырожденный случай (все значения равны) → 50.
     """
     lo, hi = float(np.nanmin(values)), float(np.nanmax(values))
     if hi <= lo:
@@ -155,7 +155,7 @@ def run_dev_index(
     duckdb_path: str = DEFAULT_DUCKDB_PATH,
     write: bool = True,
 ) -> DevIndexResult:
-    """Ф4 целиком: доменные баллы → схемы весов → нормировка → dev_index (+запись в DuckDB)."""
+    """Полный расчёт: доменные баллы → схемы весов → нормировка → dev_index (+запись в DuckDB)."""
     dev = build_dev_index(features_wide, metric_dim)
     if write:
         write_table(duckdb_path, "dev_index", dev)

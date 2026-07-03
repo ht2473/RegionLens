@@ -35,7 +35,7 @@ def build_year_matrix(features_wide: pl.DataFrame, year: int) -> tuple[list[str]
     """Матрица профилей за год: строки — регионы (okato), столбцы — метрики ядра (z_value).
 
     Порядок строк (okato) и столбцов (metric_id) детерминирован сортировкой ради
-    воспроизводимости. Предполагается полнота ядра в features_wide (Ф2): без пропусков,
+    воспроизводимости. Предполагается полнота ядра в features_wide: без пропусков,
     иначе пустые ячейки исказили бы близость. Возвращает (okatos, matrix) с
     matrix.shape == (n_regions, n_metrics).
     """

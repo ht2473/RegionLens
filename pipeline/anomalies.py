@@ -43,7 +43,7 @@ DEFAULT_DUCKDB_PATH = "data/regionlens.duckdb"
 
 @dataclass
 class AnomaliesResult:
-    """Итог Ф9: таблица anomalies (пространственные выбросы + структурные сдвиги)."""
+    """Итог: таблица anomalies (пространственные выбросы + структурные сдвиги)."""
 
     anomalies: pl.DataFrame
 
@@ -51,7 +51,7 @@ class AnomaliesResult:
 def _year_matrix(features_wide: pl.DataFrame, year: int) -> tuple[list[str], np.ndarray]:
     """Матрица года: строки — регионы (okato, по возрастанию), столбцы — ядро (z_value).
 
-    features_wide плотная по ядру (Ф2), поэтому матрица без пропусков. Возвращает
+    features_wide плотная по ядру, поэтому матрица без пропусков. Возвращает
     (okato в порядке строк, матрица регионы×метрики).
     """
     fy = features_wide.filter(pl.col("year") == year)
@@ -213,7 +213,7 @@ def run_anomalies(
     duckdb_path: str = DEFAULT_DUCKDB_PATH,
     write: bool = True,
 ) -> AnomaliesResult:
-    """Ф9 целиком: пространственные выбросы + структурные сдвиги + кандидаты A3 → anomalies.
+    """Полный расчёт: пространственные выбросы + структурные сдвиги + кандидаты A3 → anomalies.
 
     Ядро берётся как множество metric_id из features_wide (там только курируемое ядро).
     Если передан metric_dim, метрики ревизуемых доменов (config revisable_domains) идут в

@@ -1,4 +1,4 @@
-"""Тесты pandera-валидации fact_region и отчёта качества (Ф1, S2, модуль 7)."""
+"""Тесты pandera-валидации fact_region и отчёта качества."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Тесты ETL S2: справочник регионов region_dim (правило грани 2 — ключ OKATO)."""
+"""Тесты ETL: справочник регионов region_dim (правило грани 2 — ключ OKATO)."""
 
 from __future__ import annotations
 

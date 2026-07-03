@@ -11,7 +11,7 @@
   для explore-режима и кандидат на расширение ядра.
 - **sparse** — слишком разрежена либо домен excluded: в аналитику по умолчанию не идёт.
 
-Грань — metric_id. coverage берём из metric_dim (оконное покрытие, Ф2). year_min/max/n_years/
+Грань — metric_id. coverage берём из metric_dim (оконное покрытие). year_min/max/n_years/
 n_regions считаем по fact_region на ПОЛНОМ окне сырья (2001–2025) — это наблюдаемая «свежесть/охват»
 метрики, шире окна анализа. Порог extended — из config/analytics.yaml (без хардкода).
 """

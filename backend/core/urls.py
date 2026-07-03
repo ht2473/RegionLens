@@ -1,4 +1,4 @@
-"""Маршруты приложения core: публичные страницы (Ф7), API (Ф6), healthcheck."""
+"""Маршруты приложения core: публичные страницы, API, healthcheck."""
 
 from django.contrib.auth import views as auth_views
 from django.urls import include, path, reverse_lazy

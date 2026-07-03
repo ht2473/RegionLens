@@ -85,7 +85,7 @@ def build_metric_dim(df: pl.DataFrame) -> pl.DataFrame:
 
     Грань 1: метрика = indicator_code × subsection. metric_id детерминирован
     (стабильная сортировка ключа + индекс строки) → воспроизводим между прогонами.
-    Поля domain / value_type / higher_is_better / coverage добавит Ф2.
+    Поля domain / value_type / higher_is_better / coverage добавляются на этапе признаков.
     """
     return (
         df.select(["indicator_code", "subsection", "indicator_name", "indicator_unit", "section"])
@@ -241,7 +241,7 @@ def build_fact_region(region: pl.DataFrame) -> pl.DataFrame:
     """Факт fact_region (грань okato × metric_id × year).
 
     Базовые поля: okato, metric_id, year, value, source. value_harmonized и is_imputed
-    добавит Ф2 (гармонизация форм + импутация).
+    добавляются на этапе признаков (гармонизация форм + импутация).
     """
     return region.select(["object_okato", "metric_id", "year", "indicator_value", "source"]).rename(
         {"object_okato": "okato", "indicator_value": "value"}
@@ -294,7 +294,7 @@ def run_etl(
     """Полный проход ETL: источники → metric_id → уровни → дедуп → справочники → fact_region.
 
     При write=True пишет fact_region/metric_dim/region_dim в DuckDB. Модуль 7 добавит
-    pandera-валидацию и отчёт качества (DoD Ф1).
+    pandera-валидацию и отчёт качества.
     """
     configure_logging()
     cfg = load_yaml(sources_path)

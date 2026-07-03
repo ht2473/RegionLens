@@ -1,4 +1,4 @@
-"""Маршруты API ядра (Ф6). Подключаются под префиксом /api/ из core.urls.
+"""Маршруты API ядра. Подключаются под префиксом /api/ из core.urls.
 
 Аналитические эндпойнты read-only (DuckDB) + OpenAPI-схема и Swagger (drf-spectacular).
 Порядок важен: статический `typology/profile/` объявлен раньше `typology/<okato>/explain/`,
@@ -53,17 +53,17 @@ urlpatterns = [
     ),
     # Сравнение
     path("compare/", endpoints.Compare.as_view(), name="compare"),
-    # Аномалии и структурные сдвиги (Ф9, доступ analyst)
+    # Аномалии и структурные сдвиги (доступ analyst)
     path("anomalies/", endpoints.Anomalies.as_view(), name="anomalies"),
-    # Разброс/неравенство регионов на метрику-год (Ф13)
+    # Разброс/неравенство регионов на метрику-год
     path("dispersion/", endpoints.Dispersion.as_view(), name="dispersion"),
-    # Стабильность рейтинга: волатильность ранга регионов по годам (Ф14)
+    # Стабильность рейтинга: волатильность ранга регионов по годам
     path("rank-stability/", endpoints.RankStability.as_view(), name="rank_stability"),
-    # Парные корреляции метрик по регионам (Ф15, доступ analyst)
+    # Парные корреляции метрик по регионам (доступ analyst)
     path("correlations/", endpoints.Correlations.as_view(), name="correlations"),
-    # Вклад доменов в годовое изменение индекса региона (Ф16)
+    # Вклад доменов в годовое изменение индекса региона
     path("decomposition/", endpoints.Decomposition.as_view(), name="decomposition"),
-    # Качество данных: полнота/импутации аналитической сетки на метрику-год (Ф17)
+    # Качество данных: полнота/импутации аналитической сетки на метрику-год
     path("data-quality/", endpoints.DataQuality.as_view(), name="data_quality"),
     # Каталог метрик: тиринг (core/extended/sparse) и профиль всего справочника
     path("metric-catalog/", endpoints.MetricCatalog.as_view(), name="metric_catalog"),

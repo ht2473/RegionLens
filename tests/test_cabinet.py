@@ -1,4 +1,4 @@
-"""Тесты личного кабинета (Ф10·5): доступ только после входа, рендер страниц, владелец-изоляция.
+"""Тесты личного кабинета: доступ только после входа, рендер страниц, владелец-изоляция.
 
 Проверяем: все страницы кабинета требуют входа; у вошедшего открываются (200); правка профиля
 сохраняет организацию и e-mail; CRUD сохранённых видов (создание/список/открытие/удаление);
@@ -212,7 +212,7 @@ def test_password_change_flow(client: Client) -> None:
     assert reverse("account_password_done") in resp["Location"]
 
 
-# ── Избранное (Ф10·5): переключение, изоляция владельца, требование входа ───────
+# ── Избранное: переключение, изоляция владельца, требование входа ───────
 def test_favorite_toggle_add_and_remove(client_alice: Client, alice: User) -> None:
     """Первый POST добавляет закладку, повторный — снимает (идемпотентно по kind+ref)."""
     from core.models import Favorite
@@ -271,7 +271,7 @@ def test_overview_shows_favorite_count(client_alice: Client, alice: User) -> Non
     assert "В избранном" in html
 
 
-# ── Наборы сравнения (Ф10·5): сохранение, валидация, изоляция, открытие, удаление ──
+# ── Наборы сравнения: сохранение, валидация, изоляция, открытие, удаление ──
 def test_comparison_save_creates_set(client_alice: Client, alice: User) -> None:
     """POST со страницы сравнения создаёт набор из 2–3 регионов и года."""
     from core.models import ComparisonSet
@@ -333,7 +333,7 @@ def test_comparison_save_requires_login(client: Client) -> None:
     assert resp.status_code == 302 and "/accounts/login/" in resp["Location"]
 
 
-# ── Экспорт-центр (Ф10·5): быстрый экспорт + ярлыки избранного + история ────────
+# ── Экспорт-центр: быстрый экспорт + ярлыки избранного + история ────────
 def test_export_center_shows_quick_export(client_alice: Client) -> None:
     """Экспорт-центр показывает форму быстрого экспорта."""
     html = client_alice.get(reverse("account_exports")).content.decode()
@@ -350,7 +350,7 @@ def test_export_center_lists_favorite_region_shortcuts(client_alice: Client, ali
     assert "/regions/45000000/export/?format=docx" in html
 
 
-# ── Настройки (Ф10·5): дефолтные год/схема/мера, применяемые через RL_PREFS ──────
+# ── Настройки: дефолтные год/схема/мера, применяемые через RL_PREFS ──────
 def test_settings_save_updates_preferences(client_alice: Client, alice: User) -> None:
     """Сохранение настроек обновляет дефолтные год, схему и меру в профиле."""
     from core.models import UserProfile

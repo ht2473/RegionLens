@@ -1,4 +1,4 @@
-# docker-compose (dev): PostgreSQL (OLTP) + backend. Прод-сборка (multi-stage) — Ф12.
+# docker-compose (dev): PostgreSQL (OLTP) + backend. Прод-сборка — multi-stage.
 # Контекст сборки backend — корень репозитория (нужен requirements.txt), Dockerfile — в backend/.
 services:
   postgres:

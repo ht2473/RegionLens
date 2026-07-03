@@ -1,4 +1,4 @@
-"""Тесты ETL S2: суррогатный metric_id и справочник metric_dim."""
+"""Тесты ETL: суррогатный metric_id и справочник metric_dim."""
 
 from __future__ import annotations
 

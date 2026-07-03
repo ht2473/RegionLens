@@ -179,7 +179,7 @@ def build_clusters(features_wide: pl.DataFrame, *, k: int | None = None) -> Typo
     algo = str(clu.get("algo", "kmeans"))
     k_range = tuple(clu.get("k_range", [3, 8]))
 
-    # годы берём из самих данных (features_wide уже ограничен окном анализа в Ф2)
+    # годы берём из самих данных (features_wide уже ограничен окном анализа)
     years = sorted(int(y) for y in features_wide["year"].unique().to_list())
 
     if k is None:
@@ -344,7 +344,7 @@ def _log_mlflow(clusters: pl.DataFrame, algo: str, k: int) -> None:
 
 @dataclass
 class TypologyResult:
-    """Итог Ф3: три таблицы типологии."""
+    """Итог: три таблицы типологии."""
 
     clusters: pl.DataFrame
     cluster_profile: pl.DataFrame

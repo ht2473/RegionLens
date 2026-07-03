@@ -1,9 +1,9 @@
-"""DRF-сериализаторы ответов API (Ф6): фиксируют форму выдачи и питают OpenAPI-схему.
+"""DRF-сериализаторы ответов API: фиксируют форму выдачи и питают OpenAPI-схему.
 
 Данные приходят из core.queries уже готовыми словарями (из DuckDB); сериализаторы
 здесь — это контракт формы ответа (контракты раньше кода) и источник
 схемы для drf-spectacular. Поля nullable там, где значение может отсутствовать
-(направление метрики задано только у ядра; гармонизированное значение — после Ф2).
+(направление метрики задано только у ядра; гармонизированное значение — после гармонизации).
 """
 
 from __future__ import annotations
@@ -190,7 +190,7 @@ class RegionTwinSerializer(serializers.Serializer):
 
 
 class AnomalySerializer(serializers.Serializer):
-    """Строка диагностики аномалий/сдвигов (Ф9). okato/region_name пусты для находок уровня
+    """Строка диагностики аномалий/сдвигов. okato/region_name пусты для находок уровня
     «метрика-год» (methodology_change, A3); metric_id/metric_name пусты для пространственных
     выбросов. kind ∈ {spatial, structural_break, methodology_change}. score: для spatial —
     оценка типичности (меньше → аномальнее); для structural_break — величина сдвига; для
@@ -367,7 +367,7 @@ class MetricCatalogRowSerializer(serializers.Serializer):
     """Строка каталога метрик: тир пригодности + профиль охвата.
 
     tier: core (ядро индекса) / extended (вне ядра, но пригодна для explore) / sparse (разрежена).
-    coverage — оконное покрытие (Ф2); year_min/max/n_years/n_regions — фактический охват по сырью
+    coverage — оконное покрытие; year_min/max/n_years/n_regions — фактический охват по сырью
     (полное окно). is_core — входит ли в курируемое ядро. Справочник доступного для анализа.
     """
 

@@ -1,7 +1,7 @@
-"""Тесты публичных страниц (Ф7, модуль 1): доступность, хлебные крошки, меню, подвал.
+"""Тесты публичных страниц: доступность, хлебные крошки, меню, подвал.
 
 Страницы — серверный рендер без обращения к ORM/Postgres, поэтому маркер django_db в общем
-не нужен (исключение — POST обратной связи, который с Ф10·7 сохраняет сообщение в БД).
+не нужен (исключение — POST обратной связи, который сохраняет сообщение в БД).
 """
 
 from __future__ import annotations
@@ -88,7 +88,7 @@ def test_feedback_get_shows_form(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_feedback_post_acknowledges(client: Client) -> None:
-    """POST с текстом сохраняется в БД (Ф10·7) и подтверждается на странице."""
+    """POST с текстом сохраняется в БД и подтверждается на странице."""
     html = client.post("/feedback/", {"text": "тест"}).content.decode()
     assert "Сообщение получено" in html
 
@@ -346,7 +346,7 @@ def test_correlations_page_ok_for_analyst() -> None:
     html = _role_client("analyst").get("/correlations/").content.decode()
     assert "причинность" in html  # плашка-предупреждение
     assert 'id="metric-select"' in html and 'id="correlations-root"' in html
-    assert 'id="year-slider"' in html  # выбор года (Ф15)
+    assert 'id="year-slider"' in html  # выбор года
     assert "js/correlations.js" in html
 
 

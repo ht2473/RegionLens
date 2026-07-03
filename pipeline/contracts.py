@@ -18,7 +18,7 @@ TWINS_SCHEMA = {
     "rank": pl.Int32,
 }
 
-# Контракт anomalies (Ф9): metric_id NULL для пространственных выбросов.
+# Контракт anomalies: metric_id NULL для пространственных выбросов.
 ANOMALIES_SCHEMA = {
     "okato": pl.Utf8,
     "metric_id": pl.Int32,
@@ -28,7 +28,7 @@ ANOMALIES_SCHEMA = {
     "kind": pl.Utf8,
 }
 
-# Контракт dispersion (Ф13): разброс value_harmonized по регионам на (метрику, год).
+# Контракт dispersion: разброс value_harmonized по регионам на (метрику, год).
 DISPERSION_SCHEMA = {
     "metric_id": pl.Int32,
     "year": pl.Int32,
@@ -44,7 +44,7 @@ DISPERSION_SCHEMA = {
     "p90_p10_ratio": pl.Float64,
 }
 
-# Контракт rank_stability (Ф14): волатильность ранга региона по индексу за годы.
+# Контракт rank_stability: волатильность ранга региона по индексу за годы.
 RANK_STABILITY_SCHEMA = {
     "okato": pl.Utf8,
     "weighting_scheme": pl.Utf8,
@@ -121,7 +121,7 @@ RANK_ROBUSTNESS_SCHEMA = {
     "score_max": pl.Float64,
 }
 
-# Контракт correlations (Ф15): парные корреляции метрик по регионам на год.
+# Контракт correlations: парные корреляции метрик по регионам на год.
 CORRELATIONS_SCHEMA = {
     "year": pl.Int32,
     "metric_a": pl.Int32,
@@ -131,7 +131,7 @@ CORRELATIONS_SCHEMA = {
     "n_regions": pl.Int32,
 }
 
-# Контракт index_decomposition (Ф16): вклад доменов в годовое изменение индекса.
+# Контракт index_decomposition: вклад доменов в годовое изменение индекса.
 INDEX_DECOMPOSITION_SCHEMA = {
     "okato": pl.Utf8,
     "year": pl.Int32,
@@ -164,7 +164,7 @@ METRIC_CATALOG_SCHEMA = {
     "tier": pl.Utf8,
 }
 
-# Контракт data_quality (Ф17): полнота/импутации аналитической сетки на (метрику, год).
+# Контракт data_quality: полнота/импутации аналитической сетки на (метрику, год).
 # Грань — (metric_id, year) по сетке ядра. n_regions — число ячеек сетки (включённые регионы);
 # n_present_raw — из них с непустым СЫРЫМ значением (доступность источника, до гармонизации);
 # n_imputed — достроенные ячейки ГАРМОНИЗИРОВАННОЙ сетки. Для absolute-метрик raw-полнота может
