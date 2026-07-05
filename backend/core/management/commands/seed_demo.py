@@ -63,7 +63,8 @@ class Command(BaseCommand):
         # 1. Роли и их права должны существовать до назначения пользователям.
         call_command("setup_roles")
 
-        override_password = options.get("password") or None
+        raw_override = options.get("password")
+        override_password = str(raw_override) if raw_override else None
         created_rows: list[tuple[str, str, str]] = []
 
         for username, spec in _DEMO_USERS.items():
