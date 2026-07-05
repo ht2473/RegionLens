@@ -1,0 +1,44 @@
+# render.yaml — Blueprint развёртывания RegionLens на Render (нативный Python-рантайм).
+# Один web-сервис + управляемый PostgreSQL. Подробная инструкция — в docs/DEPLOY.md.
+#
+# ВАЖНО: бесплатный PostgreSQL на Render удаляется через 30 дней после создания.
+# Для стабильной доступности используется постоянный бесплатный Postgres (Neon)
+# — см. docs/DEPLOY.md, раздел «Постоянная база данных».
+
+databases:
+  - name: regionlens-db
+    plan: free
+    databaseName: regionlens
+    user: regionlens
+
+services:
+  - type: web
+    name: regionlens
+    runtime: python
+    plan: free
+    region: frankfurt
+    # pip install -e . делает пакет pipeline импортируемым; collectstatic собирает статику для WhiteNoise.
+    buildCommand: "pip install -r requirements.txt && pip install -e . && python backend/manage.py collectstatic --no-input"
+    # Миграции и демо-данные — перед переключением трафика на новую версию.
+    preDeployCommand: "python backend/manage.py migrate && python backend/manage.py seed_demo"
+    # config.wsgi — из backend/ (--pythonpath); pipeline — из установленного пакета.
+    startCommand: "gunicorn config.wsgi:application --pythonpath backend --bind 0.0.0.0:$PORT --workers 3 --timeout 60"
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: regionlens-db
+          property: connectionString
+      - key: DUCKDB_PATH
+        value: "data/regionlens.duckdb"
+      # Render терминирует TLS на прокси — доверяем заголовку X-Forwarded-Proto.
+      - key: DJANGO_TRUST_PROXY_SSL
+        value: "true"

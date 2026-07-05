@@ -44,6 +44,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Отдача статики в проде (сжатие + кэш-заголовки); должен идти сразу за SecurityMiddleware.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "core.middleware.RequestIDMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     # Определяет активный язык запроса (cookie django_language, затем заголовок Accept-Language).
@@ -103,6 +105,12 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = REPO_ROOT / "staticfiles"
 
+# В проде статику отдаёт WhiteNoise: сжатие и хешированные имена (кэш-бастинг) через манифест.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+
 MEDIA_URL = "media/"
 MEDIA_ROOT = REPO_ROOT / "media"
 
@@ -138,7 +146,7 @@ LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-# --- Безопасность развёртывания ---------------------------------
+# --- Безопасность боевого развёртывания ---------------------------------
 # Принцип: локальная разработка идёт по HTTP (DEBUG=True), поэтому строгие флаги по
 # умолчанию ВЫКЛЮЧЕНЫ и не мешают `runserver`. В боевом режиме (DJANGO_DEBUG=false)
 # они автоматически ВКЛЮЧАЮТСЯ, давая чистый `manage.py check --deploy`. Каждый флаг
