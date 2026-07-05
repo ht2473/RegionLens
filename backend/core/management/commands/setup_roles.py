@@ -67,7 +67,7 @@ class Command(BaseCommand):
         for name, perms in plan.items():
             group, created = Group.objects.get_or_create(name=name)
             group.permissions.set(perms)
-            log.info("setup_roles", stage="ф10", role=name, created=created, perms=len(perms))
+            log.info("setup_roles", role=name, created=created, perms=len(perms))
             verb = "создана" if created else "обновлена"
             self.stdout.write(f"{verb} группа «{name}» — назначено прав: {len(perms)}")
 

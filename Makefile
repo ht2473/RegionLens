@@ -1,4 +1,4 @@
-.PHONY: install lint format type test audit load pipeline migrate run all docker-up docker-down
+.PHONY: install lint format type test audit load pipeline migrate seed run all docker-up docker-down
 
 install:          ## Установить проект и все группы зависимостей
 	pip install -e ".[pipeline,backend,dev]"
@@ -22,6 +22,9 @@ pipeline:         ## Пересобрать всю аналитику офлай
 
 migrate:          ## Применить миграции Django
 	python backend/manage.py migrate
+
+seed:             ## Демо-данные: роли + пользователи viewer/analyst/admin + контент
+	python backend/manage.py seed_demo
 
 run:              ## Запустить dev-сервер Django
 	python backend/manage.py runserver
