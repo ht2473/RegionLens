@@ -67,13 +67,13 @@ flowchart LR
 
 ## Быстрый старт
 
-Нужны Python 3.12+ и PostgreSQL (проще всего поднять через Docker).
+Нужны Python 3.12+, PostgreSQL (проще всего через Docker) и [git-lfs](https://git-lfs.com/)
+(аналитическое хранилище DuckDB версионируется через Git LFS).
 
 ```bash
-# 1. Зависимости
-pip install -r requirements.txt
-#   или в editable-режиме со всеми группами:
-#   pip install -e ".[pipeline,backend,dev]"
+# 1. Установить git-lfs и получить репозиторий (DuckDB подтянется через LFS)
+git lfs install
+git clone <URL-репозитория> && cd RegionLens
 
 # 2. Окружение
 cp .env.example .env        # при необходимости отредактируйте
@@ -81,26 +81,31 @@ cp .env.example .env        # при необходимости отредакт
 # 3. База данных (OLTP)
 docker compose up -d postgres
 
-# 4. Данные и аналитика (OLAP): сырьё под DVC → пересборка DuckDB
-dvc pull                    # если настроен DVC-remote с сырьём
-make pipeline               # python -m pipeline.run_all
+# 4. Запуск «из коробки»: установка → миграции → демо-данные → проверка
+make bootstrap
 
-# 5. Миграции Django
-make migrate
-
-# 6. Запуск веб-приложения
+# 5. Запуск веб-приложения
 python main.py              # http://localhost:8000
 ```
 
+После `make bootstrap` доступны демонстрационные учётные записи трёх ролей:
+`demo_viewer` / `demo_analyst` / `demo_admin` (пароли — в выводе команды).
 Адрес и порт можно переопределить переменной `REGIONLENS_ADDRPORT`.
+
+### Пересборка аналитики из сырья
+
+Файл DuckDB поставляется через Git LFS, но всегда воспроизводится из сырья:
+
+```bash
+dvc pull                    # получить сырьё (если настроен DVC-remote)
+make pipeline               # пересобрать всю аналитику: python -m pipeline.run_all
+```
 
 ### Через Docker
 
 ```bash
 docker compose up -d --build   # PostgreSQL + backend
 ```
-
-> Аналитическое хранилище DuckDB создаётся офлайн-конвейером (`make pipeline`) и не хранится в репозитории — оно всегда воспроизводится из сырья.
 
 ---
 
