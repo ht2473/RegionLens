@@ -212,6 +212,7 @@ def run_anomalies(
     *,
     duckdb_path: str = DEFAULT_DUCKDB_PATH,
     write: bool = True,
+    train_model: bool = True,
 ) -> AnomaliesResult:
     """Полный расчёт: пространственные выбросы + структурные сдвиги + кандидаты A3 → anomalies.
 
@@ -236,6 +237,13 @@ def run_anomalies(
     n_regions = int(features_wide["okato"].n_unique())
 
     spatial = spatial_anomalies(features_wide, contamination=contamination, seed=seed)
+    if train_model:
+        try:
+            from pipeline.anomaly_model import train_anomaly_model
+
+            train_anomaly_model(features_wide, contamination=contamination, seed=seed)
+        except Exception:  # noqa: BLE001 — обучение модели не должно ломать пайплайн аналитики
+            log.warning("anomaly_model_skip", stage="anomalies")
     structural = structural_breaks(
         fact_region, core_metric_ids, model=model, max_ratio=max_ratio, min_len=min_len
     )
