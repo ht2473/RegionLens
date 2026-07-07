@@ -357,8 +357,13 @@ def run_typology(
     duckdb_path: str = "data/regionlens.duckdb",
     write: bool = True,
     log_mlflow: bool = True,
+    train_model: bool = True,
 ) -> TypologyResult:
-    """Типология целиком: кластеризация → объяснение (SHAP) → запись таблиц + MLflow."""
+    """Типология целиком: кластеризация → объяснение (SHAP) → запись таблиц + MLflow.
+
+    При train_model дополнительно обучается и сохраняется классификатор «признаки → тип»
+    (см. typology_model) — модель для применения к произвольным профилям регионов.
+    """
     tables = build_clusters(features_wide)
     seed = int((load_config("analytics").get("clustering") or {}).get("seed", 42))
     shap_df = compute_cluster_shap(features_wide, tables.clusters, seed=seed)
@@ -366,6 +371,13 @@ def run_typology(
     k = int(tables.clusters["k"][0])
     if log_mlflow:
         _log_mlflow(tables.clusters, algo, k)
+    if train_model:
+        try:
+            from pipeline.typology_model import train_typology_model
+
+            train_typology_model(features_wide, tables.clusters, seed=seed, log_mlflow=log_mlflow)
+        except Exception:  # noqa: BLE001 — обучение модели не должно ломать пайплайн аналитики
+            log.warning("typology_model_skip", stage="typology")
     if write:
         write_table(duckdb_path, "clusters", tables.clusters)
         write_table(duckdb_path, "cluster_profile", tables.cluster_profile)
