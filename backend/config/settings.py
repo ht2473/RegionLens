@@ -37,12 +37,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_prometheus",
     "rest_framework",
     "drf_spectacular",
     "core",
 ]
 
 MIDDLEWARE = [
+    # Метрики Prometheus: Before — самым первым, After — самым последним (охватывают весь запрос).
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     # Отдача статики в проде (сжатие + кэш-заголовки); должен идти сразу за SecurityMiddleware.
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -55,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"

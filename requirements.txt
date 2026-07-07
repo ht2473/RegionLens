@@ -120,6 +120,8 @@ django==5.2.15
     #   regionlens
 django-environ==0.13.0
     # via regionlens
+django-prometheus==2.5.0
+    # via regionlens (backend)
 djangorestframework==3.17.1
     # via
     #   drf-spectacular
@@ -362,6 +364,8 @@ polars-runtime-32==1.41.2
     # via polars
 prettytable==3.17.0
     # via skops
+prometheus-client==0.25.0
+    # via django-prometheus
 prompt-toolkit==3.0.52
     # via click-repl
 propcache==0.5.2

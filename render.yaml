@@ -2,7 +2,7 @@
 # Один web-сервис + управляемый PostgreSQL. Подробная инструкция — в docs/DEPLOY.md.
 #
 # ВАЖНО: бесплатный PostgreSQL на Render удаляется через 30 дней после создания.
-# Для стабильной доступности используется постоянный бесплатный Postgres (Neon)
+# Для стабильной доступности к используется постоянный бесплатный Postgres (Neon)
 # — см. docs/DEPLOY.md, раздел «Постоянная база данных».
 
 databases:
@@ -23,7 +23,7 @@ services:
     preDeployCommand: "python backend/manage.py migrate && python backend/manage.py seed_demo"
     # config.wsgi — из backend/ (--pythonpath); pipeline — из установленного пакета.
     startCommand: "gunicorn config.wsgi:application --pythonpath backend --bind 0.0.0.0:$PORT --workers 3 --timeout 60"
-    healthCheckPath: /
+    healthCheckPath: /healthz
     envVars:
       - key: PYTHON_VERSION
         value: "3.12"
