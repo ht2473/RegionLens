@@ -1,0 +1,36 @@
+# .dockerignore — что НЕ копировать в образ (context для сборки).
+# ВАЖНО: аналитическое хранилище data/regionlens.duckdb НУЖНО в образе — не исключается.
+
+.git
+.github
+.dvc/cache
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+
+# Артефакты инструментов и тестов
+.pytest_cache
+.ruff_cache
+.mypy_cache
+htmlcov
+.coverage
+tests
+
+# Локальная статика (пересобирается collectstatic в образе)
+staticfiles
+
+# Промежуточные и сырьевые данные конвейера (в образе не нужны; DuckDB-витрина остается)
+data/interim
+data/processed
+data/geo
+data/raw
+dump
+
+# Локальное окружение и служебное
+.env
+*.sqlite3
+mlflow.db
+mlruns
+docs

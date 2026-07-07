@@ -450,6 +450,8 @@ pyyaml==6.0.3
     #   mlflow-skinny
     #   omegaconf
     #   regionlens
+redis==8.0.1
+    # via regionlens (backend)
 referencing==0.37.0
     # via
     #   jsonschema

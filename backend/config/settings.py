@@ -138,19 +138,29 @@ SPECTACULAR_SETTINGS = {
 }
 
 # Кэш: locmem по умолчанию (Redis — опционально в проде).
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "regionlens-locmem",
+# Кэш: Redis в проде (общий для всех воркеров), локальный кэш в памяти по умолчанию.
+REDIS_URL = env("REDIS_URL", default="")
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "regionlens-locmem",
+        }
+    }
 
 # Аутентификация (используется со страницами входа).
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-# --- Безопасность боевого развёртывания ---------------------------------
+# --- Безопасность развёртывания ---------------------------------
 # Принцип: локальная разработка идёт по HTTP (DEBUG=True), поэтому строгие флаги по
 # умолчанию ВЫКЛЮЧЕНЫ и не мешают `runserver`. В боевом режиме (DJANGO_DEBUG=false)
 # они автоматически ВКЛЮЧАЮТСЯ, давая чистый `manage.py check --deploy`. Каждый флаг
