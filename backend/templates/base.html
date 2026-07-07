@@ -68,9 +68,10 @@
         </div>
 
         <div class="nav-group" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
-          <button type="button" class="nav-group-btn{% if active == 'methodology' or active == 'data' or active == 'help' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{% trans "О проекте" %} <span class="caret" aria-hidden="true">▾</span></button>
+          <button type="button" class="nav-group-btn{% if active == 'methodology' or active == 'models' or active == 'data' or active == 'help' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{% trans "О проекте" %} <span class="caret" aria-hidden="true">▾</span></button>
           <div class="nav-menu" x-show="d" x-cloak @click="d = false">
             <a href="{% url 'methodology' %}" class="{% if active == 'methodology' %}is-active{% endif %}">{% trans "Методология" %}</a>
+            <a href="{% url 'models_page' %}" class="{% if active == 'models' %}is-active{% endif %}">{% trans "Модели" %}</a>
             <a href="{% url 'data' %}" class="{% if active == 'data' %}is-active{% endif %}">{% trans "Данные" %}</a>
             <a href="{% url 'help' %}" class="{% if active == 'help' %}is-active{% endif %}">{% trans "Справка" %}</a>
             <a href="{% url 'feedback' %}" class="{% if active == 'feedback' %}is-active{% endif %}">{% trans "Обратная связь" %}</a>

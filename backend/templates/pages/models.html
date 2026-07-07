@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Модели" %} — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{% trans "Интеллектуальный сервис" %}</p>
+  <h1>{% trans "Модели" %}</h1>
+  <p class="lead">{% trans "Аналитика опирается на управляемые ML-модели: они обучаются офлайн-конвейером, версионируются и сохраняются вместе с метриками. Ниже — карточки обученных моделей." %}</p>
+</section>
+
+{% if model_cards %}
+<div class="grid cols-2">
+  {% for m in model_cards %}
+  <div class="card">
+    <p class="eyebrow">{{ m.estimator }}</p>
+    <h2>{{ m.label }}</h2>
+
+    <div class="kpi-row">
+      {% for metric in m.metrics %}
+      <div class="kpi">
+        <div class="kpi-label">{{ metric.label }}</div>
+        <div class="num">{{ metric.value }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <table class="table">
+      <tbody>
+        <tr><td>{% trans "Обучена" %}</td><td>{{ m.created|slice:":10" }}</td></tr>
+        <tr><td>{% trans "Наблюдений" %}</td><td>{{ m.n_samples }}</td></tr>
+        <tr><td>{% trans "Признаков" %}</td><td>{{ m.n_features }}</td></tr>
+        <tr><td>scikit-learn</td><td>{{ m.sklearn_version }}</td></tr>
+        {% for key, value in m.params.items %}
+        <tr><td class="muted">{{ key }}</td><td class="muted">{{ value }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="card">
+  <h2>{% trans "Модели ещё не обучены" %}</h2>
+  <p class="muted">{% trans "Соберите аналитику офлайн-конвейером — модели обучатся и сохранятся автоматически:" %}</p>
+  <p><code>make pipeline</code></p>
+</div>
+{% endif %}
+
+<div class="prose">
+  <h2>{% trans "Как устроен жизненный цикл модели" %}</h2>
+  <p>{% trans "Каждая модель проходит один и тот же управляемый путь: обучение на подготовленных признаках → сохранение в файл вместе с карточкой (параметры, метрики, версия, дата) → загрузка → применение к произвольному профилю региона. Это делает интеллектуальный сервис воспроизводимым и проверяемым." %}</p>
+  <h2>{% trans "Модели платформы" %}</h2>
+  <p>{% trans "Классификатор типологии предсказывает тип региона по его показателям (метрика — точность воспроизведения типологии на кросс-валидации). Детектор аномалий оценивает нетипичность профиля региона на фоне всей панели наблюдений (метрика — доля выявленных выбросов)." %}</p>
+</div>
+{% endblock %}

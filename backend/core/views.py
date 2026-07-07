@@ -6,7 +6,9 @@
 """
 
 import re
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group
@@ -273,6 +275,59 @@ def dispersion_page(request: HttpRequest) -> HttpResponse:
 def help_page(request: HttpRequest) -> HttpResponse:
     """Справка по платформе (с данными об авторе)."""
     return _page(request, "pages/help.html", active="help", title=gettext("Справка"))
+
+
+def _model_cards() -> list[dict[str, object]]:
+    """Карточки обученных моделей для витрины (best-effort чтение из каталога моделей)."""
+    labels = {
+        "typology_classifier": gettext("Классификатор типологии"),
+        "anomaly_detector": gettext("Детектор аномалий"),
+    }
+    metric_labels = {
+        "cv_accuracy": gettext("Точность (кросс-валидация)"),
+        "anomaly_share": gettext("Доля аномалий"),
+    }
+    try:
+        from pipeline.models_io import list_model_cards
+
+        cards = list_model_cards(models_dir=Path(settings.MODELS_DIR))
+    except Exception:  # noqa: BLE001 — витрина не должна падать из-за отсутствия/ошибки моделей
+        return []
+
+    result: list[dict[str, object]] = []
+    for card in cards:
+        metrics = [
+            {
+                "label": metric_labels.get(key, key),
+                "value": f"{value * 100:.1f}%" if 0 <= value <= 1 else f"{value:.3f}",
+            }
+            for key, value in card.metrics.items()
+        ]
+        result.append(
+            {
+                "name": card.name,
+                "label": labels.get(card.name, card.name),
+                "estimator": card.estimator,
+                "created": card.created,
+                "sklearn_version": card.sklearn_version,
+                "n_samples": card.n_samples,
+                "n_features": len(card.feature_names),
+                "params": card.params,
+                "metrics": metrics,
+            }
+        )
+    return result
+
+
+def models_page(request: HttpRequest) -> HttpResponse:
+    """Витрина ML-моделей: карточки управляемых моделей (метрики, версия, дата обучения)."""
+    return _page(
+        request,
+        "pages/models.html",
+        active="models",
+        title=gettext("Модели"),
+        extra={"model_cards": _model_cards()},
+    )
 
 
 def feedback(request: HttpRequest) -> HttpResponse:

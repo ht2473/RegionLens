@@ -29,6 +29,8 @@ DATABASES = {"default": env.db("DATABASE_URL", default=_default_db)}
 
 # OLAP: путь к DuckDB-файлу (read-only из приложения; владелец — конвейер).
 DUCKDB_PATH = env("DUCKDB_PATH", default=str(REPO_ROOT / "data" / "regionlens.duckdb"))
+# Каталог обученных ML-моделей (карточки читает витрина «Модели»).
+MODELS_DIR = env("MODELS_DIR", default=str(REPO_ROOT / "models"))
 
 INSTALLED_APPS = [
     "django.contrib.admin",
