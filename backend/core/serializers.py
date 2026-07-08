@@ -64,6 +64,17 @@ class IndexRowSerializer(serializers.Serializer):
     health_edu = serializers.FloatField(allow_null=True)
 
 
+class CustomIndexRowSerializer(serializers.Serializer):
+    """Строка кастомного рейтинга: ранг, балл и сдвиг относительно равных весов."""
+
+    rank = serializers.IntegerField()
+    okato = serializers.CharField()
+    region_name = serializers.CharField(allow_null=True)
+    score = serializers.FloatField()
+    base_rank = serializers.IntegerField()
+    delta = serializers.IntegerField()
+
+
 class TransitionSerializer(serializers.Serializer):
     """Переход региона между типами год-к-году + тип его траектории."""
 

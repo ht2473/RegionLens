@@ -61,6 +61,8 @@ urlpatterns = [
     path("rank-stability/", endpoints.RankStability.as_view(), name="rank_stability"),
     # Парные корреляции метрик по регионам (доступ analyst)
     path("correlations/", endpoints.Correlations.as_view(), name="correlations"),
+    # Кастомный индекс по пользовательским весам доменов
+    path("index/custom/", endpoints.CustomIndex.as_view(), name="custom_index"),
     # Вклад доменов в годовое изменение индекса региона
     path("decomposition/", endpoints.Decomposition.as_view(), name="decomposition"),
     # Качество данных: полнота/импутации аналитической сетки на метрику-год

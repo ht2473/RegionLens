@@ -25,6 +25,7 @@ from ..serializers import (
     ClusterProfileRowSerializer,
     CompareRowSerializer,
     CorrelationRowSerializer,
+    CustomIndexRowSerializer,
     DataQualityRowSerializer,
     DecompositionRowSerializer,
     DispersionRowSerializer,
@@ -591,6 +592,48 @@ class Correlations(APIView):
         data = queries.correlations_list(year=year, metric_id=metric_id, limit=limit)
         log.info("correlations", stage="api", year=year, metric_id=metric_id, rows=len(data))
         return Response(CorrelationRowSerializer(data, many=True).data)
+
+
+class CustomIndex(APIView):
+    """GET /api/index/custom/?year=&w_economy=&w_income=&… — кастомный рейтинг по своим весам.
+
+    Пользователь задаёт веса шести доменов; индекс пересобирается как взвешенная сумма
+    доменных баллов (баллы не зависят от схемы весов). Возвращает рейтинг на год (по умолчанию
+    последний) с рангом и сдвигом относительно равных весов. Аналитический инструмент.
+    """
+
+    @extend_schema(
+        operation_id="custom_index",
+        parameters=[
+            P_YEAR,
+            *[
+                OpenApiParameter(
+                    f"w_{domain}", OpenApiTypes.NUMBER, description=f"Вес домена «{domain}» (≥0)"
+                )
+                for domain in queries.INDEX_DOMAINS
+            ],
+        ],
+        responses=CustomIndexRowSerializer(many=True),
+        summary="Кастомный индекс по своим весам",
+    )
+    def get(self, request: Request) -> Response:
+        try:
+            year = _optional_int(request.query_params.get("year"))
+            weights = {
+                domain: float(request.query_params.get(f"w_{domain}") or 0.0)
+                for domain in queries.INDEX_DOMAINS
+            }
+        except ValueError:
+            return Response(
+                {"detail": "year должен быть целым, веса w_* — числами"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        resolved_year = year if year is not None else queries.latest_index_year()
+        if resolved_year is None:
+            return Response([])
+        data = queries.custom_index_ranking(resolved_year, weights)
+        log.info("custom_index", stage="api", year=resolved_year, rows=len(data))
+        return Response(CustomIndexRowSerializer(data, many=True).data)
 
 
 class Decomposition(APIView):

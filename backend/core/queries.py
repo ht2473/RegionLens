@@ -166,6 +166,83 @@ def index_ranking(year: int, scheme: str = MAP_INDEX_SCHEME) -> list[dict[str, A
     return rows
 
 
+def _to_100(values: list[float]) -> list[float]:
+    """Линейная нормировка в [0;100] (вырожденный случай → 50) — как в pipeline.dev_index."""
+    if not values:
+        return []
+    lo, hi = min(values), max(values)
+    if hi <= lo:
+        return [50.0 for _ in values]
+    return [100.0 * (v - lo) / (hi - lo) for v in values]
+
+
+def custom_ranking_from_rows(
+    rows: list[dict[str, Any]], weights: dict[str, float]
+) -> list[dict[str, Any]]:
+    """Кастомный рейтинг из уже прочитанных строк dev_index (чистая функция, без БД).
+
+    Доменные баллы не зависят от схемы весов, поэтому кастомный индекс — это
+    score = to_100(Σ w_d · domain_d) в пределах выборки. Веса нормируются (сумма = 1);
+    при нулевой сумме берутся равные веса. delta — сдвиг ранга относительно порядка по
+    total_score (base_rank): >0 означает, что при заданных весах регион поднялся.
+    """
+    total_w = sum(max(0.0, float(weights.get(d, 0.0))) for d in INDEX_DOMAINS)
+    if total_w <= 0:
+        norm = {d: 1.0 / len(INDEX_DOMAINS) for d in INDEX_DOMAINS}
+    else:
+        norm = {d: max(0.0, float(weights.get(d, 0.0))) / total_w for d in INDEX_DOMAINS}
+
+    if not rows:
+        return []
+    raw = [sum(norm[d] * (row.get(d) or 0.0) for d in INDEX_DOMAINS) for row in rows]
+    scaled = _to_100(raw)
+
+    base_order = sorted(
+        range(len(rows)), key=lambda i: rows[i].get("total_score") or 0.0, reverse=True
+    )
+    base_rank = {idx: rank for rank, idx in enumerate(base_order, start=1)}
+
+    enriched = [
+        {
+            "okato": row["okato"],
+            "region_name": row.get("region_name"),
+            "score": round(scaled[i], 2),
+            "weights": {d: round(norm[d], 4) for d in INDEX_DOMAINS},
+            "base_rank": base_rank[i],
+        }
+        for i, row in enumerate(rows)
+    ]
+    enriched.sort(key=lambda e: e["score"], reverse=True)
+    for rank, item in enumerate(enriched, start=1):
+        item["rank"] = rank
+        item["delta"] = item["base_rank"] - rank
+    return enriched
+
+
+def latest_index_year(scheme: str = MAP_INDEX_SCHEME) -> int | None:
+    """Последний год, для которого рассчитан индекс (для значения по умолчанию)."""
+    rows = q("SELECT MAX(year) AS y FROM dev_index WHERE weighting_scheme = ?", [scheme])
+    return int(rows[0]["y"]) if rows and rows[0]["y"] is not None else None
+
+
+def custom_index_ranking(
+    year: int, weights: dict[str, float], *, base_scheme: str = MAP_INDEX_SCHEME
+) -> list[dict[str, Any]]:
+    """Кастомный рейтинг регионов на год по пользовательским весам доменов.
+
+    Читает доменные баллы из dev_index (баллы одинаковы для всех схем) и перевзвешивает их
+    заданными весами. Возвращает рейтинг по убыванию с рангом и сдвигом относительно равных
+    весов. Аналитический инструмент: показывает, как приоритеты (веса) меняют картину.
+    """
+    cols = "d.okato, r.region_name, d.total_score, " + ", ".join(f"d.{c}" for c in INDEX_DOMAINS)
+    rows = q(
+        f"SELECT {cols} FROM dev_index d LEFT JOIN region_dim r ON r.okato = d.okato "
+        "WHERE d.year = ? AND d.weighting_scheme = ?",
+        [year, base_scheme],
+    )
+    return _loc(custom_ranking_from_rows(rows, weights))
+
+
 def rank_robustness_list(year: int) -> list[dict[str, Any]]:
     """Коридор ранга по схемам весов на год: для каждого региона лучшая/худшая позиция.
 
