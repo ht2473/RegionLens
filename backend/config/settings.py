@@ -135,8 +135,10 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "RegionLens API",
     "DESCRIPTION": "Аналитические и операционные эндпойнты RegionLens.",
-    "VERSION": "0.1.0",
+    "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    # В схему попадает только канонический /api/v1/ (алиас /api/ скрыт от документации).
+    "PREPROCESSING_HOOKS": ["core.api.schema.filter_versioned_paths"],
 }
 
 # Кэш: locmem по умолчанию (Redis — опционально в проде).

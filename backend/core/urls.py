@@ -116,5 +116,9 @@ urlpatterns = [
         name="account_password_done",
     ),
     path("healthz/", views.healthz, name="healthz"),
-    path("api/", include("core.api.urls")),
+    # Канонический версионированный префикс. Сохраняет пространство имён `api`
+    # (из app_name), поэтому `api:schema`/`api:swagger-ui` указывают на /api/v1/.
+    path("api/v1/", include("core.api.urls")),
+    # Алиас без версии — обратная совместимость (фронтенд обращается к /api/…).
+    path("api/", include(("core.api.urls", "api"), namespace="api-compat")),
 ]

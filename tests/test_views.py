@@ -227,7 +227,9 @@ def test_page_names_resolve_to_pages_not_api() -> None:
     assert reverse("typology") == "/typology/"
     assert reverse("compare") == "/compare/"
     assert reverse("regions") == "/regions/"
-    assert reverse("api:typology") == "/api/typology/"
+    # Канонический API — под версионированным префиксом; алиас совместимости — под /api/.
+    assert reverse("api:typology") == "/api/v1/typology/"
+    assert reverse("api-compat:typology") == "/api/typology/"
 
 
 def test_menu_links_point_to_pages(client: Client) -> None:
