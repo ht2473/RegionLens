@@ -82,6 +82,13 @@ class ScenarioDomainSerializer(serializers.Serializer):
     percentile = serializers.FloatField()
 
 
+class SensitivityRowSerializer(serializers.Serializer):
+    """Выигрыш в местах, если довести домен до 100-го перцентиля."""
+
+    domain = serializers.CharField()
+    gain = serializers.IntegerField()
+
+
 class ScenarioSerializer(serializers.Serializer):
     """Результат сценария «что если»: базовое и сценарное место региона и текущие перцентили."""
 
@@ -91,6 +98,7 @@ class ScenarioSerializer(serializers.Serializer):
     scenario_rank = serializers.IntegerField()
     delta = serializers.IntegerField()
     current = serializers.DictField(child=ScenarioDomainSerializer())
+    sensitivity = SensitivityRowSerializer(many=True)
 
 
 class TransitionSerializer(serializers.Serializer):

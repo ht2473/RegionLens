@@ -55,7 +55,7 @@ def _rows() -> list[dict[str, object]]:
 
 
 def test_scenario_baseline_rank_and_percentiles() -> None:
-    """Без изменений: базовое место и текущие перцентили посчитаны."""
+    """Без изменений: базовое место, перцентили и анализ чувствительности посчитаны."""
     result = scenario_from_rows(_rows(), "B", {})
     assert result is not None
     assert result["of"] == 3
@@ -63,6 +63,11 @@ def test_scenario_baseline_rank_and_percentiles() -> None:
     assert result["scenario_rank"] == 3
     assert result["delta"] == 0
     assert set(result["current"]) == set(_DOMAINS)
+    # Чувствительность: 6 доменов, по убыванию выигрыша; регион не лидер → верхний домен помогает.
+    sens = result["sensitivity"]
+    assert len(sens) == len(_DOMAINS)
+    assert sens[0]["gain"] >= sens[-1]["gain"]
+    assert sens[0]["gain"] > 0
 
 
 def test_scenario_raising_weak_domain_improves_rank() -> None:
@@ -110,6 +115,7 @@ def test_scenario_endpoint(scenario_duckdb: Path) -> None:
     assert body["baseline_rank"] == 3
     assert body["scenario_rank"] == 2
     assert body["delta"] == 1
+    assert len(body["sensitivity"]) == len(_DOMAINS)
 
 
 def test_scenario_endpoint_requires_okato(scenario_duckdb: Path) -> None:

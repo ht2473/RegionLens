@@ -308,6 +308,17 @@ def scenario_from_rows(
     scenario_scores[target_idx] = mean_score(scenario_row)
     scenario_rank = rank_of(scenario_scores)
 
+    # Чувствительность: на сколько поднимется место, если один домен довести до 100-го
+    # перцентиля (потолка года). Сортируем по убыванию выигрыша — подсказка «на что нажать».
+    sensitivity: list[dict[str, Any]] = []
+    for domain in INDEX_DOMAINS:
+        trial = dict(rows[target_idx])
+        trial[domain] = domain_sorted[domain][-1]
+        trial_scores = list(base_scores)
+        trial_scores[target_idx] = mean_score(trial)
+        sensitivity.append({"domain": domain, "gain": baseline_rank - rank_of(trial_scores)})
+    sensitivity.sort(key=lambda item: item["gain"], reverse=True)
+
     return {
         "okato": okato,
         "of": len(rows),
@@ -315,6 +326,7 @@ def scenario_from_rows(
         "scenario_rank": scenario_rank,
         "delta": baseline_rank - scenario_rank,
         "current": current,
+        "sensitivity": sensitivity,
     }
 
 

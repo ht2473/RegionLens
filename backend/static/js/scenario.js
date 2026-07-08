@@ -95,6 +95,30 @@
       '</div><div class="num">' + arrow(data.delta) + "</div></div>";
   }
 
+  function domainLabel(key) {
+    for (var i = 0; i < DOMAINS.length; i++) {
+      if (DOMAINS[i][0] === key) return DOMAINS[i][1];
+    }
+    return key;
+  }
+
+  function renderHint(sensitivity) {
+    var hintEl = document.getElementById("scenario-hint");
+    if (!hintEl) return;
+    if (!sensitivity || !sensitivity.length) { hintEl.innerHTML = ""; return; }
+    var top = sensitivity[0];
+    var text;
+    if (top.gain > 0) {
+      text =
+        gettext("Наибольший подъём места даёт домен") + ' «' + domainLabel(top.domain) + '» — ' +
+        gettext("до") + " +" + top.gain + " " + gettext("мест") + ".";
+    } else {
+      text = gettext("Регион уже занимает высокое место: подтягивание отдельного домена позицию не меняет.");
+    }
+    hintEl.innerHTML =
+      '<div class="card"><p><strong>' + gettext("Подсказка") + ":</strong> " + text + "</p></div>";
+  }
+
   var timer = null;
   function scheduleScenario() { clearTimeout(timer); timer = setTimeout(runScenario, 250); }
 
@@ -126,6 +150,7 @@
         });
         buildSliders();
         renderSummary(data);
+        renderHint(data.sensitivity);
         root.innerHTML =
           '<div class="shell"><p>' +
           gettext("Двигайте ползунки, чтобы моделировать изменения. Учитываются только домены, отклонённые от текущего положения.") +

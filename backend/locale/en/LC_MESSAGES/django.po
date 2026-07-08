@@ -291,7 +291,7 @@ msgstr ""
 "β-convergence (mobility)."
 
 msgid "разброс регионов по выбранному показателю и его динамика по годам."
-msgstr ""
+msgstr "spread of regions by the selected indicator and its dynamics over the years."
 "dispersion of regions for the selected indicator and its dynamics over the "
 "years."
 
@@ -350,14 +350,14 @@ msgid "Тип (кластер)"
 msgstr "Type (cluster)"
 
 msgid "группа похожих регионов за год; метки согласованы по годам."
-msgstr ""
+msgstr "a group of similar regions for the year; labels are aligned across years."
 "a group of similar regions for a year; labels are aligned across years."
 
 msgid "Типичность"
 msgstr "Typicality"
 
 msgid "насколько регион характерен для своего типа (не прогноз смены типа)."
-msgstr ""
+msgstr "how typical the region is of its type (not a type-change forecast)."
 "how characteristic a region is of its type (not a forecast of a type "
 "change)."
 
@@ -2140,3 +2140,31 @@ msgstr "API token generated"
 
 msgid "Отозван токен API"
 msgstr "API token revoked"
+
+msgid "Сценарии"
+msgstr "Scenarios"
+
+msgid "Точность (кросс-валидация)"
+msgstr "Accuracy (cross-validation)"
+
+msgid "Модели"
+msgstr "Models"
+
+
+msgid "Аналитический инструмент"
+msgstr "Analytical tool"
+
+msgid "Интеллектуальный сервис"
+msgstr "Intelligent service"
+
+msgid "Обучена"
+msgstr "Trained"
+
+msgid "Наблюдений"
+msgstr "Observations"
+
+msgid "Признаков"
+msgstr "Features"
+
+msgid "Как устроен жизненный цикл модели"
+msgstr "How the model lifecycle works"

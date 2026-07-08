@@ -114,7 +114,7 @@ msgid "Коридор"
 msgstr "Corridor"
 
 msgid "По схемам весов: с %(best)s по %(worst)s место (коридор %(range)s)"
-msgstr ""
+msgstr "By weighting schemes: from %(best)s to %(worst)s place (range %(range)s)"
 "Across weighting schemes: from place %(best)s to %(worst)s (corridor "
 "%(range)s)"
 
@@ -467,7 +467,7 @@ msgid "метрика"
 msgstr "metric"
 
 msgid "доля регионов с синхронным сдвигом (кандидат, не вывод)"
-msgstr ""
+msgstr "share of regions with a synchronous shift (candidate, not a conclusion)"
 "share of regions with a synchronous shift (candidate, not a conclusion)"
 
 msgid ""
@@ -654,3 +654,27 @@ msgstr "Set saved."
 
 msgid "Не удалось сохранить набор."
 msgstr "Could not save the set."
+
+msgid "Балл"
+msgstr "Score"
+
+msgid "Сдвиг к равным"
+msgstr "Shift vs equal weights"
+
+msgid "перц."
+msgstr "pct."
+
+msgid "Текущее место"
+msgstr "Current place"
+
+msgid "Сдвиг"
+msgstr "Shift"
+
+msgid "Наибольший подъём места даёт домен"
+msgstr "The biggest rank gain comes from the domain"
+
+msgid "мест"
+msgstr "places"
+
+msgid "Подсказка"
+msgstr "Hint"
