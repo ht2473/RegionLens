@@ -655,11 +655,11 @@ msgstr "Set saved."
 msgid "Не удалось сохранить набор."
 msgstr "Could not save the set."
 
-msgid "Балл"
-msgstr "Score"
+msgid "Пересчёт рейтинга…"
+msgstr "Recomputing the ranking…"
 
-msgid "Сдвиг к равным"
-msgstr "Shift vs equal weights"
+msgid "Ошибка расчёта"
+msgstr "Calculation error"
 
 msgid "перц."
 msgstr "pct."
@@ -667,14 +667,35 @@ msgstr "pct."
 msgid "Текущее место"
 msgstr "Current place"
 
+msgid "Сценарное место"
+msgstr "Scenario place"
+
 msgid "Сдвиг"
 msgstr "Shift"
 
 msgid "Наибольший подъём места даёт домен"
 msgstr "The biggest rank gain comes from the domain"
 
+msgid "до"
+msgstr "up to"
+
 msgid "мест"
 msgstr "places"
 
 msgid "Подсказка"
 msgstr "Hint"
+
+msgid "Регион уже занимает высокое место: подтягивание отдельного домена позицию не меняет."
+msgstr "The region already ranks high: raising a single domain does not change its position."
+
+msgid "Двигайте ползунки, чтобы моделировать изменения."
+msgstr "Move the sliders to model changes."
+
+msgid "Двигайте ползунки, чтобы моделировать изменения. Учитываются только домены, отклонённые от текущего положения."
+msgstr "Move the sliders to model changes. Only domains deviated from the current position are taken into account."
+
+msgid "Балл"
+msgstr "Score"
+
+msgid "Сдвиг к равным"
+msgstr "Shift vs equal weights"

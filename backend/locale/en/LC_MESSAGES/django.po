@@ -2141,21 +2141,59 @@ msgstr "API token generated"
 msgid "Отозван токен API"
 msgstr "API token revoked"
 
-msgid "Сценарии"
-msgstr "Scenarios"
-
-msgid "Точность (кросс-валидация)"
-msgstr "Accuracy (cross-validation)"
-
-msgid "Модели"
-msgstr "Models"
-
+msgid "Конструктор индекса"
+msgstr "Index builder"
 
 msgid "Аналитический инструмент"
 msgstr "Analytical tool"
 
+msgid "Веса доменов"
+msgstr "Domain weights"
+
+msgid "Сбросить к равным"
+msgstr "Reset to equal"
+
+msgid "Настройте веса…"
+msgstr "Set the weights…"
+
+msgid "Задайте собственные веса шести доменов — рейтинг регионов пересоберётся мгновенно. Стрелки показывают, как регион сместился относительно равных весов."
+msgstr "Set your own weights for the six domains — the ranking rebuilds instantly. Arrows show how a region shifted relative to equal weights."
+
+msgid "Сценарии"
+msgstr "Scenarios"
+
+msgid "Сценарии развития региона"
+msgstr "Region development scenarios"
+
+msgid "Выберите регион и «подтяните» его домены до желаемого положения среди регионов (перцентиль). Модель покажет, как изменится место региона в рейтинге при равных весах."
+msgstr "Pick a region and \"raise\" its domains to a desired position among regions (percentile). The model shows how the region's place in the ranking changes under equal weights."
+
+msgid "Целевое положение по доменам (перцентиль)"
+msgstr "Target position by domain (percentile)"
+
+msgid "Сбросить к текущим"
+msgstr "Reset to current"
+
+msgid "Выберите регион…"
+msgstr "Select a region…"
+
+msgid "Модели"
+msgstr "Models"
+
 msgid "Интеллектуальный сервис"
 msgstr "Intelligent service"
+
+msgid "Классификатор типологии"
+msgstr "Typology classifier"
+
+msgid "Детектор аномалий"
+msgstr "Anomaly detector"
+
+msgid "Точность (кросс-валидация)"
+msgstr "Accuracy (cross-validation)"
+
+msgid "Доля аномалий"
+msgstr "Anomaly share"
 
 msgid "Обучена"
 msgstr "Trained"
@@ -2166,5 +2204,23 @@ msgstr "Observations"
 msgid "Признаков"
 msgstr "Features"
 
+msgid "Модели ещё не обучены"
+msgstr "Models are not trained yet"
+
 msgid "Как устроен жизненный цикл модели"
 msgstr "How the model lifecycle works"
+
+msgid "Модели платформы"
+msgstr "Platform models"
+
+msgid "Аналитика опирается на управляемые ML-модели: они обучаются офлайн-конвейером, версионируются и сохраняются вместе с метриками. Ниже — карточки обученных моделей."
+msgstr "The analytics rely on governed ML models: they are trained by the offline pipeline, versioned and stored together with their metrics. Below are the cards of the trained models."
+
+msgid "Соберите аналитику офлайн-конвейером — модели обучатся и сохранятся автоматически:"
+msgstr "Build the analytics with the offline pipeline — the models will be trained and saved automatically:"
+
+msgid "Каждая модель проходит один и тот же управляемый путь: обучение на подготовленных признаках → сохранение в файл вместе с карточкой (параметры, метрики, версия, дата) → загрузка → применение к произвольному профилю региона. Это делает интеллектуальный сервис воспроизводимым и проверяемым."
+msgstr "Every model follows the same governed path: training on prepared features → saving to a file together with a card (parameters, metrics, version, date) → loading → applying to an arbitrary region profile. This makes the intelligent service reproducible and verifiable."
+
+msgid "Классификатор типологии предсказывает тип региона по его показателям (метрика — точность воспроизведения типологии на кросс-валидации). Детектор аномалий оценивает нетипичность профиля региона на фоне всей панели наблюдений (метрика — доля выявленных выбросов)."
+msgstr "The typology classifier predicts a region's type from its indicators (metric — accuracy of reproducing the typology on cross-validation). The anomaly detector estimates how atypical a region's profile is against the whole panel of observations (metric — the share of detected outliers)."
