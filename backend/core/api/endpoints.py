@@ -41,6 +41,7 @@ from ..serializers import (
     RegionDashboardSerializer,
     RegionSerializer,
     RegionTwinSerializer,
+    ScenarioSerializer,
     SchemeAgreementRowSerializer,
     SiteSearchSerializer,
     TransitionSerializer,
@@ -634,6 +635,59 @@ class CustomIndex(APIView):
         data = queries.custom_index_ranking(resolved_year, weights)
         log.info("custom_index", stage="api", year=resolved_year, rows=len(data))
         return Response(CustomIndexRowSerializer(data, many=True).data)
+
+
+class IndexScenario(APIView):
+    """GET /api/index/scenario/?year=&okato=&p_economy=&… — сценарий «что если» для региона.
+
+    Параметры p_<domain> — целевые перцентили доменов (0–100). Возвращает базовое и сценарное
+    место региона среди регионов года и текущие перцентили по доменам. Без p_* — текущее
+    состояние (baseline == scenario). Аналитический инструмент планирования.
+    """
+
+    @extend_schema(
+        operation_id="index_scenario",
+        parameters=[
+            P_YEAR,
+            OpenApiParameter("okato", OpenApiTypes.STR, required=True, description="ОКАТО региона"),
+            *[
+                OpenApiParameter(
+                    f"p_{domain}",
+                    OpenApiTypes.NUMBER,
+                    description=f"Целевой перцентиль домена «{domain}» (0–100)",
+                )
+                for domain in queries.INDEX_DOMAINS
+            ],
+        ],
+        responses=ScenarioSerializer,
+        summary="Сценарий развития региона (what-if)",
+    )
+    def get(self, request: Request) -> Response:
+        okato = request.query_params.get("okato")
+        if not okato:
+            return Response({"detail": "нужен параметр okato"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            year = _optional_int(request.query_params.get("year"))
+            overrides = {
+                domain: float(raw)
+                for domain in queries.INDEX_DOMAINS
+                if (raw := request.query_params.get(f"p_{domain}")) not in (None, "")
+            }
+        except ValueError:
+            return Response(
+                {"detail": "year должен быть целым, перцентили p_* — числами"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        resolved_year = year if year is not None else queries.latest_index_year()
+        if resolved_year is None:
+            return Response({"detail": "нет данных индекса"}, status=status.HTTP_404_NOT_FOUND)
+        data = queries.scenario_ranking(resolved_year, okato, overrides)
+        if data is None:
+            return Response(
+                {"detail": "регион не найден за выбранный год"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(ScenarioSerializer(data).data)
 
 
 class Decomposition(APIView):

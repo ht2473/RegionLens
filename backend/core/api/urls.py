@@ -63,6 +63,8 @@ urlpatterns = [
     path("correlations/", endpoints.Correlations.as_view(), name="correlations"),
     # Кастомный индекс по пользовательским весам доменов
     path("index/custom/", endpoints.CustomIndex.as_view(), name="custom_index"),
+    # Сценарий развития региона (what-if по перцентилям доменов)
+    path("index/scenario/", endpoints.IndexScenario.as_view(), name="index_scenario"),
     # Вклад доменов в годовое изменение индекса региона
     path("decomposition/", endpoints.Decomposition.as_view(), name="decomposition"),
     # Качество данных: полнота/импутации аналитической сетки на метрику-год

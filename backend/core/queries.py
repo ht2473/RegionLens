@@ -243,6 +243,97 @@ def custom_index_ranking(
     return _loc(custom_ranking_from_rows(rows, weights))
 
 
+def _percentile_of(values: list[float], target: float) -> float:
+    """Перцентиль значения target среди values (доля значений ≤ target), в процентах."""
+    if not values:
+        return 0.0
+    return round(100.0 * sum(1 for v in values if v <= target) / len(values), 1)
+
+
+def _value_at_percentile(sorted_values: list[float], pct: float) -> float:
+    """Значение на заданном перцентиле в отсортированном массиве (линейная интерполяция)."""
+    n = len(sorted_values)
+    if n == 0:
+        return 0.0
+    if n == 1:
+        return sorted_values[0]
+    pos = max(0.0, min(100.0, pct)) / 100.0 * (n - 1)
+    lo = int(pos)
+    hi = min(lo + 1, n - 1)
+    frac = pos - lo
+    return sorted_values[lo] * (1 - frac) + sorted_values[hi] * frac
+
+
+def scenario_from_rows(
+    rows: list[dict[str, Any]], okato: str, override_percentiles: dict[str, float]
+) -> dict[str, Any] | None:
+    """Сценарий «что если» для региона: как меняется его место при заданных целевых перцентилях.
+
+    Веса доменов равные (стандартный индекс); ранг определяется взвешенной суммой доменных
+    баллов (монотонна к итоговому индексу), поэтому изменение места считается точно. Ползунки
+    заданы в перцентилях (0–100) — перцентиль домена переводится в доменный балл текущего года.
+    Возвращает базовое и сценарное место, сдвиг и текущие перцентили региона по доменам.
+    """
+    target_idx = next((i for i, r in enumerate(rows) if r["okato"] == okato), None)
+    if target_idx is None:
+        return None
+
+    domain_values = {d: [float(r.get(d) or 0.0) for r in rows] for d in INDEX_DOMAINS}
+    domain_sorted = {d: sorted(v) for d, v in domain_values.items()}
+
+    def mean_score(row: dict[str, Any]) -> float:
+        return sum(float(row.get(d) or 0.0) for d in INDEX_DOMAINS) / len(INDEX_DOMAINS)
+
+    base_scores = [mean_score(r) for r in rows]
+
+    def rank_of(scores: list[float]) -> int:
+        order = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+        return {idx: rank for rank, idx in enumerate(order, start=1)}[target_idx]
+
+    baseline_rank = rank_of(base_scores)
+
+    current = {
+        d: {
+            "value": round(domain_values[d][target_idx], 3),
+            "percentile": _percentile_of(domain_values[d], domain_values[d][target_idx]),
+        }
+        for d in INDEX_DOMAINS
+    }
+
+    scenario_row = dict(rows[target_idx])
+    for domain, pct in (override_percentiles or {}).items():
+        if domain in INDEX_DOMAINS and pct is not None:
+            scenario_row[domain] = _value_at_percentile(domain_sorted[domain], float(pct))
+    scenario_scores = list(base_scores)
+    scenario_scores[target_idx] = mean_score(scenario_row)
+    scenario_rank = rank_of(scenario_scores)
+
+    return {
+        "okato": okato,
+        "of": len(rows),
+        "baseline_rank": baseline_rank,
+        "scenario_rank": scenario_rank,
+        "delta": baseline_rank - scenario_rank,
+        "current": current,
+    }
+
+
+def scenario_ranking(
+    year: int,
+    okato: str,
+    override_percentiles: dict[str, float],
+    *,
+    base_scheme: str = MAP_INDEX_SCHEME,
+) -> dict[str, Any] | None:
+    """Сценарий «что если» для региона на год: см. scenario_from_rows (данные из dev_index)."""
+    cols = "okato, " + ", ".join(INDEX_DOMAINS)
+    rows = q(
+        f"SELECT {cols} FROM dev_index WHERE year = ? AND weighting_scheme = ?",
+        [year, base_scheme],
+    )
+    return scenario_from_rows(rows, okato, override_percentiles)
+
+
 def rank_robustness_list(year: int) -> list[dict[str, Any]]:
     """Коридор ранга по схемам весов на год: для каждого региона лучшая/худшая позиция.
 

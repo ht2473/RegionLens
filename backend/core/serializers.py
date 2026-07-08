@@ -75,6 +75,24 @@ class CustomIndexRowSerializer(serializers.Serializer):
     delta = serializers.IntegerField()
 
 
+class ScenarioDomainSerializer(serializers.Serializer):
+    """Текущий доменный балл региона и его перцентиль среди регионов года."""
+
+    value = serializers.FloatField()
+    percentile = serializers.FloatField()
+
+
+class ScenarioSerializer(serializers.Serializer):
+    """Результат сценария «что если»: базовое и сценарное место региона и текущие перцентили."""
+
+    okato = serializers.CharField()
+    of = serializers.IntegerField()
+    baseline_rank = serializers.IntegerField()
+    scenario_rank = serializers.IntegerField()
+    delta = serializers.IntegerField()
+    current = serializers.DictField(child=ScenarioDomainSerializer())
+
+
 class TransitionSerializer(serializers.Serializer):
     """Переход региона между типами год-к-году + тип его траектории."""
 
