@@ -14,6 +14,7 @@ urlpatterns = [
     path("rankings/", views.rankings, name="rankings"),
     path("index-lab/", views.index_lab_page, name="index_lab"),
     path("index-builder/", views.index_builder_page, name="index_builder"),
+    path("scenario/", views.scenario_page, name="scenario"),
     path("convergence/", views.convergence_page, name="convergence"),
     path("rankings/stability/", views.rank_stability_page, name="rank_stability_page"),
     path("typology/", views.typology, name="typology"),

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Сценарии" %} — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{% trans "Аналитический инструмент" %}</p>
+  <h1>{% trans "Сценарии развития региона" %}</h1>
+  <p class="lead">{% trans "Выберите регион и «подтяните» его домены до желаемого положения среди регионов (перцентиль). Модель покажет, как изменится место региона в рейтинге при равных весах." %}</p>
+</section>
+
+<div class="map-controls">
+  <div class="year-control">
+    <label for="region-select">{% trans "Регион" %}</label>
+    <select id="region-select"></select>
+  </div>
+  <div class="year-control">
+    <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
+    <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
+  </div>
+</div>
+
+<div id="scenario-summary" class="kpi-row"></div>
+
+<div class="card">
+  <h3>{% trans "Целевое положение по доменам (перцентиль)" %}</h3>
+  <div class="grid cols-3" id="scenario-sliders"></div>
+  <p><button type="button" id="reset-scenario" class="btn">{% trans "Сбросить к текущим" %}</button></p>
+</div>
+
+<div id="scenario-root">
+  <div class="shell"><p>{% trans "Выберите регион…" %}</p></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/scenario.js' %}"></script>
+{% endblock %}

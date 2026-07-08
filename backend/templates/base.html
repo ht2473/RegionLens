@@ -48,11 +48,12 @@
         <a href="{% url 'regions' %}" class="{% if active == 'regions' %}is-active{% endif %}">{% trans "Регионы" %}</a>
 
         <div class="nav-group" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
-          <button type="button" class="nav-group-btn{% if active == 'rankings' or active == 'index_lab' or active == 'index_builder' or active == 'convergence' or active == 'dispersion' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{% trans "Индекс" %} <span class="caret" aria-hidden="true">▾</span></button>
+          <button type="button" class="nav-group-btn{% if active == 'rankings' or active == 'index_lab' or active == 'index_builder' or active == 'scenario' or active == 'convergence' or active == 'dispersion' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{% trans "Индекс" %} <span class="caret" aria-hidden="true">▾</span></button>
           <div class="nav-menu" x-show="d" x-cloak @click="d = false">
             <a href="{% url 'rankings' %}" class="{% if active == 'rankings' %}is-active{% endif %}">{% trans "Рейтинг" %}</a>
             <a href="{% url 'index_lab' %}" class="{% if active == 'index_lab' %}is-active{% endif %}">{% trans "Лаборатория индекса" %}</a>
             <a href="{% url 'index_builder' %}" class="{% if active == 'index_builder' %}is-active{% endif %}">{% trans "Конструктор индекса" %}</a>
+            <a href="{% url 'scenario' %}" class="{% if active == 'scenario' %}is-active{% endif %}">{% trans "Сценарии" %}</a>
             <a href="{% url 'convergence' %}" class="{% if active == 'convergence' %}is-active{% endif %}">{% trans "Конвергенция" %}</a>
             <a href="{% url 'dispersion_page' %}" class="{% if active == 'dispersion' %}is-active{% endif %}">{% trans "Неравенство" %}</a>
           </div>

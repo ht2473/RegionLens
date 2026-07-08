@@ -97,6 +97,16 @@ def index_builder_page(request: HttpRequest) -> HttpResponse:
     )
 
 
+def scenario_page(request: HttpRequest) -> HttpResponse:
+    """Сценарный анализ: what-if по перцентилям доменов и изменение места региона."""
+    return _page(
+        request,
+        "pages/scenario.html",
+        active="scenario",
+        title=gettext("Сценарии"),
+    )
+
+
 def convergence_page(request: HttpRequest) -> HttpResponse:
     """Конвергенция регионов: σ-сходимость индекса и динамика неравенства во времени."""
     return _page(
