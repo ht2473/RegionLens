@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Конструктор индекса" %} — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{% trans "Аналитический инструмент" %}</p>
+  <h1>{% trans "Конструктор индекса" %}</h1>
+  <p class="lead">{% trans "Задайте собственные веса шести доменов — рейтинг регионов пересоберётся мгновенно. Стрелки показывают, как регион сместился относительно равных весов." %}</p>
+</section>
+
+<div class="map-controls">
+  <div class="year-control">
+    <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
+    <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
+  </div>
+</div>
+
+<div class="card">
+  <h3>{% trans "Веса доменов" %}</h3>
+  <div class="grid cols-3" id="weight-sliders"></div>
+  <p><button type="button" id="reset-weights" class="btn">{% trans "Сбросить к равным" %}</button></p>
+</div>
+
+<div id="builder-root">
+  <div class="shell"><p>{% trans "Настройте веса…" %}</p></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/index_builder.js' %}"></script>
+{% endblock %}

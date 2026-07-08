@@ -87,6 +87,16 @@ def index_lab_page(request: HttpRequest) -> HttpResponse:
     )
 
 
+def index_builder_page(request: HttpRequest) -> HttpResponse:
+    """Конструктор индекса: рейтинг по пользовательским весам доменов (аналитический инструмент)."""
+    return _page(
+        request,
+        "pages/index_builder.html",
+        active="index_builder",
+        title=gettext("Конструктор индекса"),
+    )
+
+
 def convergence_page(request: HttpRequest) -> HttpResponse:
     """Конвергенция регионов: σ-сходимость индекса и динамика неравенства во времени."""
     return _page(
