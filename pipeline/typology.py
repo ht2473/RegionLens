@@ -371,7 +371,7 @@ def run_typology(
     k = int(tables.clusters["k"][0])
     if log_mlflow:
         _log_mlflow(tables.clusters, algo, k)
-    if train_model:
+    if train_model and write:
         try:
             from pipeline.typology_model import train_typology_model
 

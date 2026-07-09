@@ -38,7 +38,9 @@ mlflow.db-journal
 
 # Планы проекта
 # Артефакты в docs/ не версионируются, но Markdown-документация — версионируется.
-docs/*
+docs/**
+!docs/**/
+!docs/**/*.md
 !docs/.gitkeep
 
 # Сгенерированное аналитическое хранилище DuckDB (пересоздаётся пайплайном).
@@ -58,4 +60,8 @@ dump/
 # Мониторинг проекта 
 .VSCodeCounter/
 
-
+# Артефакты измерения покрытия тестами
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml

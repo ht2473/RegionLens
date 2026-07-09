@@ -237,7 +237,7 @@ def run_anomalies(
     n_regions = int(features_wide["okato"].n_unique())
 
     spatial = spatial_anomalies(features_wide, contamination=contamination, seed=seed)
-    if train_model:
+    if train_model and write:
         try:
             from pipeline.anomaly_model import train_anomaly_model
 
