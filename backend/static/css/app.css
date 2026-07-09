@@ -745,3 +745,22 @@ main:focus-visible { outline: none; }
   border-radius: 6px;
 }
 .onboarding-close:hover { color: var(--ink); background: rgba(0, 0, 0, 0.05); }
+
+/* ─── Уточнения для узких экранов (телефоны) ─────────────────────────────── */
+
+/* Плавная инерционная прокрутка широких таблиц на тач-устройствах. */
+.table-wrap { -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 560px) {
+  /* Больше полезной ширины на телефоне. */
+  .container { padding: 0 16px; }
+  /* Селекторы регионов в сравнении — в одну колонку. */
+  .compare-controls { grid-template-columns: 1fr; }
+  /* Плотнее таблицы: больше данных влезает до горизонтальной прокрутки. */
+  .table { font-size: 0.85rem; }
+  .table th, .table td { padding: 7px 9px; }
+  /* Контролы карты/года — компактнее. */
+  .map-controls { gap: 14px; }
+  /* Ниже вертикальные отступы крупных заголовков на маленьком экране. */
+  h2 { margin-top: 1.2em; }
+}
