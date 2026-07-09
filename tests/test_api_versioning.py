@@ -26,6 +26,17 @@ def test_alias_reverse_is_unversioned() -> None:
     assert reverse("api-compat:regions") == "/api/regions/"
 
 
+def test_schema_documents_token_authentication() -> None:
+    """OpenAPI описывает способ аутентификации по токену (иначе spectacular предупреждает)."""
+    from drf_spectacular.generators import SchemaGenerator
+
+    schema = SchemaGenerator().get_schema(request=None, public=True)
+    schemes = schema.get("components", {}).get("securitySchemes", {})
+    assert "ApiTokenAuth" in schemes
+    assert schemes["ApiTokenAuth"]["type"] == "apiKey"
+    assert schemes["ApiTokenAuth"]["in"] == "header"
+
+
 def test_schema_only_contains_versioned_paths() -> None:
     """Хук препроцессинга оставляет в схеме только /api/v1/ (без дублей алиаса)."""
     from drf_spectacular.generators import SchemaGenerator
