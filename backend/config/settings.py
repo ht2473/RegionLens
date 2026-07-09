@@ -130,6 +130,16 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     # Единый конверт ошибок + логирование (необработанное → чистый 500 без утечки трейсбэка).
     "EXCEPTION_HANDLER": "core.api.exceptions.custom_exception_handler",
+    # Ограничение частоты запросов к публичному API (защита от злоупотреблений/скрейпинга).
+    # Лимиты вынесены в окружение — в проде подстраиваются без правки кода.
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": env("THROTTLE_ANON", default="120/min"),
+        "user": env("THROTTLE_USER", default="600/min"),
+    },
 }
 
 SPECTACULAR_SETTINGS = {
@@ -164,7 +174,7 @@ LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
-# --- Безопасность развёртывания ---------------------------------
+# --- Безопасность боевого развёртывания ---------------------------------
 # Принцип: локальная разработка идёт по HTTP (DEBUG=True), поэтому строгие флаги по
 # умолчанию ВЫКЛЮЧЕНЫ и не мешают `runserver`. В боевом режиме (DJANGO_DEBUG=false)
 # они автоматически ВКЛЮЧАЮТСЯ, давая чистый `manage.py check --deploy`. Каждый флаг

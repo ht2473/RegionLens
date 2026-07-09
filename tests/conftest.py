@@ -17,7 +17,7 @@ import pytest
 def _use_simple_static_storage(settings: pytest.FixtureRequest) -> None:
     """Отключить манифест-хранилище статики на время тестов.
 
-    Также гарантирует существование STATIC_ROOT, чтобы WhiteNoise не предупреждал
+    Также гарантируем существование STATIC_ROOT, чтобы WhiteNoise не предупреждал
     об отсутствующем каталоге статики (в тестах `collectstatic` не выполняется).
     """
     os.makedirs(settings.STATIC_ROOT, exist_ok=True)
@@ -27,3 +27,16 @@ def _use_simple_static_storage(settings: pytest.FixtureRequest) -> None:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
+
+
+@pytest.fixture(autouse=True)
+def _reset_throttle_cache() -> None:
+    """Сбрасывать счётчики rate-limiting между тестами.
+
+    Лимиты частоты DRF хранятся в кэше по IP. Без сброса быстрые серии запросов в разных
+    тестах накапливаются и упираются в лимит. Чистка перед каждым тестом делает прогон
+    детерминированным; проверка самого throttling — в отдельном тесте с низким лимитом.
+    """
+    from django.core.cache import cache
+
+    cache.clear()
