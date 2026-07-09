@@ -44,6 +44,7 @@ backend = [               # Django + DRF + операционные зависи
 dev = [                   # инструменты разработки
   "pytest>=8.2",
   "pytest-django>=4.8",
+  "pytest-cov>=5.0",
   "ruff>=0.5",
   "mypy>=1.10",
   "pre-commit>=3.7",
@@ -89,3 +90,17 @@ python_files = ["test_*.py"]
 # над одноимённым каталогом config/ с YAML (он не является Python-пакетом).
 pythonpath = ["backend", "."]
 addopts = "-q"
+
+[tool.coverage.run]
+# Покрытие измеряется по прикладному коду; автогенерируемые миграции не учитываются.
+omit = ["*/migrations/*"]
+
+[tool.coverage.report]
+show_missing = true
+# Строки, не требующие покрытия: защитные ветки и служебные конструкции.
+exclude_lines = [
+  "pragma: no cover",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "raise NotImplementedError",
+]

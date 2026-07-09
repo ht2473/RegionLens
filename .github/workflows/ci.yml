@@ -42,4 +42,5 @@ jobs:
         # и расхождения между фактическими эндпоинтами и их описанием в схеме.
         run: PYTHONPATH=backend:. python backend/manage.py spectacular --validate --fail-on-warn --file /tmp/schema.yml
       - name: Pytest
-        run: pytest
+        # Прогон тестов с измерением покрытия; порог 85% — гейт качества.
+        run: pytest --cov=core --cov=config --cov=pipeline --cov-report=term-missing --cov-fail-under=85
