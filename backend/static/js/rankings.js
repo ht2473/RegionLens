@@ -100,7 +100,7 @@
         }
         return (
           "<tr data-okato='" + r.okato + "'><td class='num'>" + r.rank + "</td>" +
-          "<td>" + nm + "</td>" +
+          "<td><a class='row-link' href='/regions/" + r.okato + "/?year=" + state.year + "'>" + nm + "</a></td>" +
           "<td class='num'><strong>" + num(r.total_score, 1) + "</strong>" + bar + "</td>" +
           domains + corrCell + "</tr>"
         );

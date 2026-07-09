@@ -121,7 +121,7 @@
       .sort(function (a, b) { return (b.total_score || 0) - (a.total_score || 0); })
       .map(function (r) {
         return (
-          "<tr data-okato='" + r.okato + "'><td>" + (r.region_name || r.okato) + "</td>" +
+          "<tr data-okato='" + r.okato + "'><td><a class='row-link' href='/regions/" + r.okato + "/?year=" + state.year + "'>" + (r.region_name || r.okato) + "</a></td>" +
           "<td class='num'><strong>" + (r.total_score == null ? "—" : r.total_score.toFixed(1)) + "</strong></td>" +
           "<td>" + (r.cluster_label || "—") + "</td></tr>"
         );
