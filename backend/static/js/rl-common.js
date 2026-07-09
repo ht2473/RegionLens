@@ -1,4 +1,4 @@
-/* RegionLens — общий клиентский помощник (Фаза 3).
+/* RegionLens — общий клиентский помощник.
    Подключается из base.html ДО постраничных скриптов, доступен как window.RL.
    Назначение — единый понятный текст ошибки на всех страницах: сетевой сбой (fetch отклонён,
    сервер недоступен, база не собрана) больше не показывает сырое браузерное «Failed to fetch». */
@@ -310,4 +310,60 @@
 
     syncInput();
   };
+})();
+
+/* Экспорт графиков: единый конфиг для всех диаграмм Plotly (кнопки PNG и SVG в панели,
+   без логотипа). Реализовано перехватом присвоения window.Plotly — файлы графиков не
+   правятся. rl-common.js загружается раньше Plotly и скриптов страниц, поэтому перехват
+   успевает встать до создания диаграмм. */
+(function () {
+  function nameFor(elOrGd) {
+    var id = typeof elOrGd === "string" ? elOrGd : (elOrGd && elOrGd.id) || "chart";
+    return "regionlens-" + id;
+  }
+  function mergeConfig(Plotly, cfg, id) {
+    cfg = cfg || {};
+    var out = Object.assign({ displaylogo: false }, cfg);
+    out.toImageButtonOptions = Object.assign(
+      { format: "png", filename: nameFor(id), scale: 2 },
+      cfg.toImageButtonOptions || {}
+    );
+    var add = (cfg.modeBarButtonsToAdd || []).slice();
+    add.push({
+      name: "downloadSvg",
+      title: (window.gettext ? gettext("Скачать SVG") : "Скачать SVG"),
+      icon: Plotly.Icons.disk,
+      click: function (gd) {
+        Plotly.downloadImage(gd, { format: "svg", filename: nameFor(gd) });
+      },
+    });
+    out.modeBarButtonsToAdd = add;
+    return out;
+  }
+  function wrap(Plotly) {
+    if (!Plotly || Plotly.__rlExport) return Plotly;
+    var _newPlot = Plotly.newPlot;
+    var _react = Plotly.react;
+    Plotly.newPlot = function (el, data, layout, cfg) {
+      return _newPlot(el, data, layout, mergeConfig(Plotly, cfg, el));
+    };
+    if (_react) {
+      Plotly.react = function (el, data, layout, cfg) {
+        return _react(el, data, layout, mergeConfig(Plotly, cfg, el));
+      };
+    }
+    Plotly.__rlExport = true;
+    return Plotly;
+  }
+  if (window.Plotly) { wrap(window.Plotly); return; }
+  var _p;
+  try {
+    Object.defineProperty(window, "Plotly", {
+      configurable: true,
+      get: function () { return _p; },
+      set: function (v) { _p = wrap(v); },
+    });
+  } catch (e) {
+    /* свойство недоступно для переопределения — экспорт останется стандартным Plotly */
+  }
 })();

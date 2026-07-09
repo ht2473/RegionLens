@@ -699,3 +699,6 @@ msgstr "Score"
 
 msgid "Сдвиг к равным"
 msgstr "Shift vs equal weights"
+
+msgid "Скачать SVG"
+msgstr "Download SVG"
