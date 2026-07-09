@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import re
+import secrets
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -18,6 +19,7 @@ from django.utils import timezone
 from django.utils.translation import gettext
 from django.views.decorators.http import require_POST
 
+from .api.authentication import hash_token
 from .audit import record
 from .forms import PreferencesForm, ProfileForm, SavedViewForm
 from .models import AuditLog, ComparisonSet, ExportJob, Favorite, SavedView, UserProfile
@@ -541,3 +543,46 @@ def data_export(request: HttpRequest) -> HttpResponse:
     response = HttpResponse(body, content_type="application/json; charset=utf-8")
     response["Content-Disposition"] = 'attachment; filename="regionlens-my-data.json"'
     return response
+
+
+@login_required
+def api_access(request: HttpRequest) -> HttpResponse:
+    """Раздел «API-доступ»: статус личного токена и пример вызова.
+
+    Сам ключ в БД не хранится (только хеш), поэтому показать его повторно нельзя. Только что
+    выпущенный ключ передаётся один раз через сессию (паттерн POST → redirect → GET).
+    """
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    ctx = {
+        "active": "account",
+        "cabinet_tab": "api",
+        "breadcrumbs": _crumbs(gettext("API-доступ")),
+        "has_token": bool(profile.api_token),
+        "new_token": request.session.pop("new_api_token", None),
+    }
+    return render(request, "account/api_access.html", ctx)
+
+
+@login_required
+@require_POST
+def api_token_generate(request: HttpRequest) -> HttpResponse:
+    """Выпустить новый личный токен: заменяет прежний, показывается один раз."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    raw = secrets.token_urlsafe(32)
+    profile.api_token = hash_token(raw)
+    profile.save(update_fields=["api_token"])
+    record(request.user, "api_token:generate")
+    request.session["new_api_token"] = raw  # показать один раз на следующей странице
+    return redirect("account_api")
+
+
+@login_required
+@require_POST
+def api_token_revoke(request: HttpRequest) -> HttpResponse:
+    """Отозвать личный токен: очистить хеш (прежний ключ перестаёт работать)."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    if profile.api_token:
+        profile.api_token = ""
+        profile.save(update_fields=["api_token"])
+        record(request.user, "api_token:revoke")
+    return redirect("account_api")

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "API-доступ" %} — RegionLens{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{% trans "Личный кабинет" %}</p>
+  <h1>{% trans "API-доступ" %}</h1>
+  <p class="lead">{% trans "Личный токен для программного доступа к API без входа через браузер. Передавайте его в заголовке Authorization. Токен идентифицирует вас и повышает лимит частоты запросов." %}</p>
+</section>
+
+{% include "account/_tabs.html" %}
+
+{% if new_token %}
+<div class="card" style="max-width:720px; border-color:var(--good);">
+  <h3 style="margin-top:0;">{% trans "Новый токен выпущен" %}</h3>
+  <p>{% trans "Скопируйте ключ сейчас — он показывается один раз и не хранится в открытом виде. Если потеряете его, выпустите новый." %}</p>
+  <input type="text" readonly value="{{ new_token }}" onclick="this.select()"
+         style="width:100%; font-family:monospace; padding:10px; border:1px solid var(--accent); border-radius:6px; background:transparent; color:inherit;">
+</div>
+{% endif %}
+
+<div class="card" style="max-width:720px;">
+  <h3 style="margin-top:0;">{% trans "Состояние токена" %}</h3>
+  {% if has_token %}
+    <p><strong style="color:var(--good);">● {% trans "Токен активен" %}</strong></p>
+    <p class="muted">{% trans "Сам ключ не хранится — показать повторно нельзя. Можно выпустить новый (прежний перестанет работать) или отозвать." %}</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <form method="post" action="{% url 'account_api_generate' %}">{% csrf_token %}
+        <button type="submit" class="btn">{% trans "Выпустить новый" %}</button>
+      </form>
+      <form method="post" action="{% url 'account_api_revoke' %}">{% csrf_token %}
+        <button type="submit" class="btn ghost">{% trans "Отозвать" %}</button>
+      </form>
+    </div>
+  {% else %}
+    <p class="muted">○ {% trans "Токен не выпущен" %}</p>
+    <form method="post" action="{% url 'account_api_generate' %}">{% csrf_token %}
+      <button type="submit" class="btn">{% trans "Выпустить токен" %}</button>
+    </form>
+  {% endif %}
+</div>
+
+<div class="card" style="max-width:720px;">
+  <h3 style="margin-top:0;">{% trans "Пример использования" %}</h3>
+  <p class="muted">{% trans "Добавьте заголовок Authorization с вашим ключом. Канонический префикс — /api/v1/." %}</p>
+  <pre style="overflow-x:auto; padding:12px; border:1px solid var(--border, #333); border-radius:6px; background:transparent;"><code>curl -H "Authorization: Token &lt;{% trans "ВАШ_ТОКЕН" %}&gt;" \
+     "{{ request.scheme }}://{{ request.get_host }}/api/v1/index/?year=2024&amp;scheme=equal"</code></pre>
+  <p class="muted">{% trans "Полное описание эндпойнтов — в интерактивной документации" %}
+     <a href="/api/v1/docs/">/api/v1/docs/</a>.</p>
+</div>
+{% endblock %}

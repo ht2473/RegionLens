@@ -56,14 +56,15 @@ class UserProfile(models.Model):
     last_region_okato = models.CharField(
         "Последний открытый регион (ОКАТО)", max_length=20, blank=True, default=""
     )
-    # Зарезервировано под персональный доступ к API (функция временно отключена).
+    # Личный токен API: в базе хранится только SHA-256-хеш ключа. Сам ключ показывается
+    # один раз при выдаче и не восстановим. Пустая строка — токен не выпущен.
     api_token = models.CharField(
-        "Токен API",
-        max_length=43,
+        "Хеш токена API",
+        max_length=64,
         blank=True,
         default="",
         db_index=True,
-        help_text="Личный ключ для доступа к API (заголовок Authorization: Token …).",
+        help_text="SHA-256-хеш личного ключа доступа к API (заголовок Authorization: Token …).",
     )
     created = models.DateTimeField("Создан", auto_now_add=True)
 

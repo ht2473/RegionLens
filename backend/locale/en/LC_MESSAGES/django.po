@@ -2224,3 +2224,42 @@ msgstr "Every model follows the same governed path: training on prepared feature
 
 msgid "Классификатор типологии предсказывает тип региона по его показателям (метрика — точность воспроизведения типологии на кросс-валидации). Детектор аномалий оценивает нетипичность профиля региона на фоне всей панели наблюдений (метрика — доля выявленных выбросов)."
 msgstr "The typology classifier predicts a region's type from its indicators (metric — accuracy of reproducing the typology on cross-validation). The anomaly detector estimates how atypical a region's profile is against the whole panel of observations (metric — the share of detected outliers)."
+
+msgid "Личный токен для программного доступа к API без входа через браузер. Передавайте его в заголовке Authorization. Токен идентифицирует вас и повышает лимит частоты запросов."
+msgstr "A personal token for programmatic API access without signing in through the browser. Pass it in the Authorization header. The token identifies you and raises your request rate limit."
+
+msgid "Новый токен выпущен"
+msgstr "New token issued"
+
+msgid "Скопируйте ключ сейчас — он показывается один раз и не хранится в открытом виде. Если потеряете его, выпустите новый."
+msgstr "Copy the key now — it is shown once and is not stored in plain text. If you lose it, issue a new one."
+
+msgid "Состояние токена"
+msgstr "Token status"
+
+msgid "Токен активен"
+msgstr "Token is active"
+
+msgid "Сам ключ не хранится — показать повторно нельзя. Можно выпустить новый (прежний перестанет работать) или отозвать."
+msgstr "The key itself is not stored — it cannot be shown again. You can issue a new one (the previous one stops working) or revoke it."
+
+msgid "Выпустить новый"
+msgstr "Issue new"
+
+msgid "Токен не выпущен"
+msgstr "No token issued"
+
+msgid "Выпустить токен"
+msgstr "Issue token"
+
+msgid "Пример использования"
+msgstr "Usage example"
+
+msgid "Добавьте заголовок Authorization с вашим ключом. Канонический префикс — /api/v1/."
+msgstr "Add an Authorization header with your key. The canonical prefix is /api/v1/."
+
+msgid "ВАШ_ТОКЕН"
+msgstr "YOUR_TOKEN"
+
+msgid "Полное описание эндпойнтов — в интерактивной документации"
+msgstr "Full endpoint reference is in the interactive documentation"
