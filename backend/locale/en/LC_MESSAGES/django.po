@@ -2263,3 +2263,6 @@ msgstr "YOUR_TOKEN"
 
 msgid "Полное описание эндпойнтов — в интерактивной документации"
 msgstr "Full endpoint reference is in the interactive documentation"
+
+msgid "Перейти к содержимому"
+msgstr "Skip to content"

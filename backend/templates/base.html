@@ -1,7 +1,8 @@
 {% load static %}
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="{{ LANGUAGE_CODE|default:'ru' }}">
 <head>
   <meta charset="utf-8">
   <script>
@@ -34,6 +35,7 @@
   {% block head %}{% endblock %}
 </head>
 <body>
+  <a class="skip-link" href="#main">{% trans "Перейти к содержимому" %}</a>
   <header class="site-header" x-data="{ open: false }">
     <div class="container header-row">
       <div class="brand">
@@ -106,7 +108,7 @@
     {% include "partials/_breadcrumbs.html" %}
   {% endblock %}
 
-  <main>
+  <main id="main" tabindex="-1">
     <div class="container">
       {% block content %}{% endblock %}
     </div>
