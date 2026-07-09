@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 
 from django.contrib.auth.models import User
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework import authentication, exceptions
 from rest_framework.request import Request
 
@@ -54,3 +55,23 @@ class ApiTokenAuthentication(authentication.BaseAuthentication):
 
     def authenticate_header(self, request: Request) -> str:
         return self.keyword
+
+
+class ApiTokenScheme(OpenApiAuthenticationExtension):
+    """Описание способа аутентификации по токену для OpenAPI (drf-spectacular).
+
+    Регистрируется автоматически при импорте модуля (модуль импортируется через
+    DEFAULT_AUTHENTICATION_CLASSES). Без неё генератор схемы не знает, как задокументировать
+    `ApiTokenAuthentication`, и предупреждает на каждый эндпойнт.
+    """
+
+    target_class = "core.api.authentication.ApiTokenAuthentication"
+    name = "ApiTokenAuth"
+
+    def get_security_definition(self, auto_schema: object) -> dict[str, str]:
+        return {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": "Личный токен доступа. Заголовок: `Authorization: Token <ключ>`.",
+        }
