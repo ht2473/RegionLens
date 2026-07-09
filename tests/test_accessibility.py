@@ -28,3 +28,18 @@ def test_html_lang_reflects_english_selection() -> None:
     client.post(reverse("set_language"), {"language": "en", "next": "/"})
     body = client.get("/").content.decode()
     assert '<html lang="en"' in body
+
+
+def test_home_has_onboarding_banner() -> None:
+    """Главная содержит приветственный онбординг-баннер (скрыт до показа скриптом)."""
+    body = Client().get("/").content.decode()
+    assert 'id="rl-onboarding"' in body
+
+
+def test_empty_state_component_on_empty_exports(django_user_model) -> None:
+    """Страница выгрузок без данных показывает единый компонент пустого состояния."""
+    user = django_user_model.objects.create_user(username="empty-user", password="x")
+    client = Client()
+    client.force_login(user)
+    body = client.get(reverse("account_exports")).content.decode()
+    assert 'class="empty-state"' in body

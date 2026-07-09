@@ -248,8 +248,8 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 
 /* Заглушка интерактивного раздела (наполняется в следующих модулях Ф7) */
 .shell {
-  border: 1px dashed var(--line); border-radius: var(--radius);
-  background: var(--surface); padding: 40px 24px; text-align: center; color: var(--ink-faint);
+  border: 1px dashed var(--line-soft); border-radius: var(--radius);
+  background: var(--surface); padding: 44px 24px; text-align: center; color: var(--ink-faint);
 }
 .shell .spinner { font-size: 0.9rem; }
 
@@ -641,7 +641,7 @@ body.search-open { overflow: hidden; }
 
 /* ─────────────────────────────────────────────────────────────────────────
    Доступность (WCAG): пропуск навигации, видимый фокус с клавиатуры,
-   служебный текст для скринридеров.
+   служебный текст для скринридеров, уважение к prefers-reduced-motion.
    ───────────────────────────────────────────────────────────────────────── */
 
 /* Ссылка «Перейти к содержимому» — скрыта, пока не получит фокус (первый Tab). */
@@ -672,7 +672,7 @@ summary:focus-visible {
   outline-offset: 2px;
   border-radius: 4px;
 }
-/* <main> получает фокус программно при переходе по skip-link — рамку не рисует. */
+/* <main> получает фокус программно при переходе по skip-link — рамку не рисуем. */
 main:focus,
 main:focus-visible { outline: none; }
 
@@ -700,3 +700,48 @@ main:focus-visible { outline: none; }
     scroll-behavior: auto !important;
   }
 }
+
+/* ─── Пустые состояния (серверный рендеринг) и онбординг ─────────────────── */
+
+/* Единый компонент «нет данных»: иконка + сообщение + необязательная подсказка. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 40px 24px;
+  color: var(--ink-faint);
+}
+.empty-state-ic { color: var(--ink-faint); opacity: 0.7; margin-bottom: 4px; }
+.empty-state-msg { margin: 0; color: var(--ink-soft); max-width: 46ch; }
+.empty-state-hint { margin: 0; font-size: 0.88rem; max-width: 46ch; }
+
+/* Онбординг: ненавязчивая приветственная подсказка для новых посетителей.
+   Скрыта по умолчанию (hidden); rl-common показывает её, если не закрыта ранее. */
+.onboarding {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 0 0 28px;
+  padding: 16px 18px;
+  background: var(--accent-soft);
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+}
+.onboarding-body { flex: 1; }
+.onboarding-body strong { color: var(--ink); }
+.onboarding-body p { margin: 4px 0 0; color: var(--ink-soft); font-size: 0.94rem; }
+.onboarding-close {
+  flex: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--ink-faint);
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.onboarding-close:hover { color: var(--ink); background: rgba(0, 0, 0, 0.05); }

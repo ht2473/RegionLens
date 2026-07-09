@@ -2266,3 +2266,12 @@ msgstr "Full endpoint reference is in the interactive documentation"
 
 msgid "Перейти к содержимому"
 msgstr "Skip to content"
+
+msgid "Первый раз здесь?"
+msgstr "First time here?"
+
+msgid "Начните с интерактивной карты или рейтинга регионов. Год выбирается вверху тематических страниц, поиск — по Ctrl+K, тема — в шапке. Любой график можно скачать в PNG или SVG через его панель инструментов."
+msgstr "Start with the interactive map or the regional ranking. The year is selected at the top of topic pages, search is Ctrl+K, and the theme toggle is in the header. Any chart can be downloaded as PNG or SVG from its toolbar."
+
+msgid "Скрыть подсказку"
+msgstr "Dismiss hint"

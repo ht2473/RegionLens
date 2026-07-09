@@ -65,7 +65,8 @@
   </div>
   <button type="button" class="btn ghost" id="views-bulk-btn" style="margin-top:12px;">{% trans "Удалить выбранное" %}</button>
 {% else %}
-  <p style="color:var(--ink-faint);">{% trans "Пока нет сохранённых видов. Настройте карту или дашборд и сохраните вид через форму выше." %}</p>
+  {% trans "Пока нет сохранённых видов. Настройте карту или дашборд и сохраните вид через форму выше." as m %}
+  {% include "partials/_empty.html" with msg=m %}
 {% endif %}
 {% endblock %}
 

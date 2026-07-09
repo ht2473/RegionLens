@@ -1,4 +1,4 @@
-/* RegionLens — общий клиентский помощник.
+/* RegionLens — общий клиентский помощник (Фаза 3).
    Подключается из base.html ДО постраничных скриптов, доступен как window.RL.
    Назначение — единый понятный текст ошибки на всех страницах: сетевой сбой (fetch отклонён,
    сервер недоступен, база не собрана) больше не показывает сырое браузерное «Failed to fetch». */
@@ -365,5 +365,34 @@
     });
   } catch (e) {
     /* свойство недоступно для переопределения — экспорт останется стандартным Plotly */
+  }
+})();
+
+/* Онбординг: приветственная подсказка для новых посетителей. Показывается, если ранее не
+   закрыта; факт закрытия запоминается в localStorage. Действует на любой странице, где есть
+   элемент #rl-onboarding (сейчас — главная). */
+(function () {
+  function init() {
+    var el = document.getElementById("rl-onboarding");
+    if (!el) return;
+    var KEY = "rl-onboarding-dismissed";
+    try {
+      if (localStorage.getItem(KEY) === "1") return;
+    } catch (e) {
+      return; /* localStorage недоступен — не показываем, чтобы не «залипало» */
+    }
+    el.hidden = false;
+    var btn = document.getElementById("rl-onboarding-close");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        el.hidden = true;
+        try { localStorage.setItem(KEY, "1"); } catch (e) { /* игнорируем */ }
+      });
+    }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
   }
 })();

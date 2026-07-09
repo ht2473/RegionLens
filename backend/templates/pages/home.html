@@ -4,6 +4,13 @@
 {% block title %}{% trans "RegionLens — аналитика развития регионов РФ" %}{% endblock %}
 
 {% block content %}
+<div class="onboarding" id="rl-onboarding" hidden>
+  <div class="onboarding-body">
+    <strong>{% trans "Первый раз здесь?" %}</strong>
+    <p>{% trans "Начните с интерактивной карты или рейтинга регионов. Год выбирается вверху тематических страниц, поиск — по Ctrl+K, тема — в шапке. Любой график можно скачать в PNG или SVG через его панель инструментов." %}</p>
+  </div>
+  <button type="button" class="onboarding-close" id="rl-onboarding-close" aria-label="{% trans 'Скрыть подсказку' %}">&times;</button>
+</div>
 <section class="hero">
   <p class="eyebrow">{% trans "Социально-экономическое развитие регионов РФ" %}</p>
   <h1>{% trans "Видеть, как меняются регионы — а не только их позиции в рейтинге" %}</h1>

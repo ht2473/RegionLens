@@ -1,0 +1,16 @@
+{% comment %}
+Пустое состояние: единый вид «нет данных». Параметры:
+  msg  — основное сообщение (обязательно);
+  hint — необязательная вторая строка-подсказка.
+Использование: {% trans "…" as m %}{% include "partials/_empty.html" with msg=m %}
+{% endcomment %}
+<div class="empty-state">
+  <svg class="empty-state-ic" viewBox="0 0 24 24" width="30" height="30" fill="none"
+       stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="14" rx="2"></rect>
+    <path d="M3 9h18"></path>
+    <path d="M8 13h5"></path>
+  </svg>
+  <p class="empty-state-msg">{{ msg }}</p>
+  {% if hint %}<p class="empty-state-hint">{{ hint }}</p>{% endif %}
+</div>
