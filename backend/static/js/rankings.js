@@ -24,6 +24,102 @@
   })();
   var names = null; // okato -> region_name
 
+  // ── Связанная карта: хороплет по индексу + двусторонняя подсветка со строками таблицы ──
+  // Инициализируется один раз; guard'ы делают её необязательной (нет MapLibre/geojson —
+  // рейтинг работает как прежде). onRow(okato, kind) вызывается при наведении/клике по карте.
+  var lmap = (function () {
+    var el = document.getElementById("rankings-map");
+    if (!el || typeof maplibregl === "undefined") return null;
+
+    var geo = null, ready = false, pending = null, onRow = null;
+    var map = new maplibregl.Map({
+      container: "rankings-map",
+      style: {
+        version: 8, sources: {},
+        layers: [{ id: "bg", type: "background", paint: { "background-color": RL.cssVar("--map-bg", "#eaf0f1") } }],
+      },
+      center: [99, 66], zoom: 1.6, renderWorldCopies: false, attributionControl: false,
+    });
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    var popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
+
+    map.on("load", function () {
+      fetch("/static/geo/regions.geojson")
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (fc) {
+          if (!fc) {
+            var w = el.closest(".rankings-map-wrap");
+            if (w) w.style.display = "none";
+            return;
+          }
+          geo = fc;
+          map.addSource("regions", { type: "geojson", data: geo });
+          map.addLayer({ id: "fill", type: "fill", source: "regions",
+            paint: { "fill-color": RL.cssVar("--map-nodata", "#dcdcdc"), "fill-opacity": 0.9 } });
+          map.addLayer({ id: "line", type: "line", source: "regions",
+            paint: { "line-color": RL.cssVar("--map-line", "#ffffff"), "line-width": 0.5 } });
+          map.addLayer({ id: "hl", type: "line", source: "regions",
+            paint: { "line-color": RL.cssVar("--accent", "#1f6f63"), "line-width": 2.5 },
+            filter: ["==", ["get", "okato"], "__none__"] });
+          wire();
+          ready = true;
+          if (pending) { paint(pending); pending = null; }
+        })
+        .catch(function () {
+          // geojson недоступен — убираем блок карты, таблица работает как прежде
+          var wrap = el.closest(".rankings-map-wrap");
+          if (wrap) wrap.style.display = "none";
+        });
+    });
+
+    function paint(rows) {
+      if (!ready) { pending = rows; return; }
+      var by = {};
+      rows.forEach(function (r) { by[r.okato] = r; });
+      geo.features.forEach(function (f) {
+        var d = by[f.properties.okato];
+        f.properties.value = d && typeof d.total_score === "number" ? d.total_score : null;
+        f.properties.rank = d ? d.rank : null;
+      });
+      map.getSource("regions").setData(geo);
+      map.setPaintProperty("fill", "fill-color", [
+        "case", ["==", ["get", "value"], null], RL.cssVar("--map-nodata", "#dcdcdc"),
+        ["interpolate", ["linear"], ["get", "value"],
+          0, "#e7f0ee", 25, "#9cc8bd", 50, "#5fa896", 75, "#2e8170", 100, "#0c5c4f"],
+      ]);
+    }
+
+    function highlight(okato) {
+      if (ready) map.setFilter("hl", ["==", ["get", "okato"], okato || "__none__"]);
+    }
+
+    function wire() {
+      map.on("mousemove", "fill", function (e) {
+        map.getCanvas().style.cursor = "pointer";
+        var p = e.features[0].properties;
+        popup.setLngLat(e.lngLat).setHTML(
+          "<strong>" + (p.name || p.okato) + "</strong>" +
+          (p.rank != null ? "<br>" + gettext("Место") + ": " + p.rank : "")
+        ).addTo(map);
+        highlight(p.okato);
+        if (onRow) onRow(p.okato, "hover");
+      });
+      map.on("mouseleave", "fill", function () {
+        map.getCanvas().style.cursor = ""; popup.remove(); highlight(null);
+        if (onRow) onRow(null, "hover");
+      });
+      map.on("click", "fill", function (e) {
+        if (onRow) onRow(e.features[0].properties.okato, "click");
+      });
+    }
+
+    return {
+      paint: paint,
+      highlight: highlight,
+      setOnRow: function (fn) { onRow = fn; },
+    };
+  })();
+
   function num(x, d) { return x == null ? "—" : Number(x).toFixed(d == null ? 2 : d); }
 
   function ensureNames() {
@@ -116,11 +212,35 @@
     root.innerHTML =
       "<div class='table-wrap'><table class='table rankings'><thead>" +
       head + "</thead><tbody>" + body + "</tbody></table></div>" + note;
+    var rowByOkato = {};
     root.querySelectorAll("tr[data-okato]").forEach(function (tr) {
+      var okato = tr.dataset.okato;
+      rowByOkato[okato] = tr;
       tr.addEventListener("click", function () {
-        window.location.href = "/regions/" + tr.dataset.okato + "/?year=" + state.year;
+        window.location.href = "/regions/" + okato + "/?year=" + state.year;
       });
+      if (lmap) {
+        tr.addEventListener("mouseenter", function () { lmap.highlight(okato); });
+        tr.addEventListener("mouseleave", function () { lmap.highlight(null); });
+      }
     });
+
+    if (lmap) {
+      lmap.paint(rows);
+      lmap.setOnRow(function (okato, kind) {
+        var prev = root.querySelector("tr.is-hover");
+        if (prev) prev.classList.remove("is-hover");
+        if (!okato) return;
+        var tr = rowByOkato[okato];
+        if (!tr) return;
+        tr.classList.add("is-hover");
+        if (kind === "click") {
+          tr.scrollIntoView({ block: "center", behavior: "smooth" });
+          tr.classList.add("is-flash");
+          setTimeout(function () { tr.classList.remove("is-flash"); }, 1200);
+        }
+      });
+    }
   }
 
   var slider = document.getElementById("year-slider");

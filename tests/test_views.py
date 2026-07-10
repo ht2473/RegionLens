@@ -194,12 +194,15 @@ def test_region_dashboard_has_share_link(client: Client) -> None:
 
 
 def test_rankings_page_wiring(client: Client) -> None:
-    """Рейтинг: rankings.js, контейнер, контролы год/схема."""
+    """Рейтинг: rankings.js, контейнер, контролы год/схема, связанная карта."""
     html = client.get("/rankings/").content.decode()
     assert "js/rankings.js" in html
     assert 'id="rankings-root"' in html
     assert 'id="year-slider"' in html and 'id="scheme-select"' in html
     assert 'value="equal"' in html and 'value="pca"' in html and 'value="expert"' in html
+    # Связанная карта: контейнер и подключение MapLibre.
+    assert 'id="rankings-map"' in html
+    assert "maplibre-gl" in html
 
 
 def test_compare_page_wiring(client: Client) -> None:

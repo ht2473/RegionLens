@@ -3,6 +3,10 @@
 {% load i18n %}
 {% block title %}{% trans "Рейтинг" %} — RegionLens{% endblock %}
 
+{% block head %}
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
 <section class="hero">
   <p class="eyebrow">{% trans "Ранжирование" %}</p>
@@ -27,11 +31,22 @@
   </div>
 </div>
 
+<div class="rankings-map-wrap">
+  <div id="rankings-map" data-year="2024"></div>
+  <div class="map-legend">
+    <div class="legend-title">{% trans "Индекс развития (0–100)" %}</div>
+    <div class="legend-gradient"></div>
+    <div class="legend-scale"><span>0</span><span>50</span><span>100</span></div>
+    <div class="legend-note">{% trans "Наведите на регион или строку — связь подсветится; клик по карте прокрутит к строке." %}</div>
+  </div>
+</div>
+
 <div id="rankings-root">
   <div class="shell"><p>{% trans "Загрузка рейтинга…" %}</p></div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
 <script src="{% static 'js/rankings.js' %}"></script>
 {% endblock %}

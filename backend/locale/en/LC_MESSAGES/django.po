@@ -2275,3 +2275,6 @@ msgstr "Start with the interactive map or the regional ranking. The year is sele
 
 msgid "Скрыть подсказку"
 msgstr "Dismiss hint"
+
+msgid "Наведите на регион или строку — связь подсветится; клик по карте прокрутит к строке."
+msgstr "Hover a region or a row to link them; click the map to scroll to the row."
