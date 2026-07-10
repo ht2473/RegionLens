@@ -189,20 +189,14 @@
   }
 
   function wireInteraction() {
-    map.on("mousemove", "fill", function (e) {
-      map.getCanvas().style.cursor = "pointer";
-      var p = e.features[0].properties;
-      popup
-        .setLngLat(e.lngLat)
-        .setHTML(
-          '<strong>' + (p.name || p.okato) + "</strong><br>" +
-            (state.measure === "index" ? gettext("Индекс") + ": " : "") + (p.metric || "—")
-        )
-        .addTo(map);
-    });
-    map.on("mouseleave", "fill", function () {
-      map.getCanvas().style.cursor = "";
-      popup.remove();
+    RL.attachMapHover(map, {
+      popup: popup,
+      html: function (p) {
+        return (
+          "<strong>" + (p.name || p.okato) + "</strong><br>" +
+          (state.measure === "index" ? gettext("Индекс") + ": " : "") + (p.metric || "—")
+        );
+      },
     });
     map.on("click", "fill", function (e) {
       var okato = e.features[0].properties.okato;

@@ -69,6 +69,7 @@ urlpatterns = [
     ),
     path("account/favorites/toggle/", cabinet.favorite_toggle, name="favorite_toggle"),
     path("account/activity/", cabinet.activity_feed, name="account_activity"),
+    path("account/activity/clear/", cabinet.activity_clear, name="account_activity_clear"),
     path("account/settings/", cabinet.settings_edit, name="account_settings"),
     path("account/api/", cabinet.api_access, name="account_api"),
     path("account/api/generate/", cabinet.api_token_generate, name="account_api_generate"),

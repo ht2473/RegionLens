@@ -14,10 +14,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import joblib
-import sklearn
-
 from pipeline.logging_setup import log
+
+# Импорты sklearn/joblib намеренно отложены внутрь функций сохранения/загрузки: их первичная
+# загрузка тяжёлая (секунды), а витрина моделей (`list_model_cards`) читает только JSON-карточки.
+# Так открытие страницы «Модели» не платит за импорт ML-стека.
 
 # Каталог моделей (генерируемые артефакты; пересоздаются обучением).
 MODELS_DIR = Path("models")
@@ -57,6 +58,9 @@ def save_model(
 
     Возвращает записанную карточку модели.
     """
+    import joblib
+    import sklearn
+
     models_dir.mkdir(parents=True, exist_ok=True)
     card = ModelCard(
         name=name,
@@ -79,6 +83,8 @@ def save_model(
 
 def load_model(name: str, *, models_dir: Path = MODELS_DIR) -> tuple[Any, ModelCard]:
     """Загрузить сохранённую модель и её карточку из `models/`."""
+    import joblib
+
     model_path, card_path = _model_paths(name, models_dir)
     estimator = joblib.load(model_path)
     card = ModelCard(**json.loads(card_path.read_text(encoding="utf-8")))

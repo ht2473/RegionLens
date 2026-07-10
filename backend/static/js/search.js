@@ -183,7 +183,9 @@
   document.addEventListener("keydown", function (e) {
     var open = overlay && !overlay.hidden;
     if (!open) {
-      var hotK = (e.key === "k" || e.key === "K") && (e.ctrlKey || e.metaKey);
+      // Ctrl/⌘+K определяется по физической клавише (e.code), а не по символу (e.key):
+      // при кириллической раскладке K выдаёт «л», и проверка по e.key не срабатывала.
+      var hotK = (e.code === "KeyK" || e.key === "k" || e.key === "K") && (e.ctrlKey || e.metaKey);
       var hotSlash = e.key === "/" && !isTypingTarget(e.target);
       if (hotK || hotSlash) {
         e.preventDefault();

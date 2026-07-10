@@ -375,6 +375,18 @@ def activity_feed(request: HttpRequest) -> HttpResponse:
     return render(request, "account/activity.html", ctx)
 
 
+@login_required
+@require_POST
+def activity_clear(request: HttpRequest) -> HttpResponse:
+    """Очистить ленту активности: удалить записи журнала аудита текущего пользователя.
+
+    Затрагивает только записи самого пользователя; после удаления лента пуста, поэтому
+    факт очистки не журналируется (иначе лента сразу перестала бы быть пустой).
+    """
+    AuditLog.objects.filter(user=request.user).delete()
+    return redirect("account_activity")
+
+
 # ── Наборы сравнения: именованные группы регионов для страницы «Сравнение» ──
 _OKATO_RE = re.compile(r"^\d{2,12}$")
 

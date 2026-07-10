@@ -150,6 +150,73 @@
     }
   };
 
+  // Единое поведение карт при наведении: подсветка границ субъекта под курсором и
+  // подсказка без «мерцания». Добавляет к карте линейный слой-подсветку (если его ещё нет)
+  // и обновляет его фильтр по наведённому региону. Подсказку перепозиционирует на каждом
+  // движении, но переписывает её содержимое только при смене региона — иначе повторные
+  // mousemove пересобирают DOM и вызывают дрожание. Петля mouseleave→mousemove исключена
+  // тем, что попап не перехватывает мышь (pointer-events:none в CSS).
+  // Параметры: { source, layer, key, highlightId, popup, html(props)->string, onEnter, onLeave }.
+  window.RL.attachMapHover = function (map, opts) {
+    opts = opts || {};
+    var source = opts.source || "regions";
+    var layer = opts.layer || "fill";
+    var key = opts.key || "okato";
+    var hlId = opts.highlightId || "hl";
+    var popup = opts.popup || null;
+    var htmlFor = typeof opts.html === "function" ? opts.html : null;
+    var none = ["==", ["get", key], "__none__"];
+
+    if (!map.getLayer(hlId)) {
+      map.addLayer({
+        id: hlId,
+        type: "line",
+        source: source,
+        paint: {
+          "line-color": window.RL.cssVar("--map-hover", window.RL.cssVar("--accent", "#1f6f63")),
+          "line-width": 2.4,
+        },
+        filter: none,
+      });
+      // Цвет подсветки следует активной теме.
+      window.RL.onTheme(function () {
+        try {
+          if (map.getLayer(hlId)) {
+            map.setPaintProperty(
+              hlId,
+              "line-color",
+              window.RL.cssVar("--map-hover", window.RL.cssVar("--accent", "#1f6f63"))
+            );
+          }
+        } catch (e) {}
+      });
+    }
+
+    var current = null;
+    map.on("mousemove", layer, function (e) {
+      map.getCanvas().style.cursor = "pointer";
+      var props = e.features[0].properties;
+      var k = props[key];
+      if (popup) {
+        popup.setLngLat(e.lngLat);
+        if (k !== current && htmlFor) popup.setHTML(htmlFor(props));
+        popup.addTo(map);
+      }
+      if (k !== current) {
+        map.setFilter(hlId, ["==", ["get", key], k == null ? "__none__" : k]);
+        if (typeof opts.onEnter === "function") opts.onEnter(k, props);
+        current = k;
+      }
+    });
+    map.on("mouseleave", layer, function () {
+      map.getCanvas().style.cursor = "";
+      if (popup) popup.remove();
+      map.setFilter(hlId, none);
+      current = null;
+      if (typeof opts.onLeave === "function") opts.onLeave();
+    });
+  };
+
   // Поисковый комбобокс поверх <select>: печатаешь — список фильтруется. Значение и событие
   // change самого <select> сохраняются, поэтому существующая логика страниц не меняется.
   // Идемпотентно; опции читаются из <select> «вживую», так что асинхронное заполнение поддержано.
@@ -324,10 +391,22 @@
   function mergeConfig(Plotly, cfg, id) {
     cfg = cfg || {};
     var out = Object.assign({ displaylogo: false }, cfg);
+    // Панель инструментов должна быть видимой всегда: кнопки экспорта PNG/SVG живут в ней,
+    // а страницы создают диаграммы с displayModeBar:false — тогда экспорт недоступен. Здесь
+    // перехват принудительно включает панель. Постоянная (не по наведению) панель также
+    // исключает сдвиг области графика при первом наведении, из-за которого «уезжали» подсказки.
+    out.displayModeBar = true;
+    if (out.responsive === undefined) out.responsive = true;
     out.toImageButtonOptions = Object.assign(
       { format: "png", filename: nameFor(id), scale: 2 },
       cfg.toImageButtonOptions || {}
     );
+    // Оставляем экспорт, зум/панораму и сброс; убираем избыточные инструменты выделения.
+    var remove = (cfg.modeBarButtonsToRemove || []).slice();
+    ["select2d", "lasso2d", "autoScale2d", "toggleSpikelines"].forEach(function (b) {
+      if (remove.indexOf(b) === -1) remove.push(b);
+    });
+    out.modeBarButtonsToRemove = remove;
     var add = (cfg.modeBarButtonsToAdd || []).slice();
     add.push({
       name: "downloadSvg",

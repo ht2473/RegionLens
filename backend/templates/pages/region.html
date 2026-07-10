@@ -14,23 +14,23 @@
       <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
       <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
     </div>
-    <button type="button" id="region-copy-link" class="map-share" style="margin-top:8px;">{% trans "Скопировать ссылку" %}</button>
-    {% if user.is_authenticated %}
-      <button type="button" id="region-fav"
-              class="fav-toggle {% if is_favorited %}is-active{% endif %}"
-              data-okato="{{ okato }}" data-label="{{ region_label }}"
-              aria-pressed="{% if is_favorited %}true{% else %}false{% endif %}"
-              style="margin-top:8px;">
-        <span class="fav-star">★</span>
-        <span class="fav-label">{% if is_favorited %}{% trans "В избранном" %}{% else %}{% trans "В избранное" %}{% endif %}</span>
-      </button>
-      <div class="export-actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+    <div class="region-actions">
+      <button type="button" id="region-copy-link" class="map-share">{% trans "Скопировать ссылку" %}</button>
+      {% if user.is_authenticated %}
+        <button type="button" id="region-fav"
+                class="fav-toggle {% if is_favorited %}is-active{% endif %}"
+                data-okato="{{ okato }}" data-label="{{ region_label }}"
+                aria-pressed="{% if is_favorited %}true{% else %}false{% endif %}">
+          <span class="fav-star">★</span>
+          <span class="fav-label">{% if is_favorited %}{% trans "В избранном" %}{% else %}{% trans "В избранное" %}{% endif %}</span>
+        </button>
         <a class="btn ghost" id="export-xlsx"
            href="{% url 'export_region' okato %}?format=xlsx&year={{ export_year }}">{% trans "Экспорт XLSX" %}</a>
         <a class="btn ghost" id="export-docx"
            href="{% url 'export_region' okato %}?format=docx&year={{ export_year }}">{% trans "Экспорт DOCX" %}</a>
-      </div>
-    {% else %}
+      {% endif %}
+    </div>
+    {% if not user.is_authenticated %}
       {% url 'login' as login_url %}
       <p style="margin-top:12px; color:var(--ink-faint); font-size:0.88rem;">{% blocktrans %}<a href="{{ login_url }}">Войдите</a>, чтобы экспортировать отчёт по региону в xlsx/docx.{% endblocktrans %}</p>
     {% endif %}

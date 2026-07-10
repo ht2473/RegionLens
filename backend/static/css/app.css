@@ -22,6 +22,7 @@
   --map-bg: #eaf0f1;
   --map-line: #ffffff;
   --map-nodata: #dcdcdc;
+  --map-hover: #134b43;
   --serif: "Lora", Georgia, "Times New Roman", serif;
   --sans: "Golos Text", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -47,6 +48,7 @@
   --map-bg: #10151a;
   --map-line: #2a323b;
   --map-nodata: #2c343d;
+  --map-hover: #79cab9;
 }
 /* поверхности с захардкоженными светлыми цветами — переопределяем под тёмную тему */
 [data-theme="dark"] .site-footer { background: #11151a; }
@@ -57,7 +59,7 @@
 
 * { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scrollbar-gutter: stable; }
 
 body {
   margin: 0;
@@ -289,12 +291,16 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .year-control { display: flex; align-items: center; gap: 12px; }
 .year-control label { font-size: 0.92rem; color: var(--ink-soft); }
 .year-control input[type="range"] { width: 280px; max-width: 52vw; accent-color: var(--accent); }
-.map-controls .map-share {
-  margin-left: auto; border: 1px solid var(--line); background: var(--surface);
+/* Кнопка «скопировать ссылку»: единый вид независимо от контекста (карта, дашборд региона).
+   Раньше стиль был привязан к .map-controls, и на дашборде кнопка оставалась без оформления. */
+.map-share {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line); background: var(--surface);
   color: var(--ink-soft); padding: 8px 14px; border-radius: 8px; cursor: pointer;
   font-family: inherit; font-size: 0.92rem;
 }
-.map-controls .map-share:hover { background: var(--accent-soft); color: var(--accent-deep); }
+.map-share:hover { background: var(--accent-soft); color: var(--accent-deep); border-color: var(--accent); }
+.map-controls .map-share { margin-left: auto; }
 
 /* Обзор показателей (explore) */
 .explore { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
@@ -373,7 +379,10 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .legend-scale { display: flex; justify-content: space-between; color: var(--ink-faint); font-size: 0.76rem; }
 [data-theme="dark"] .map-legend { background: rgba(28, 34, 42, 0.95); }
 
-/* Попап MapLibre — следует теме (по умолчанию белый, ломался в тёмной теме) */
+/* Попап MapLibre — следует теме (по умолчанию белый, ломался в тёмной теме).
+   pointer-events:none — попап не перехватывает курсор: иначе он оказывается под указателем,
+   отбирает mouseleave у слоя и вызывает мерцание (петля наведение→уход→наведение). */
+.maplibregl-popup { pointer-events: none; }
 .maplibregl-popup-content {
   background: var(--surface) !important; color: var(--ink-soft) !important;
   border: 1px solid var(--line); border-radius: 9px; box-shadow: var(--shadow);
@@ -385,8 +394,9 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--surface); }
 .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface); }
 
-/* Поисковый комбобокс (RL.enhanceSelect) — для выбора показателя на «Неравенстве»/«Корреляциях» */
-.combo { position: relative; width: 380px; max-width: 70vw; }
+/* Поисковый комбобокс (RL.enhanceSelect) — для выбора показателя на «Неравенстве»/«Корреляциях».
+   Ширина увеличена: длинные названия показателей помещаются в поле без обрезки. */
+.combo { position: relative; width: 460px; max-width: min(560px, 92vw); }
 .combo-field { position: relative; }
 .combo-input {
   width: 100%; padding: 9px 34px 9px 11px; border: 1px solid var(--line); border-radius: 8px;
@@ -439,10 +449,31 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 }
 .region-chip:hover { border-color: var(--accent); background: var(--accent-soft); text-decoration: none; }
 
+/* Ряд действий на дашборде региона (копировать ссылку, избранное, экспорт XLSX/DOCX).
+   Все кнопки в одном ряду, с одинаковой высотой и отступами — единый согласованный вид. */
+.region-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
+.region-actions .btn { padding: 8px 14px; font-size: 0.92rem; font-weight: 500; }
+.region-actions .map-share,
+.region-actions .fav-toggle { padding: 8px 14px; font-size: 0.92rem; }
+
 /* ── Рейтинг и сравнение (Ф7, модуль 4) ──────────────────────────────── */
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
 .table.rankings tr[data-okato], #compare-summary tr[data-okato] { cursor: pointer; }
 .table.rankings tr[data-okato]:hover, #compare-summary tr[data-okato]:hover { background: var(--accent-soft); }
+/* Временная подсветка строки при наведении на карту (двусторонняя связь). */
+.table.rankings tr.is-hover { background: var(--accent-soft); }
+/* Стойкий выбор строки при клике по региону на карте: заметная левая метка и фон. */
+.table.rankings tr.is-selected { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.table.rankings tr.is-selected td:first-child { font-weight: 600; }
+/* Короткая вспышка при переходе к строке — привлекает внимание, затем гаснет. */
+.table.rankings tr.is-flash { animation: rl-row-flash 1.2s ease-out; }
+@keyframes rl-row-flash {
+  0% { background: var(--accent); }
+  100% { background: var(--accent-soft); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .table.rankings tr.is-flash { animation: none; }
+}
 .score-bar { height: 5px; background: var(--line-soft); border-radius: 3px; margin-top: 4px; overflow: hidden; }
 .score-bar span { display: block; height: 100%; background: var(--accent); }
 .compare-controls {
@@ -589,6 +620,7 @@ body.search-open { overflow: hidden; }
 .fav-list li:last-child { border-bottom: none; }
 
 .activity-feed { list-style: none; margin: 6px 0 0; padding: 0; }
+.activity-actions { display: flex; justify-content: flex-end; margin: 0 0 12px; }
 .activity-item {
   display: flex; align-items: baseline; gap: 10px;
   padding: 7px 0; border-bottom: 1px solid var(--line-soft);
@@ -730,6 +762,9 @@ main:focus-visible { outline: none; }
   border-left: 3px solid var(--accent);
   border-radius: var(--radius);
 }
+/* Явный display:flex перекрывал атрибут [hidden] (UA-правило display:none), из-за чего
+   баннер не скрывался при закрытии и показывался уже отклонившим его. Возвращаем скрытие. */
+.onboarding[hidden] { display: none; }
 .onboarding-body { flex: 1; }
 .onboarding-body strong { color: var(--ink); }
 .onboarding-body p { margin: 4px 0 0; color: var(--ink-soft); font-size: 0.94rem; }

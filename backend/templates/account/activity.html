@@ -13,6 +13,12 @@
 {% include "account/_tabs.html" %}
 
 {% if events %}
+  <form method="post" action="{% url 'account_activity_clear' %}"
+        onsubmit="return confirm('{% trans "Очистить всю историю активности?" %}');"
+        class="activity-actions">
+    {% csrf_token %}
+    <button class="btn ghost" type="submit">{% trans "Очистить активность" %}</button>
+  </form>
   <ul class="activity-feed">
     {% for e in events %}
       <li class="activity-item activity-{{ e.category }}">

@@ -219,6 +219,12 @@ CSRF_COOKIE_SECURE = env.bool("DJANGO_CSRF_COOKIE_SECURE", default=_PROD)
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 
+# Доверенные источники для проверки Origin/Referer в POST-запросах. За HTTPS-прокси на
+# собственном домене Django 5 требует явно указать источник со схемой (например,
+# https://regionlens.example.com), иначе все формы (вход, смена языка, избранное) падают
+# с ошибкой CSRF (403). Задаётся списком через окружение; в dev может быть пустым.
+CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
+
 # HSTS: год, с поддоменами и preload (в проде; в dev — 0, чтобы не «залипать» на HTTPS).
 SECURE_HSTS_SECONDS = env.int("DJANGO_SECURE_HSTS_SECONDS", default=31_536_000 if _PROD else 0)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=_PROD)

@@ -193,20 +193,15 @@
   }
 
   function wire() {
-    map.on("mousemove", "fill", function (e) {
-      map.getCanvas().style.cursor = "pointer";
-      var p = e.features[0].properties;
-      popup
-        .setLngLat(e.lngLat)
-        .setHTML(
+    RL.attachMapHover(map, {
+      popup: popup,
+      html: function (p) {
+        return (
           "<strong>" + (p.name || p.okato) + "</strong><br>" +
-            (p.flagged == 1 ? gettext("выброс") + " · " : gettext("в норме") + " · ") + gettext("оценка") + ": " + (p.score || "—")
-        )
-        .addTo(map);
-    });
-    map.on("mouseleave", "fill", function () {
-      map.getCanvas().style.cursor = "";
-      popup.remove();
+          (p.flagged == 1 ? gettext("выброс") + " · " : gettext("в норме") + " · ") +
+          gettext("оценка") + ": " + (p.score || "—")
+        );
+      },
     });
     map.on("click", "fill", function (e) {
       var okato = e.features[0].properties.okato;

@@ -391,18 +391,12 @@
     }
 
     function wire() {
-      map.on("mousemove", "fill", function (e) {
-        map.getCanvas().style.cursor = "pointer";
-        var p = e.features[0].properties;
-        var v = p.exdisp != null && p.exdisp !== "" ? p.exdisp : gettext("нет данных");
-        popup
-          .setLngLat(e.lngLat)
-          .setHTML("<strong>" + (p.name || p.okato) + "</strong><br>" + v)
-          .addTo(map);
-      });
-      map.on("mouseleave", "fill", function () {
-        map.getCanvas().style.cursor = "";
-        popup.remove();
+      RL.attachMapHover(map, {
+        popup: popup,
+        html: function (p) {
+          var v = p.exdisp != null && p.exdisp !== "" ? p.exdisp : gettext("нет данных");
+          return "<strong>" + (p.name || p.okato) + "</strong><br>" + v;
+        },
       });
       map.on("click", "fill", function (e) {
         var p = e.features[0].properties;

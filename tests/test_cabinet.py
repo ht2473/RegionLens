@@ -262,6 +262,37 @@ def test_activity_feed_lists_user_actions(client_alice: Client, alice: User) -> 
     assert "Мой вид" in html
 
 
+def test_activity_clear_removes_user_events(client_alice: Client, alice: User) -> None:
+    """Очистка активности удаляет все записи журнала аудита текущего пользователя."""
+    from core.audit import record
+    from core.models import AuditLog
+
+    record(alice, "saved_view:create Мой вид")
+    assert AuditLog.objects.filter(user=alice).exists()
+    resp = client_alice.post(reverse("account_activity_clear"))
+    assert resp.status_code == 302
+    assert not AuditLog.objects.filter(user=alice).exists()
+
+
+def test_activity_clear_requires_post(client_alice: Client) -> None:
+    """Очистка активности доступна только методом POST (GET → 405)."""
+    resp = client_alice.get(reverse("account_activity_clear"))
+    assert resp.status_code == 405
+
+
+def test_activity_clear_does_not_touch_other_users(client_alice: Client, alice: User) -> None:
+    """Очистка активности не затрагивает записи других пользователей."""
+    from core.audit import record
+    from core.models import AuditLog
+
+    bob = User.objects.create_user("bob", password=_PW)
+    record(alice, "saved_view:create Вид Алисы")
+    record(bob, "saved_view:create Вид Боба")
+    client_alice.post(reverse("account_activity_clear"))
+    assert not AuditLog.objects.filter(user=alice).exists()
+    assert AuditLog.objects.filter(user=bob).exists()
+
+
 def test_overview_shows_favorite_count(client_alice: Client, alice: User) -> None:
     """Обзор кабинета отражает число закладок в персональной сводке."""
     from core.models import Favorite

@@ -61,6 +61,10 @@
           map.addLayer({ id: "hl", type: "line", source: "regions",
             paint: { "line-color": RL.cssVar("--accent", "#1f6f63"), "line-width": 2.5 },
             filter: ["==", ["get", "okato"], "__none__"] });
+          // Отдельный слой постоянного выбора (клик по карте) — не сбрасывается при наведении.
+          map.addLayer({ id: "sel", type: "line", source: "regions",
+            paint: { "line-color": RL.cssVar("--accent-deep", "#14584e"), "line-width": 3.4 },
+            filter: ["==", ["get", "okato"], "__none__"] });
           wire();
           ready = true;
           if (pending) { paint(pending); pending = null; }
@@ -93,6 +97,10 @@
       if (ready) map.setFilter("hl", ["==", ["get", "okato"], okato || "__none__"]);
     }
 
+    function select(okato) {
+      if (ready) map.setFilter("sel", ["==", ["get", "okato"], okato || "__none__"]);
+    }
+
     function wire() {
       map.on("mousemove", "fill", function (e) {
         map.getCanvas().style.cursor = "pointer";
@@ -116,6 +124,7 @@
     return {
       paint: paint,
       highlight: highlight,
+      select: select,
       setOnRow: function (fn) { onRow = fn; },
     };
   })();
@@ -225,20 +234,32 @@
       }
     });
 
+    // Стойкий выбор строки (клик по карте): подсветка сохраняется независимо от наведения,
+    // строка прокручивается в зону видимости и коротко подсвечивается вспышкой.
+    function selectRow(okato) {
+      var prevSel = root.querySelector("tr.is-selected");
+      if (prevSel) prevSel.classList.remove("is-selected");
+      if (lmap) lmap.select(okato);
+      if (!okato) return;
+      var tr = rowByOkato[okato];
+      if (!tr) return;
+      tr.classList.add("is-selected");
+      tr.scrollIntoView({ block: "center", behavior: "smooth" });
+      tr.classList.add("is-flash");
+      setTimeout(function () { tr.classList.remove("is-flash"); }, 1200);
+    }
+
     if (lmap) {
       lmap.paint(rows);
       lmap.setOnRow(function (okato, kind) {
-        var prev = root.querySelector("tr.is-hover");
-        if (prev) prev.classList.remove("is-hover");
-        if (!okato) return;
-        var tr = rowByOkato[okato];
-        if (!tr) return;
-        tr.classList.add("is-hover");
-        if (kind === "click") {
-          tr.scrollIntoView({ block: "center", behavior: "smooth" });
-          tr.classList.add("is-flash");
-          setTimeout(function () { tr.classList.remove("is-flash"); }, 1200);
+        if (kind === "hover") {
+          // Наведение на карту — временная подсветка соответствующей строки.
+          var prev = root.querySelector("tr.is-hover");
+          if (prev) prev.classList.remove("is-hover");
+          if (okato && rowByOkato[okato]) rowByOkato[okato].classList.add("is-hover");
+          return;
         }
+        if (kind === "click" && okato) selectRow(okato);
       });
     }
   }
