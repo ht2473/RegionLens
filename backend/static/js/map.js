@@ -54,6 +54,8 @@
     },
     center: [99, 66],
     zoom: 2,
+    minZoom: 1.6,
+    maxBounds: [[5, 25], [205, 86]],
     renderWorldCopies: false,
     attributionControl: false,
   });

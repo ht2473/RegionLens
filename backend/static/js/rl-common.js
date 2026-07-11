@@ -198,9 +198,12 @@
       var props = e.features[0].properties;
       var k = props[key];
       if (popup) {
-        popup.setLngLat(e.lngLat);
+        // Позицию обновляем всегда, содержимое — только при смене региона, а добавляем попап
+        // на карту ровно один раз: повторный addTo в MapLibre удаляет и заново вставляет DOM,
+        // из-за чего попап мигает и на кадр вспыхивает в углу по неустановленной позиции.
         if (k !== current && htmlFor) popup.setHTML(htmlFor(props));
-        popup.addTo(map);
+        popup.setLngLat(e.lngLat);
+        if (!popup.isOpen()) popup.addTo(map);
       }
       if (k !== current) {
         map.setFilter(hlId, ["==", ["get", key], k == null ? "__none__" : k]);
@@ -248,6 +251,12 @@
     list.hidden = true;
     wrap.appendChild(field);
     wrap.appendChild(list);
+    // Переносимая подпись под полем: показывает полное название выбранного пункта, если оно
+    // не умещается в однострочное поле ввода (длинные названия показателей).
+    var selectedCaption = document.createElement("div");
+    selectedCaption.className = "combo-selected";
+    selectedCaption.hidden = true;
+    wrap.appendChild(selectedCaption);
     select.parentNode.insertBefore(wrap, select.nextSibling);
 
     var filtered = [];
@@ -271,12 +280,21 @@
     }
     function syncInput() {
       var o = select.options[select.selectedIndex];
-      input.value = o ? o.textContent : "";
-      input.title = o ? o.textContent : "";
+      var label = o ? o.textContent : "";
+      input.value = label;
+      input.title = label;
       try {
         input.setSelectionRange(0, 0);
       } catch (e) {}
       input.scrollLeft = 0;
+      // Длинное название не помещается в однострочное поле — показываем его целиком под полем.
+      if (label && label.trim().length > 40) {
+        selectedCaption.textContent = label;
+        selectedCaption.hidden = false;
+      } else {
+        selectedCaption.textContent = "";
+        selectedCaption.hidden = true;
+      }
     }
     function mark(label, q) {
       if (!q) return esc(label);
@@ -391,19 +409,22 @@
   function mergeConfig(Plotly, cfg, id) {
     cfg = cfg || {};
     var out = Object.assign({ displaylogo: false }, cfg);
-    // Панель инструментов должна быть видимой всегда: кнопки экспорта PNG/SVG живут в ней,
-    // а страницы создают диаграммы с displayModeBar:false — тогда экспорт недоступен. Здесь
-    // перехват принудительно включает панель. Постоянная (не по наведению) панель также
-    // исключает сдвиг области графика при первом наведении, из-за которого «уезжали» подсказки.
-    out.displayModeBar = true;
+    // Панель инструментов Plotly должна быть доступна (в ней живут кнопки экспорта PNG/SVG),
+    // но не перекрывать контент. Страницы создают графики с displayModeBar:false — тогда экспорт
+    // недоступен вовсе. Режим "hover" — компромисс: панель всплывает поверх правого верхнего угла
+    // только при наведении на график и не загораживает заголовок/легенду в покое.
+    out.displayModeBar = "hover";
     if (out.responsive === undefined) out.responsive = true;
     out.toImageButtonOptions = Object.assign(
       { format: "png", filename: nameFor(id), scale: 2 },
       cfg.toImageButtonOptions || {}
     );
-    // Оставляем экспорт, зум/панораму и сброс; убираем избыточные инструменты выделения.
+    // Оставляем в панели только экспорт (PNG + наш SVG): полный набор из 7 инструментов
+    // перекрывал заголовки/легенды. Две иконки в углу по наведению — минимальный след.
     var remove = (cfg.modeBarButtonsToRemove || []).slice();
-    ["select2d", "lasso2d", "autoScale2d", "toggleSpikelines"].forEach(function (b) {
+    ["select2d", "lasso2d", "autoScale2d", "toggleSpikelines",
+     "zoom2d", "pan2d", "zoomIn2d", "zoomOut2d", "resetScale2d",
+     "hoverClosestCartesian", "hoverCompareCartesian"].forEach(function (b) {
       if (remove.indexOf(b) === -1) remove.push(b);
     });
     out.modeBarButtonsToRemove = remove;
@@ -424,7 +445,21 @@
     var _newPlot = Plotly.newPlot;
     var _react = Plotly.react;
     Plotly.newPlot = function (el, data, layout, cfg) {
-      return _newPlot(el, data, layout, mergeConfig(Plotly, cfg, el));
+      var p = _newPlot(el, data, layout, mergeConfig(Plotly, cfg, el));
+      // Если график построен до того, как контейнер получил финальную ширину, координаты
+      // наведения оказываются рассчитаны для неверного размера и подсказки «съезжают».
+      // Выравниваем график под контейнер на следующем кадре — дёшево и безопасно.
+      if (p && typeof p.then === "function") {
+        p.then(function () {
+          requestAnimationFrame(function () {
+            try {
+              var node = typeof el === "string" ? document.getElementById(el) : el;
+              if (node && Plotly.Plots && Plotly.Plots.resize) Plotly.Plots.resize(node);
+            } catch (e) {}
+          });
+        });
+      }
+      return p;
     };
     if (_react) {
       Plotly.react = function (el, data, layout, cfg) {

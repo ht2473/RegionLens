@@ -82,12 +82,14 @@
           </div>
         </div>
 
+        <div class="nav-utils">
         <button type="button" class="search-trigger" onclick="rlOpenSearch()" aria-label="{% trans 'Поиск по сайту' %}" title="{% trans 'Поиск (Ctrl+K)' %}"><svg viewBox="0 0 20 20" width="17" height="17" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12.7" y1="12.7" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
 
         <button type="button" class="theme-toggle" onclick="rlToggleTheme()" aria-label="{% trans 'Светлая или тёмная тема' %}" title="{% trans 'Сменить тему' %}"><span class="ic-moon" aria-hidden="true">☾</span><span class="ic-sun" aria-hidden="true">☀</span></button>
 
         <form action="{% url 'set_language' %}" method="post" class="lang-switch">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button type="submit" name="language" value="ru" class="lang-btn{% if LANGUAGE_CODE == 'ru' %} is-active{% endif %}">RU</button><button type="submit" name="language" value="en" class="lang-btn{% if LANGUAGE_CODE == 'en' %} is-active{% endif %}">EN</button></form>
 
+        <div class="nav-account-slot">
         {% if user.is_authenticated %}
           <div class="nav-group nav-account" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
             <button type="button" class="nav-group-btn nav-user{% if active == 'account' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{{ user.get_username }} <span class="caret" aria-hidden="true">▾</span></button>
@@ -100,6 +102,8 @@
           <a href="{% url 'login' %}" class="{% if active == 'login' %}is-active{% endif %}">{% trans "Войти" %}</a>
           <a href="{% url 'register' %}" class="{% if active == 'register' %}is-active{% endif %}">{% trans "Регистрация" %}</a>
         {% endif %}
+        </div>
+        </div>
       </nav>
     </div>
   </header>

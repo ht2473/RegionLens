@@ -26,6 +26,10 @@
   var state = { year: RL.prefYear(2024), okato: null };
   RL.syncYearControl(state.year);
   var presets = {}; // domain -> текущий перцентиль
+  var currentPct = {}; // domain -> текущий перцентиль (для сравнения на графике)
+  var FONT = { family: "Inter, system-ui, sans-serif", size: 12, color: RL.cssVar("--ink-soft", "#43505a") };
+  var GRID = RL.cssVar("--line-soft", "#e5e9ec");
+  var NEUTRAL = RL.cssVar("--ink-faint", "#9aa6ad");
 
   function arrow(delta) {
     if (delta > 0) return '<span style="color:' + POS + '">▲ ' + delta + "</span>";
@@ -63,9 +67,43 @@
     slidersEl.querySelectorAll(".s-slider").forEach(function (el) {
       el.addEventListener("input", function () {
         document.getElementById("sv-" + el.getAttribute("data-domain")).textContent = el.value;
+        drawScenario();
         scheduleScenario();
       });
     });
+  }
+
+  // Живой график сравнения: текущий перцентиль домена против целевого (положение ползунка).
+  // Наглядно показывает, какой разрыв по каждому домену задаёт пользователь; перерисовывается
+  // при каждом движении ползунка. Обновление через Plotly.react — без пересоздания графика.
+  function drawScenario() {
+    var el = document.getElementById("scenario-chart");
+    if (!el || typeof Plotly === "undefined") return;
+    var labels = [], cur = [], tgt = [];
+    DOMAINS.forEach(function (d) {
+      var key = d[0];
+      var base = currentPct[key] != null ? Math.round(currentPct[key]) : 50;
+      var sl = slidersEl.querySelector('.s-slider[data-domain="' + key + '"]');
+      labels.push(d[1]);
+      cur.push(base);
+      tgt.push(sl ? Number(sl.value) : base);
+    });
+    Plotly.react(
+      el,
+      [
+        { type: "bar", name: gettext("Текущий"), x: labels, y: cur, marker: { color: NEUTRAL },
+          hovertemplate: "%{x}<br>" + gettext("текущий") + ": %{y}<extra></extra>" },
+        { type: "bar", name: gettext("Целевой"), x: labels, y: tgt, marker: { color: POS },
+          hovertemplate: "%{x}<br>" + gettext("целевой") + ": %{y}<extra></extra>" },
+      ],
+      { barmode: "group", font: FONT, height: 340,
+        margin: { t: 10, r: 16, b: 90, l: 44 },
+        paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+        legend: { orientation: "h", y: 1.12 },
+        xaxis: { tickangle: -20, automargin: true },
+        yaxis: { title: gettext("Перцентиль"), range: [0, 100], gridcolor: GRID } },
+      { responsive: true }
+    );
   }
 
   function overrides() {
@@ -145,16 +183,21 @@
       })
       .then(function (data) {
         presets = {};
+        currentPct = {};
         DOMAINS.forEach(function (d) {
-          presets[d[0]] = data.current[d[0]] ? data.current[d[0]].percentile : 50;
+          var pct = data.current[d[0]] ? data.current[d[0]].percentile : 50;
+          presets[d[0]] = pct;
+          currentPct[d[0]] = pct;
         });
         buildSliders();
         renderSummary(data);
         renderHint(data.sensitivity);
         root.innerHTML =
-          '<div class="shell"><p>' +
-          gettext("Двигайте ползунки, чтобы моделировать изменения. Учитываются только домены, отклонённые от текущего положения.") +
-          "</p></div>";
+          '<div class="card"><h3>' + gettext("Текущее и целевое положение по доменам") + "</h3>" +
+          '<p class="chart-note">' +
+          gettext("Столбцы «целевой» отражают положение ползунков, сводка сверху пересчитывает место в рейтинге. Учитываются только изменённые домены.") +
+          '</p><div id="scenario-chart" class="chart"></div></div>';
+        drawScenario();
       })
       .catch(function (e) {
         root.innerHTML = '<div class="shell"><p>' + RL.errText(e) + "</p></div>";
@@ -175,6 +218,7 @@
   }
   document.getElementById("reset-scenario").addEventListener("click", function () {
     buildSliders();
+    drawScenario();
     runScenario();
   });
 

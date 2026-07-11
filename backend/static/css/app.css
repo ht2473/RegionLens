@@ -122,7 +122,8 @@ small { color: var(--ink-faint); }
 
 .nav-sep { width: 1px; align-self: center; height: 20px; background: var(--line); margin: 0 6px; }
 .nav-user { display: inline-flex; align-items: center; padding: 7px 6px;
-  font-size: 0.9rem; font-weight: 500; color: var(--accent-deep); }
+  font-size: 0.9rem; font-weight: 500; color: var(--accent-deep);
+  max-width: 15ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nav-logout { display: inline; margin: 0; }
 .nav-logout button { background: none; border: none; cursor: pointer; padding: 6px 8px;
   border-radius: 7px; color: var(--ink-soft); font-size: 0.875rem; font-family: inherit; }
@@ -162,11 +163,22 @@ small { color: var(--ink-faint); }
 }
 .nav-menu a.is-active { background: var(--accent); color: #fff; }
 .theme-toggle {
-  margin-left: auto; background: none; border: 1px solid var(--line); border-radius: 8px;
+  background: none; border: 1px solid var(--line); border-radius: 8px;
   display: inline-flex; align-items: center; justify-content: center; width: 31px; height: 31px;
   padding: 0; cursor: pointer; color: var(--ink); font-size: 0.95rem; line-height: 1;
 }
 .theme-toggle:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+/* Правый кластер утилит (поиск, тема, язык, аккаунт) прижимается к правому краю как единое
+   целое. Слот аккаунта имеет стабильную минимальную ширину и прижимает содержимое вправо:
+   так вход/выход и разная длина имени не сдвигают иконки и не порождают «щель» в шапке. */
+.nav-utils { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.nav-account-slot { display: inline-flex; align-items: center; gap: 2px; }
+@media (max-width: 1080px) {
+  .nav-utils { flex-direction: column; align-items: stretch; gap: 0; margin-left: 0; width: 100%; }
+  .nav-account-slot { flex-direction: column; align-items: stretch; }
+  .nav-user { max-width: none; }
+}
 .ic-sun { display: none; }
 [data-theme="dark"] .ic-moon { display: none; }
 [data-theme="dark"] .ic-sun { display: inline; }
@@ -225,7 +237,7 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.74rem;
   font-weight: 600; color: var(--accent); margin: 0 0 10px; }
 
-.grid { display: grid; gap: 18px; }
+.grid { display: grid; gap: 18px; margin-bottom: 18px; }
 .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
@@ -235,7 +247,10 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .card {
   background: var(--surface); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow);
+  margin-bottom: 18px;
 }
+/* Внутри сеток вертикальные интервалы задаёт gap — двойной отступ у карточек убираем. */
+.grid > .card, .kpi-row > .card { margin-bottom: 0; }
 .card h3 { margin-top: 0; }
 .card .num { font-family: var(--serif); font-size: 2rem; color: var(--accent-deep); line-height: 1; }
 
@@ -280,7 +295,7 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .site-footer .muted { color: #8a96a1; }
 
 /* ── Карта (Ф7, модуль 2) ────────────────────────────────────────────── */
-.map-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin: 8px 0 16px; }
+.map-controls { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 22px; margin: 8px 0 16px; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .seg button {
   border: 0; background: var(--surface); color: var(--ink-soft);
@@ -288,9 +303,11 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 }
 .seg button + button { border-left: 1px solid var(--line); }
 .seg button.is-active { background: var(--accent); color: #fff; }
-.year-control { display: flex; align-items: center; gap: 12px; }
+.year-control { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .year-control label { font-size: 0.92rem; color: var(--ink-soft); }
 .year-control input[type="range"] { width: 280px; max-width: 52vw; accent-color: var(--accent); }
+/* Ряд действий над показателем в «Обзоре»: переключатель/год/копирование — с воздухом и переносом. */
+#ex-year-control { margin-top: 12px; }
 /* Кнопка «скопировать ссылку»: единый вид независимо от контекста (карта, дашборд региона).
    Раньше стиль был привязан к .map-controls, и на дашборде кнопка оставалась без оформления. */
 .map-share {
@@ -363,9 +380,9 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
   border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
 }
 .map-legend {
-  position: absolute; left: 14px; bottom: 14px; z-index: 5;
-  background: rgba(251, 250, 246, 0.95); border: 1px solid var(--line);
-  border-radius: 8px; padding: 12px 14px; font-size: 0.84rem; max-width: 300px;
+  position: absolute; left: 12px; bottom: 12px; z-index: 5;
+  background: rgba(251, 250, 246, 0.92); border: 1px solid var(--line);
+  border-radius: 8px; padding: 9px 11px; font-size: 0.8rem; max-width: 230px;
   box-shadow: var(--shadow);
 }
 .legend-title { font-weight: 600; margin-bottom: 7px; }
@@ -394,9 +411,16 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--surface); }
 .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--surface); }
 
-/* Поисковый комбобокс (RL.enhanceSelect) — для выбора показателя на «Неравенстве»/«Корреляциях».
-   Ширина увеличена: длинные названия показателей помещаются в поле без обрезки. */
-.combo { position: relative; width: 460px; max-width: min(560px, 92vw); }
+/* Поисковый комбобокс (RL.enhanceSelect): по умолчанию заполняет контейнер (в grid-сетке
+   сравнения — свою ячейку, не выходя за неё). В рядах контролов «Неравенства»/«Корреляций»
+   задаём солидную фиксированную ширину, чтобы длинные названия помещались. */
+.combo { position: relative; width: 100%; max-width: min(560px, 92vw); }
+.map-controls .combo { width: 440px; }
+/* Полное название выбранного показателя — переносится, всегда читается целиком. */
+.combo-selected {
+  margin-top: 5px; font-size: 0.85rem; line-height: 1.3; color: var(--ink-soft);
+  white-space: normal; overflow-wrap: anywhere;
+}
 .combo-field { position: relative; }
 .combo-input {
   width: 100%; padding: 9px 34px 9px 11px; border: 1px solid var(--line); border-radius: 8px;
@@ -436,7 +460,7 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .card.kpi { padding: 16px 18px; }
 .kpi-label { font-size: 0.8rem; color: var(--ink-faint); text-transform: uppercase; letter-spacing: 0.06em; }
 .kpi .num { margin-top: 4px; }
-.kpi-type { font-family: var(--serif); font-size: 1.1rem; color: var(--ink); margin-top: 4px; line-height: 1.25; }
+.kpi-type { font-family: var(--serif); font-size: 1.1rem; color: var(--ink); margin-top: 4px; line-height: 1.25; overflow-wrap: anywhere; }
 .kpi-delta { font-size: 0.85rem; font-weight: 500; margin-top: 4px; }
 .kpi-sub { font-size: 0.82rem; color: var(--ink-faint); margin-top: 4px; }
 .chart { width: 100%; min-height: 300px; }
@@ -452,7 +476,7 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 /* Ряд действий на дашборде региона (копировать ссылку, избранное, экспорт XLSX/DOCX).
    Все кнопки в одном ряду, с одинаковой высотой и отступами — единый согласованный вид. */
 .region-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
-.region-actions .btn { padding: 8px 14px; font-size: 0.92rem; font-weight: 500; }
+.region-actions .btn { display: inline-flex; align-items: center; padding: 8px 14px; font-size: 0.92rem; font-weight: 500; }
 .region-actions .map-share,
 .region-actions .fav-toggle { padding: 8px 14px; font-size: 0.92rem; }
 
@@ -477,7 +501,7 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .score-bar { height: 5px; background: var(--line-soft); border-radius: 3px; margin-top: 4px; overflow: hidden; }
 .score-bar span { display: block; height: 100%; background: var(--accent); }
 .compare-controls {
-  display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 14px;
+  display: grid; grid-template-columns: repeat(3, minmax(150px, 1fr)) minmax(150px, 0.9fr) max-content; gap: 14px;
   align-items: end; margin: 8px 0 18px;
 }
 .compare-controls .field { margin: 0; }

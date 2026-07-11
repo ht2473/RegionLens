@@ -38,7 +38,7 @@
         version: 8, sources: {},
         layers: [{ id: "bg", type: "background", paint: { "background-color": RL.cssVar("--map-bg", "#eaf0f1") } }],
       },
-      center: [99, 66], zoom: 1.6, renderWorldCopies: false, attributionControl: false,
+      center: [99, 66], zoom: 1.6, minZoom: 1.4, maxBounds: [[5, 25], [205, 86]], renderWorldCopies: false, attributionControl: false,
     });
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     var popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
@@ -101,19 +101,26 @@
       if (ready) map.setFilter("sel", ["==", ["get", "okato"], okato || "__none__"]);
     }
 
+    var hovered = null;
     function wire() {
       map.on("mousemove", "fill", function (e) {
         map.getCanvas().style.cursor = "pointer";
         var p = e.features[0].properties;
-        popup.setLngLat(e.lngLat).setHTML(
-          "<strong>" + (p.name || p.okato) + "</strong>" +
-          (p.rank != null ? "<br>" + gettext("Место") + ": " + p.rank : "")
-        ).addTo(map);
-        highlight(p.okato);
-        if (onRow) onRow(p.okato, "hover");
+        if (p.okato !== hovered) {
+          popup.setHTML(
+            "<strong>" + (p.name || p.okato) + "</strong>" +
+            (p.rank != null ? "<br>" + gettext("Место") + ": " + p.rank : "")
+          );
+          highlight(p.okato);
+          if (onRow) onRow(p.okato, "hover");
+          hovered = p.okato;
+        }
+        popup.setLngLat(e.lngLat);
+        if (!popup.isOpen()) popup.addTo(map);
       });
       map.on("mouseleave", "fill", function () {
         map.getCanvas().style.cursor = ""; popup.remove(); highlight(null);
+        hovered = null;
         if (onRow) onRow(null, "hover");
       });
       map.on("click", "fill", function (e) {

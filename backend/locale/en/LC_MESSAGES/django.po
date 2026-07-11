@@ -2349,3 +2349,12 @@ msgstr "Clear activity"
 
 msgid "Очистить всю историю активности?"
 msgstr "Clear all activity history?"
+
+msgid "Вид графика"
+msgstr "Chart view"
+
+msgid "Столбцы"
+msgstr "Bars"
+
+msgid "Радар"
+msgstr "Radar"

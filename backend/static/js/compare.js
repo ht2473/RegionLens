@@ -23,6 +23,14 @@
   RL.syncYearControl(state.year);
   var selects = ["cmp-1", "cmp-2", "cmp-3"].map(function (id) { return document.getElementById(id); });
   var msg = document.getElementById("compare-msg");
+  var lastRows = null;   // последний ответ /api/compare/ — для перерисовки без запроса при смене вида
+  var mode = "bars";     // вид графика: "bars" | "radar"
+
+  function rgba(hex, a) {
+    var h = hex.replace("#", "");
+    var n = parseInt(h, 16);
+    return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+  }
 
   function setMsg(t) { if (msg) msg.textContent = t || ""; }
 
@@ -56,6 +64,11 @@
         selects[0].value = rows[0].okato;
         selects[1].value = rows[1].okato;
       }
+      // Поисковые списки регионов (как на остальных страницах) + автосравнение при выборе.
+      selects.forEach(function (sel) {
+        if (RL.enhanceSelect) RL.enhanceSelect(sel, gettext("Поиск региона…"));
+        sel.addEventListener("change", run);
+      });
       run();
     })
     .catch(function () { setMsg(gettext("Не удалось загрузить список регионов.")); });
@@ -87,6 +100,46 @@
 
   function render(rows) {
     if (!rows.length) { setMsg(gettext("Нет данных за выбранный год.")); return; }
+    lastRows = rows;
+    drawChart(rows);
+    renderSummary(rows);
+  }
+
+  function drawChart(rows) {
+    if (!rows || !rows.length) return;
+    var el = document.getElementById("chart-compare");
+    var layoutCommon = {
+      font: { family: "Golos Text, system-ui, sans-serif", color: INK, size: 13 },
+      height: 400, paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+      legend: { orientation: "h", y: -0.18 },
+    };
+    if (mode === "radar") {
+      // Радар накладывает профили регионов по доменам — наглядно видно, где регион сильнее/слабее.
+      // Домены — z-оценки (могут быть отрицательными), поэтому радиальную ось центрируем по данным.
+      var vals = [];
+      rows.forEach(function (r) { DOMAINS.forEach(function (d) { if (r[d[0]] != null) vals.push(r[d[0]]); }); });
+      var lo = vals.length ? Math.min.apply(null, vals) - 0.3 : -1;
+      var hi = vals.length ? Math.max.apply(null, vals) + 0.3 : 1;
+      var theta = DOMAINS.map(function (d) { return d[1]; });
+      var rTraces = rows.map(function (r, i) {
+        var rv = DOMAINS.map(function (d) { return r[d[0]] == null ? lo : r[d[0]]; });
+        var color = PALETTE[i % PALETTE.length];
+        return {
+          type: "scatterpolar", name: r.region_name || r.okato,
+          r: rv.concat([rv[0]]), theta: theta.concat([theta[0]]),
+          fill: "toself", fillcolor: rgba(color, 0.12),
+          line: { color: color, width: 2 }, marker: { color: color, size: 5 },
+          hovertemplate: "%{theta}: %{r:.2f}<extra>" + (r.region_name || r.okato) + "</extra>",
+        };
+      });
+      Plotly.newPlot(el, rTraces, Object.assign({}, layoutCommon, {
+        margin: { t: 30, b: 60, l: 40, r: 40 },
+        polar: { bgcolor: "rgba(0,0,0,0)",
+          radialaxis: { range: [lo, hi], gridcolor: GRID, tickfont: { size: 10 } },
+          angularaxis: { gridcolor: GRID, tickfont: { size: 11 } } },
+      }), { responsive: true });
+      return;
+    }
     var traces = rows.map(function (r, i) {
       return {
         type: "bar",
@@ -97,23 +150,13 @@
         hovertemplate: "%{x}: %{y:.2f}<extra>" + (r.region_name || r.okato) + "</extra>",
       };
     });
-    Plotly.newPlot(
-      "chart-compare",
-      traces,
-      {
-        barmode: "group",
-        font: { family: "Golos Text, system-ui, sans-serif", color: INK, size: 13 },
-        margin: { t: 20, b: 60, l: 50, r: 20 },
-        height: 380,
-        paper_bgcolor: "rgba(0,0,0,0)",
-        plot_bgcolor: "rgba(0,0,0,0)",
-        legend: { orientation: "h", y: -0.18 },
-        xaxis: { tickangle: -20 },
-        yaxis: { title: gettext("доменный балл (z)"), zeroline: true, zerolinecolor: RL.cssVar("--line", "#b9c2cb"), gridcolor: GRID },
-      },
-      { responsive: true, displayModeBar: false }
-    );
+    Plotly.newPlot(el, traces, Object.assign({}, layoutCommon, {
+      barmode: "group", margin: { t: 20, b: 60, l: 50, r: 20 }, xaxis: { tickangle: -20 },
+      yaxis: { title: gettext("доменный балл (z)"), zeroline: true, zerolinecolor: RL.cssVar("--line", "#b9c2cb"), gridcolor: GRID },
+    }), { responsive: true });
+  }
 
+  function renderSummary(rows) {
     var head =
       "<tr><th>" + gettext("Регион") + "</th><th class='num'>" + gettext("Индекс") + "</th><th>" + gettext("Тип") + "</th></tr>";
     var body = rows
@@ -137,6 +180,17 @@
       });
     });
   }
+
+  // Переключение вида графика перерисовывает уже полученные данные без нового запроса.
+  document.querySelectorAll(".cmp-mode button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (b.dataset.mode === mode) return;
+      document.querySelectorAll(".cmp-mode button").forEach(function (x) { x.classList.remove("is-active"); });
+      b.classList.add("is-active");
+      mode = b.dataset.mode;
+      if (lastRows) drawChart(lastRows);
+    });
+  });
 
   go.addEventListener("click", run);
   var slider = document.getElementById("year-slider");

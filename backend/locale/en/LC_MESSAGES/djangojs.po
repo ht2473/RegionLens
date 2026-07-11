@@ -114,9 +114,10 @@ msgid "Коридор"
 msgstr "Corridor"
 
 msgid "По схемам весов: с %(best)s по %(worst)s место (коридор %(range)s)"
-msgstr "By weighting schemes: from %(best)s to %(worst)s place (range %(range)s)"
-"Across weighting schemes: from place %(best)s to %(worst)s (corridor "
-"%(range)s)"
+msgstr ""
+"By weighting schemes: from %(best)s to %(worst)s place (range "
+"%(range)s)Across weighting schemes: from place %(best)s to %(worst)s "
+"(corridor %(range)s)"
 
 msgid ""
 "«Коридор» — место региона по разным схемам весов (равные / PCA / "
@@ -467,8 +468,9 @@ msgid "метрика"
 msgstr "metric"
 
 msgid "доля регионов с синхронным сдвигом (кандидат, не вывод)"
-msgstr "share of regions with a synchronous shift (candidate, not a conclusion)"
-"share of regions with a synchronous shift (candidate, not a conclusion)"
+msgstr ""
+"share of regions with a synchronous shift (candidate, not a conclusion)share"
+" of regions with a synchronous shift (candidate, not a conclusion)"
 
 msgid ""
 "Не удалось загрузить границы регионов. Сформируйте "
@@ -685,14 +687,22 @@ msgstr "places"
 msgid "Подсказка"
 msgstr "Hint"
 
-msgid "Регион уже занимает высокое место: подтягивание отдельного домена позицию не меняет."
-msgstr "The region already ranks high: raising a single domain does not change its position."
+msgid ""
+"Регион уже занимает высокое место: подтягивание отдельного домена позицию не"
+" меняет."
+msgstr ""
+"The region already ranks high: raising a single domain does not change its "
+"position."
 
 msgid "Двигайте ползунки, чтобы моделировать изменения."
 msgstr "Move the sliders to model changes."
 
-msgid "Двигайте ползунки, чтобы моделировать изменения. Учитываются только домены, отклонённые от текущего положения."
-msgstr "Move the sliders to model changes. Only domains deviated from the current position are taken into account."
+msgid ""
+"Двигайте ползунки, чтобы моделировать изменения. Учитываются только домены, "
+"отклонённые от текущего положения."
+msgstr ""
+"Move the sliders to model changes. Only domains deviated from the current "
+"position are taken into account."
 
 msgid "Балл"
 msgstr "Score"
@@ -702,3 +712,31 @@ msgstr "Shift vs equal weights"
 
 msgid "Скачать SVG"
 msgstr "Download SVG"
+
+msgid "Поиск региона…"
+msgstr "Search for a region…"
+
+msgid "Текущее и целевое положение по доменам"
+msgstr "Current and target position by domain"
+
+msgid ""
+"Столбцы «целевой» отражают положение ползунков, сводка сверху пересчитывает "
+"место в рейтинге. Учитываются только изменённые домены."
+msgstr ""
+"The “target” bars reflect the slider positions; the summary above recomputes"
+" the ranking. Only changed domains are taken into account."
+
+msgid "Текущий"
+msgstr "Current"
+
+msgid "Целевой"
+msgstr "Target"
+
+msgid "текущий"
+msgstr "current"
+
+msgid "целевой"
+msgstr "target"
+
+msgid "Перцентиль"
+msgstr "Percentile"
