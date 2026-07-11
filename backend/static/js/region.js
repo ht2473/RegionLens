@@ -142,12 +142,15 @@
       { polar: { bgcolor: "rgba(0,0,0,0)",
           radialaxis: { range: [lo, hi], gridcolor: RADARGRID, gridwidth: 1.2, tickfont: { size: 10 } },
           angularaxis: { gridcolor: RADARGRID, gridwidth: 1.2, tickfont: { size: 11 } } },
-        showlegend: false, font: FONT, margin: { t: 20, b: 20, l: 40, r: 40 },
+        showlegend: false, font: FONT, margin: { t: 34, b: 20, l: 40, r: 40 },
         height: 300, paper_bgcolor: "rgba(0,0,0,0)" },
       CFG
     );
   }
 
+  // Верхний отступ увеличен до 34px по всем графикам divergeBars(): при 10px подсказка при
+  // наведении на самый верхний столбец (нет места сверху для её якоря) выходила за пределы
+  // области построения и «наезжала» на заголовок карточки/модбар — недостаточный запас сверху.
   function divergeBars(id, labels, values, opts) {
     opts = opts || {};
     var colors = values.map(function (v) { return v >= 0 ? POS : NEG; });
@@ -155,7 +158,7 @@
       id,
       [{ type: "bar", orientation: "h", x: values, y: labels, marker: { color: colors },
         hovertemplate: "%{y}: %{x:.2f}<extra></extra>" }],
-      { font: FONT, margin: { t: 10, b: 30, l: opts.left || 130, r: 20 },
+      { font: FONT, margin: { t: 34, b: 30, l: opts.left || 130, r: 20 },
         height: opts.height || 300, paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
         xaxis: { zeroline: true, zerolinecolor: RL.cssVar("--line", "#b9c2cb"), gridcolor: GRID },
         yaxis: { automargin: true } },
@@ -215,7 +218,7 @@
       "chart-traj",
       [{ type: "scatter", mode: "lines+markers", x: years, y: clusters, line: { shape: "hv", color: POS, width: 2 },
         marker: { size: 7, color: POS }, hovertemplate: "%{x}: " + gettext("тип") + " %{y}<extra></extra>" }],
-      { font: FONT, margin: { t: 10, b: 30, l: 40, r: 20 }, height: 300,
+      { font: FONT, margin: { t: 34, b: 30, l: 40, r: 20 }, height: 300,
         paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
         xaxis: { gridcolor: GRID, dtick: 2 },
         yaxis: { title: gettext("тип"), dtick: 1, gridcolor: GRID, zeroline: false } },

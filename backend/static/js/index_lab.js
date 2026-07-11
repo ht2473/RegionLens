@@ -41,7 +41,7 @@
   }
   function baseLayout(extra) {
     var l = {
-      margin: { l: 56, r: 16, t: 8, b: 44 },
+      margin: { l: 56, r: 16, t: 34, b: 44 },
       paper_bgcolor: "rgba(0,0,0,0)",
       plot_bgcolor: "rgba(0,0,0,0)",
       font: FONT,
@@ -86,7 +86,7 @@
       traces,
       baseLayout({
         height: 300,
-        margin: { l: 56, r: 16, t: 8, b: 36 },
+        margin: { l: 56, r: 16, t: 34, b: 36 },
         yaxis: { title: gettext("Спирмен ρ"), gridcolor: GRID },
         xaxis: { dtick: 2, gridcolor: GRID },
         legend: { orientation: "h" },

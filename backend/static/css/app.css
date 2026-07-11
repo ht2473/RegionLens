@@ -90,7 +90,13 @@ small { color: var(--ink-faint); }
   border-bottom: 1px solid var(--line);
   position: sticky; top: 0; z-index: 50;
 }
-.header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; }
+/* Высота шапки зафиксирована явно и не должна зависеть от состояния входа, языка или
+   длины ника. Раньше `<button>` (дропдауны, аккаунт) и `<a>` (простые ссылки, Войти/
+   Регистрация) получали разный line-height: браузер задаёт кнопкам line-height:normal по
+   UA-стилю, а ссылки наследуют line-height:1.6 от body — расхождение в несколько px между
+   состояниями «в кабинете»/«не в кабинете». line-height нормализован явно для всех, плюс
+   min-height на .header-row как защита от любых будущих источников такого расхождения. */
+.header-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; min-height: 64px; }
 .brand { display: flex; align-items: baseline; gap: 10px; }
 .brand a { color: var(--ink); text-decoration: none; }
 .brand .mark { font-family: var(--serif); font-size: 1.45rem; font-weight: 600; letter-spacing: -0.02em; }
@@ -100,7 +106,7 @@ small { color: var(--ink-faint); }
 .nav { display: flex; flex-wrap: wrap; gap: 3px; align-items: center; }
 .nav a {
   display: inline-block; padding: 6px 8px; border-radius: 7px;
-  color: var(--ink-soft); font-size: 0.875rem; text-decoration: none;
+  color: var(--ink-soft); font-size: 0.875rem; line-height: 1.6; text-decoration: none;
   transition: background 0.15s, color 0.15s;
 }
 .nav a:hover { background: var(--accent-soft); color: var(--accent-deep); text-decoration: none; }
@@ -122,11 +128,11 @@ small { color: var(--ink-faint); }
 
 .nav-sep { width: 1px; align-self: center; height: 20px; background: var(--line); margin: 0 6px; }
 .nav-user { display: inline-flex; align-items: center; padding: 7px 6px;
-  font-size: 0.9rem; font-weight: 500; color: var(--accent-deep);
+  font-size: 0.9rem; font-weight: 500; line-height: 1.6; color: var(--accent-deep);
   max-width: 15ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nav-logout { display: inline; margin: 0; }
 .nav-logout button { background: none; border: none; cursor: pointer; padding: 6px 8px;
-  border-radius: 7px; color: var(--ink-soft); font-size: 0.875rem; font-family: inherit; }
+  border-radius: 7px; color: var(--ink-soft); font-size: 0.875rem; line-height: 1.6; font-family: inherit; }
 .nav-logout button:hover { background: var(--accent-soft); color: var(--accent-deep); }
 @media (max-width: 1080px) {
   .nav-sep { display: none; }
@@ -137,11 +143,11 @@ small { color: var(--ink-faint); }
 .nav-user:hover { background: var(--accent-soft); }
 .nav-user.is-active { background: var(--accent); color: #fff; }
 
-/* ── Группы-дропдауны, переключатель темы (Ф-навигация) ──────────────────── */
+/* ── Группы-дропдауны, переключатель темы (навигация) ──────────────────── */
 .nav-group { position: relative; display: inline-flex; }
 .nav-group-btn {
   cursor: pointer; background: none; border: none; font-family: inherit; font-size: 0.875rem;
-  padding: 6px 8px; border-radius: 7px; color: var(--ink-soft);
+  line-height: 1.6; padding: 6px 8px; border-radius: 7px; color: var(--ink-soft);
   display: inline-flex; align-items: center; gap: 4px;
 }
 .nav-group-btn:hover { background: var(--accent-soft); color: var(--accent-deep); }
@@ -296,6 +302,14 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 
 /* ── Карта (Ф7, модуль 2) ────────────────────────────────────────────── */
 .map-controls { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 22px; margin: 8px 0 16px; }
+/* Группа фильтров как один flex-элемент: ей разрешено сжиматься и переносить СВОИ поля
+   на вторую строку при нехватке места, вместо того чтобы вытеснять соседнюю кнопку действия
+   («Скопировать ссылку») на отдельную строку — так кнопка остаётся рядом с фильтрами. */
+.map-controls-fields {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px;
+  flex: 1 1 480px; min-width: 260px;
+}
+.map-controls > .map-share { flex: 0 0 auto; }
 .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .seg button {
   border: 0; background: var(--surface); color: var(--ink-soft);
@@ -465,6 +479,8 @@ main { flex: 1 0 auto; padding: 28px 0 56px; }
 .kpi-sub { font-size: 0.82rem; color: var(--ink-faint); margin-top: 4px; }
 .chart { width: 100%; min-height: 300px; }
 .chart-note { font-size: 0.82rem; color: var(--ink-faint); margin: 0 0 6px; }
+/* Модификатор для подписи, идущей ПОСЛЕ таблицы/графика (а не перед) — отступ сверху. */
+.chart-note-after { margin: 10px 0 0; }
 
 .region-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
 .region-chip {

@@ -287,8 +287,12 @@
         input.setSelectionRange(0, 0);
       } catch (e) {}
       input.scrollLeft = 0;
-      // Длинное название не помещается в однострочное поле — показываем его целиком под полем.
-      if (label && label.trim().length > 40) {
+      // Полную подпись под полем показываем только при реальном переполнении (текст физически
+      // не помещается в текущую ширину поля) — измеряем scrollWidth/clientWidth. Раньше порог
+      // был по числу символов (>40) и показывал подпись даже тогда, когда широкое поле уже
+      // вмещало текст целиком, что дублировало его на экране.
+      var overflowing = input.scrollWidth > input.clientWidth + 1;
+      if (label && overflowing) {
         selectedCaption.textContent = label;
         selectedCaption.hidden = false;
       } else {

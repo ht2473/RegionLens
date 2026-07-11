@@ -20,9 +20,17 @@
 
 <div class="card">
   <h3>{% trans "Веса доменов" %}</h3>
+  <p class="chart-note">{% trans "Значение ползунка — условные единицы 0–10, рядом в скобках — нормированная доля этого домена в итоговом индексе (сумма долей всегда 100%)." %}</p>
   <div class="grid cols-3" id="weight-sliders"></div>
   <p><button type="button" id="reset-weights" class="btn">{% trans "Сбросить к равным" %}</button></p>
 </div>
+
+<div class="card">
+  <h3>{% trans "Распределение весов" %}</h3>
+  <div id="weight-chart" class="chart"></div>
+</div>
+
+<div id="weight-movers"></div>
 
 <div id="builder-root">
   <div class="shell"><p>{% trans "Настройте веса…" %}</p></div>
@@ -30,5 +38,6 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <script src="{% static 'js/index_builder.js' %}"></script>
 {% endblock %}

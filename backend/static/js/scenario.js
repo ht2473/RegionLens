@@ -97,7 +97,7 @@
           hovertemplate: "%{x}<br>" + gettext("целевой") + ": %{y}<extra></extra>" },
       ],
       { barmode: "group", font: FONT, height: 340,
-        margin: { t: 10, r: 16, b: 90, l: 44 },
+        margin: { t: 34, r: 16, b: 90, l: 44 },
         paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
         legend: { orientation: "h", y: 1.12 },
         xaxis: { tickangle: -20, automargin: true },

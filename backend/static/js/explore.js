@@ -300,7 +300,7 @@
         },
       ],
       {
-        margin: { l: 54, r: 16, t: 6, b: 34 },
+        margin: { l: 54, r: 16, t: 34, b: 34 },
         height: 260,
         xaxis: { dtick: 2, gridcolor: RL.cssVar("--line-soft", "#e9e3d6") },
         yaxis: { title: state.metric.unit || "", gridcolor: RL.cssVar("--line-soft", "#e9e3d6") },

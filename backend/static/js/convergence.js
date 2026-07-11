@@ -79,7 +79,7 @@
         },
       ],
       {
-        margin: { l: 60, r: 16, t: 8, b: 36 }, height: 360,
+        margin: { l: 60, r: 16, t: 34, b: 36 }, height: 360,
         yaxis: { title: MEASURE_RU[measure], gridcolor: GRID },
         xaxis: { dtick: 2, gridcolor: GRID },
         paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)", font: FONT,
@@ -150,7 +150,7 @@
             },
           ],
           {
-            margin: { l: 60, r: 16, t: 8, b: 44 }, height: 420, showlegend: false,
+            margin: { l: 60, r: 16, t: 34, b: 44 }, height: 420, showlegend: false,
             xaxis: { title: interpolate(gettext("Стартовый уровень индекса (%(year)s)"), { year: b.year_start }, true), gridcolor: GRID },
             yaxis: {
               title: gettext("Изменение к") + " " + b.year_end, gridcolor: GRID,

@@ -42,7 +42,7 @@
 
 {% if profile %}
 <div class="grid cols-2">
-  <div>
+  <div class="card">
     <h3>{% trans "Состав ядра по доменам" %}</h3>
     <div class="table-wrap">
       <table class="table">
@@ -56,9 +56,8 @@
       </table>
     </div>
   </div>
-  <div>
+  <div class="card">
     <h3>{% trans "Формы значений в ядре" %}</h3>
-    <p class="chart-note">{% trans "После гармонизации показатели сопоставимы между регионами." %}</p>
     <div class="table-wrap">
       <table class="table">
         <thead><tr><th>{% trans "Форма значения" %}</th><th class="num">{% trans "Метрик" %}</th></tr></thead>
@@ -69,6 +68,7 @@
         </tbody>
       </table>
     </div>
+    <p class="chart-note chart-note-after">{% trans "После гармонизации показатели сопоставимы между регионами." %}</p>
   </div>
 </div>
 {% endif %}

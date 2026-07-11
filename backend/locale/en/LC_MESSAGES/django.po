@@ -2358,3 +2358,14 @@ msgstr "Bars"
 
 msgid "Радар"
 msgstr "Radar"
+
+msgid ""
+"Значение ползунка — условные единицы 0–10, рядом в скобках — нормированная "
+"доля этого домена в итоговом индексе (сумма долей всегда 100%)."
+msgstr ""
+"The slider value is an arbitrary unit from 0–10; the figure in brackets is "
+"this domain's normalised share of the final index (shares always add up to "
+"100%)."
+
+msgid "Распределение весов"
+msgstr "Weight distribution"

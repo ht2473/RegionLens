@@ -16,13 +16,15 @@
 </div>
 
 <div class="map-controls">
-  <div class="year-control">
-    <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
-    <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
-  </div>
-  <div class="year-control">
-    <label for="metric-select">{% trans "Показатель" %}</label>
-    <select id="metric-select"><option value="">{% trans "Все пары" %}</option></select>
+  <div class="map-controls-fields">
+    <div class="year-control">
+      <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
+      <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
+    </div>
+    <div class="year-control">
+      <label for="metric-select">{% trans "Показатель" %}</label>
+      <select id="metric-select"><option value="">{% trans "Все пары" %}</option></select>
+    </div>
   </div>
   <button type="button" id="corr-copy-link" class="map-share">{% trans "Скопировать ссылку" %}</button>
 </div>

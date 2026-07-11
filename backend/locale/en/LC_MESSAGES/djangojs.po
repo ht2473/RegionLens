@@ -740,3 +740,12 @@ msgstr "target"
 
 msgid "Перцентиль"
 msgstr "Percentile"
+
+msgid "Больше всего выигрывает"
+msgstr "Gains the most"
+
+msgid "Больше всего теряет"
+msgstr "Loses the most"
+
+msgid "Сдвиг к равным весов"
+msgstr "Shift vs. equal weights"

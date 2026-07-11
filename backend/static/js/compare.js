@@ -133,7 +133,7 @@
         };
       });
       Plotly.newPlot(el, rTraces, Object.assign({}, layoutCommon, {
-        margin: { t: 30, b: 60, l: 40, r: 40 },
+        margin: { t: 36, b: 60, l: 40, r: 40 },
         polar: { bgcolor: "rgba(0,0,0,0)",
           radialaxis: { range: [lo, hi], gridcolor: GRID, tickfont: { size: 10 } },
           angularaxis: { gridcolor: GRID, tickfont: { size: 11 } } },
@@ -151,7 +151,7 @@
       };
     });
     Plotly.newPlot(el, traces, Object.assign({}, layoutCommon, {
-      barmode: "group", margin: { t: 20, b: 60, l: 50, r: 20 }, xaxis: { tickangle: -20 },
+      barmode: "group", margin: { t: 34, b: 60, l: 50, r: 20 }, xaxis: { tickangle: -20 },
       yaxis: { title: gettext("доменный балл (z)"), zeroline: true, zerolinecolor: RL.cssVar("--line", "#b9c2cb"), gridcolor: GRID },
     }), { responsive: true });
   }

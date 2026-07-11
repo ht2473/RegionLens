@@ -31,7 +31,7 @@
     var el = document.getElementById("rankings-map");
     if (!el || typeof maplibregl === "undefined") return null;
 
-    var geo = null, ready = false, pending = null, onRow = null;
+    var geo = null, ready = false, pending = null, onRow = null, lastRows = null;
     var map = new maplibregl.Map({
       container: "rankings-map",
       style: {
@@ -68,6 +68,22 @@
           wire();
           ready = true;
           if (pending) { paint(pending); pending = null; }
+          // Единственная карта без обновления цветов при смене темы (баг): фон, границы и
+          // подсветка задавались один раз при инициализации слоёв и «застывали». Остальные
+          // карты (map.js, anomalies.js, explore.js) уже переподписывают paint на RL.onTheme —
+          // делаем то же самое здесь для фона/линий/подсветки; nodata-цвет заливки обновится
+          // через ближайший вызов paint(), а сама тема триггерит перерисовку строк ниже.
+          if (window.RL && RL.onTheme) {
+            RL.onTheme(function () {
+              try {
+                map.setPaintProperty("bg", "background-color", RL.cssVar("--map-bg", "#eaf0f1"));
+                map.setPaintProperty("line", "line-color", RL.cssVar("--map-line", "#ffffff"));
+                map.setPaintProperty("hl", "line-color", RL.cssVar("--accent", "#1f6f63"));
+                map.setPaintProperty("sel", "line-color", RL.cssVar("--accent-deep", "#14584e"));
+                if (lastRows) paint(lastRows);
+              } catch (e) {}
+            });
+          }
         })
         .catch(function () {
           // geojson недоступен — убираем блок карты, таблица работает как прежде
@@ -78,6 +94,7 @@
 
     function paint(rows) {
       if (!ready) { pending = rows; return; }
+      lastRows = rows;
       var by = {};
       rows.forEach(function (r) { by[r.okato] = r; });
       geo.features.forEach(function (f) {

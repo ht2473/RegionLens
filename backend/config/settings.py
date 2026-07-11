@@ -112,9 +112,18 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = REPO_ROOT / "staticfiles"
 
 # В проде статику отдаёт WhiteNoise: сжатие и хешированные имена (кэш-бастинг) через манифест.
+# В DEBUG — обычное (нехешированное) хранилище: манифест требует предварительного collectstatic,
+# которым локальная разработка обычно не занимается; условие ниже даёт корректную работу
+# {% static %} без лишнего шага и в dev, и в проде.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
-    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    "staticfiles": {
+        "BACKEND": (
+            "django.contrib.staticfiles.storage.StaticFilesStorage"
+            if DEBUG
+            else "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        )
+    },
 }
 
 MEDIA_URL = "media/"
