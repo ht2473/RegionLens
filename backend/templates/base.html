@@ -40,7 +40,6 @@
     <div class="container header-row">
       <div class="brand">
         <a href="{% url 'home' %}"><span class="mark">Region<b>Lens</b></span></a>
-        <span class="tag">{% trans "аналитика регионов РФ" %}</span>
       </div>
       <button class="nav-toggle" @click="open = !open" aria-label="{% trans 'Меню' %}">☰</button>
       <nav class="nav" :class="{ open: open }" aria-label="{% trans 'Основная навигация' %}">
@@ -92,7 +91,7 @@
         <div class="nav-account-slot">
         {% if user.is_authenticated %}
           <div class="nav-group nav-account" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
-            <button type="button" class="nav-group-btn nav-user{% if active == 'account' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{{ user.get_username }} <span class="caret" aria-hidden="true">▾</span></button>
+            <button type="button" class="nav-group-btn nav-user{% if active == 'account' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true" title="{{ user.get_username }}"><span class="nav-avatar" aria-hidden="true">{{ user.get_username|first|upper }}</span><span class="caret" aria-hidden="true">▾</span></button>
             <div class="nav-menu nav-menu-right" x-show="d" x-cloak>
               <a href="{% url 'account' %}" class="{% if active == 'account' %}is-active{% endif %}">{% trans "Личный кабинет" %}</a>
               <form method="post" action="{% url 'logout' %}" class="nav-logout">{% csrf_token %}<button type="submit">{% trans "Выйти" %}</button></form>

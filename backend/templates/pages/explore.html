@@ -39,7 +39,7 @@
         <button type="button" data-view="map">{% trans "Карта" %}</button>
       </div>
       <label for="ex-year">{% trans "Год" %}: <strong id="ex-year-label"></strong></label>
-      <input type="range" id="ex-year" step="1">
+      <input type="range" id="ex-year" min="2010" max="2024" step="1" value="2024">
       <button type="button" id="ex-copy-link" class="map-share">{% trans "Скопировать ссылку" %}</button>
     </div>
     <div id="ex-series" class="explore-series" hidden></div>

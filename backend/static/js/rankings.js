@@ -1,6 +1,6 @@
-/* RegionLens — рейтинг (Ф7, модуль 4).
+/* RegionLens — рейтинг.
    Таблица регионов по индексу: /api/index/?year=&scheme= (ранг, индекс, доменные баллы);
-   имена берём из /api/regions/. Строка кликабельна → дашборд региона. */
+   имена берутся из /api/regions/. Строка кликабельна → дашборд региона. */
 
 (function () {
   "use strict";
@@ -52,7 +52,7 @@
             if (w) w.style.display = "none";
             return;
           }
-          geo = fc;
+          geo = window.RL && RL.unwrapGeojson ? RL.unwrapGeojson(fc) : fc;
           map.addSource("regions", { type: "geojson", data: geo });
           map.addLayer({ id: "fill", type: "fill", source: "regions",
             paint: { "fill-color": RL.cssVar("--map-nodata", "#dcdcdc"), "fill-opacity": 0.9 } });
@@ -67,12 +67,13 @@
             filter: ["==", ["get", "okato"], "__none__"] });
           wire();
           ready = true;
+          if (window.RL && RL.fitToData) RL.fitToData(map, geo, 18);
+          if (window.RL && RL.softenZoomControls) RL.softenZoomControls(map, 0.5);
+          if (window.RL && RL.makeLegendCollapsible) {
+            RL.makeLegendCollapsible(document.querySelector(".map-legend"));
+          }
           if (pending) { paint(pending); pending = null; }
-          // Единственная карта без обновления цветов при смене темы (баг): фон, границы и
-          // подсветка задавались один раз при инициализации слоёв и «застывали». Остальные
-          // карты (map.js, anomalies.js, explore.js) уже переподписывают paint на RL.onTheme —
-          // делаем то же самое здесь для фона/линий/подсветки; nodata-цвет заливки обновится
-          // через ближайший вызов paint(), а сама тема триггерит перерисовку строк ниже.
+          
           if (window.RL && RL.onTheme) {
             RL.onTheme(function () {
               try {

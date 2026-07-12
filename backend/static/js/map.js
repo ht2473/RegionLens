@@ -1,4 +1,4 @@
-/* RegionLens — карта (Ф7, модуль 2).
+/* RegionLens — карта.
    Хороплет субъектов РФ без внешних тайлов: рисуем только полигоны из
    /static/geo/regions.geojson (ключ okato), раскраска — по /api/geo/layer/.
    measure=cluster: цвет по типу + прозрачность по типичности (A1, distance_to_centroid —
@@ -70,7 +70,7 @@
         return r.json();
       })
       .then(function (fc) {
-        geo = fc;
+        geo = window.RL && RL.unwrapGeojson ? RL.unwrapGeojson(fc) : fc;
         map.addSource("regions", { type: "geojson", data: geo });
         map.addLayer({
           id: "fill",
@@ -86,6 +86,11 @@
         });
         wireInteraction();
         update();
+        if (window.RL && RL.fitToData) RL.fitToData(map, geo, 18);
+        if (window.RL && RL.softenZoomControls) RL.softenZoomControls(map, 0.5);
+        if (window.RL && RL.makeLegendCollapsible) {
+          RL.makeLegendCollapsible(document.getElementById("map-legend"));
+        }
         if (window.RL && RL.onTheme) {
           RL.onTheme(function () {
             try {
@@ -155,6 +160,7 @@
       })
       .catch(function (e) {
         var el = document.getElementById("map-legend");
+        if (el && el.querySelector(".map-legend-body")) el = el.querySelector(".map-legend-body");
         if (el) {
           el.innerHTML =
             "<div class='legend-title'>" + gettext("Слой не загрузился") + "</div>" +
@@ -208,6 +214,7 @@
 
   function renderLegend(rows) {
     var el = document.getElementById("map-legend");
+    if (el && el.querySelector(".map-legend-body")) el = el.querySelector(".map-legend-body");
     if (!el) return;
     if (state.measure === "cluster") {
       var seen = {};

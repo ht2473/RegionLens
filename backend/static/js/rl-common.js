@@ -98,6 +98,100 @@
     if (label) label.textContent = year;
   };
 
+  // Развернуть антимеридиан в geojson России: восточная часть Чукотки лежит в отрицательных
+  // долготах (-180..-169), из-за чего bbox данных формально охватывает весь мир (360°) — ломается
+  // подгонка кадра и ограничение панорамы, а сама Чукотка рвётся по линии 180°. Сдвигаем
+  // отрицательные долготы на +360 (в России нет территорий с lng < 0 западнее Чукотки), получая
+  // непрерывный диапазон ~19..191. Мутирует и возвращает переданный объект. Идемпотентно.
+  window.RL.unwrapGeojson = function (geo) {
+    if (!geo || geo._rlUnwrapped) return geo;
+    geo._rlUnwrapped = true;
+    var shift = function (c) {
+      if (typeof c[0] === "number") {
+        if (c[0] < 0) c[0] += 360;
+      } else {
+        for (var i = 0; i < c.length; i++) shift(c[i]);
+      }
+    };
+    (geo.features || []).forEach(function (f) {
+      if (f.geometry && f.geometry.coordinates) shift(f.geometry.coordinates);
+    });
+    return geo;
+  };
+
+  // Кадрировать карту по границам данных с отступами: Россия всегда вписывается в контейнер
+  // ровно, без «обрезанного» вида, и подстраивается под любой размер/пропорции вкладки.
+  // Защита от антимеридиана: если размах долгот неадекватный (geojson в диапазоне -180..180),
+  // подгонку пропускаем — остаётся заданный center/zoom.
+  window.RL.fitToData = function (map, geo, padding) {
+    try {
+      var minLng = Infinity,
+        minLat = Infinity,
+        maxLng = -Infinity,
+        maxLat = -Infinity;
+      var scan = function (c) {
+        if (typeof c[0] === "number") {
+          if (c[0] < minLng) minLng = c[0];
+          if (c[0] > maxLng) maxLng = c[0];
+          if (c[1] < minLat) minLat = c[1];
+          if (c[1] > maxLat) maxLat = c[1];
+        } else {
+          for (var i = 0; i < c.length; i++) scan(c[i]);
+        }
+      };
+      (geo.features || []).forEach(function (f) {
+        if (f.geometry && f.geometry.coordinates) scan(f.geometry.coordinates);
+      });
+      if (minLng < maxLng && minLat < maxLat && maxLng - minLng < 210) {
+        map.fitBounds(
+          [
+            [minLng, minLat],
+            [maxLng, maxLat],
+          ],
+          { padding: padding == null ? 24 : padding, animate: false }
+        );
+        // Зафиксировать рамки взаимодействия по фактически видимой области после подгонки:
+        // maxBounds = getBounds() и minZoom = текущий зум. Панорамой нельзя открыть пустоту
+        // за пределами исходного кадра, а отдалиться дальше стартового вида невозможно —
+        // пустые полосы по краям исключены в принципе.
+        try {
+          map.setMaxBounds(map.getBounds());
+          if (map.getZoom) map.setMinZoom(map.getZoom());
+        } catch (e2) {
+          /* ограничения недоступны — не критично */
+        }
+        // Держать кадрирование при изменении размера контейнера (один наблюдатель на карту).
+        var cont = map.getContainer && map.getContainer();
+        if (cont && window.ResizeObserver && !cont._rlFitRO) {
+          var raf = null;
+          cont._rlFitRO = new ResizeObserver(function () {
+            if (raf) cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(function () {
+              try {
+                // Снять ограничения на время перекадрирования, затем зафиксировать под новый кадр.
+                map.setMaxBounds(null);
+                map.setMinZoom(0);
+                map.resize();
+                map.fitBounds(
+                  [
+                    [minLng, minLat],
+                    [maxLng, maxLat],
+                  ],
+                  { padding: padding == null ? 24 : padding, animate: false }
+                );
+                map.setMaxBounds(map.getBounds());
+                map.setMinZoom(map.getZoom());
+              } catch (e3) {}
+            });
+          });
+          cont._rlFitRO.observe(cont);
+        }
+      }
+    } catch (e) {
+      /* нет данных/границ — оставляем заданный вид */
+    }
+  };
+
   window.RL.cssVar = function (name, fallback) {
     try {
       var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
@@ -157,8 +251,55 @@
   // mousemove пересобирают DOM и вызывают дрожание. Петля mouseleave→mousemove исключена
   // тем, что попап не перехватывает мышь (pointer-events:none в CSS).
   // Параметры: { source, layer, key, highlightId, popup, html(props)->string, onEnter, onLeave }.
+  // Сделать легенду карты сворачиваемой: JS сам добавляет кнопку −/+ и оборачивает содержимое,
+  // поэтому шаблоны страниц менять не нужно. Идемпотентно.
+  // Смягчить шаг кнопок зума +/− (у NavigationControl в MapLibre шаг фиксированный = 1):
+  // заменяем обработчики кнопок на плавный easeTo с шагом ±0.5. Идемпотентно.
+  window.RL.softenZoomControls = function (map, step) {
+    step = step || 0.5;
+    var cont = map.getContainer && map.getContainer();
+    if (!cont || cont._rlSoftZoom) return;
+    cont._rlSoftZoom = true;
+    var rebind = function (sel, dir) {
+      var btn = cont.querySelector(sel);
+      if (!btn) return;
+      var clone = btn.cloneNode(true); // снять штатные обработчики
+      btn.parentNode.replaceChild(clone, btn);
+      clone.addEventListener("click", function (e) {
+        e.preventDefault();
+        map.easeTo({ zoom: map.getZoom() + dir * step, duration: 200 });
+      });
+    };
+    rebind(".maplibregl-ctrl-zoom-in", 1);
+    rebind(".maplibregl-ctrl-zoom-out", -1);
+  };
+
+  window.RL.makeLegendCollapsible = function (el) {
+    if (!el || el._rlCollapsible) return;
+    el._rlCollapsible = true;
+    var body = document.createElement("div");
+    body.className = "map-legend-body";
+    while (el.firstChild) body.appendChild(el.firstChild);
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "map-legend-toggle";
+    btn.textContent = "−";
+    btn.setAttribute("aria-label", gettext("Скрыть или показать легенду"));
+    btn.title = gettext("Скрыть или показать легенду");
+    btn.addEventListener("click", function () {
+      var col = el.classList.toggle("collapsed");
+      btn.textContent = col ? "+" : "−";
+    });
+    el.appendChild(btn);
+    el.appendChild(body);
+  };
+
   window.RL.attachMapHover = function (map, opts) {
     opts = opts || {};
+    // Идемпотентность: повторный вызов на той же карте (напр. после перезагрузки данных) не
+    // должен навешивать ещё один обработчик mousemove — иначе попапы дублируются и мигают.
+    if (map._rlHoverAttached) return;
+    map._rlHoverAttached = true;
     var source = opts.source || "regions";
     var layer = opts.layer || "fill";
     var key = opts.key || "okato";
@@ -197,13 +338,11 @@
       map.getCanvas().style.cursor = "pointer";
       var props = e.features[0].properties;
       var k = props[key];
-      if (popup) {
-        // Позицию обновляем всегда, содержимое — только при смене региона, а добавляем попап
-        // на карту ровно один раз: повторный addTo в MapLibre удаляет и заново вставляет DOM,
-        // из-за чего попап мигает и на кадр вспыхивает в углу по неустановленной позиции.
-        if (k !== current && htmlFor) popup.setHTML(htmlFor(props));
-        popup.setLngLat(e.lngLat);
-        if (!popup.isOpen()) popup.addTo(map);
+      // Вместо попапа MapLibre — общий DOM-тултип по координатам курсора: попап MapLibre при
+      // обновлении содержимого на кадр вспыхивал в углу карты (мерцание/«дубли»), DOM-тултип
+      // от геометрии карты не зависит и позиционируется мгновенно.
+      if (htmlFor && e.originalEvent) {
+        window.RL.tipShowAt(htmlFor(props), e.originalEvent.clientX, e.originalEvent.clientY);
       }
       if (k !== current) {
         map.setFilter(hlId, ["==", ["get", key], k == null ? "__none__" : k]);
@@ -213,6 +352,7 @@
     });
     map.on("mouseleave", layer, function () {
       map.getCanvas().style.cursor = "";
+      window.RL.tipHide();
       if (popup) popup.remove();
       map.setFilter(hlId, none);
       current = null;
@@ -414,9 +554,8 @@
     cfg = cfg || {};
     var out = Object.assign({ displaylogo: false }, cfg);
     // Панель инструментов Plotly должна быть доступна (в ней живут кнопки экспорта PNG/SVG),
-    // но не перекрывать контент. Страницы создают графики с displayModeBar:false — тогда экспорт
-    // недоступен вовсе. Режим "hover" — компромисс: панель всплывает поверх правого верхнего угла
-    // только при наведении на график и не загораживает заголовок/легенду в покое.
+    // но не перекрывать контент. Режим "hover" — панель всплывает поверх правого верхнего угла
+    // только при наведении и не загораживает заголовок/легенду в покое.
     out.displayModeBar = "hover";
     if (out.responsive === undefined) out.responsive = true;
     out.toImageButtonOptions = Object.assign(
@@ -444,30 +583,154 @@
     out.modeBarButtonsToAdd = add;
     return out;
   }
+  // Встроенная подсказка Plotly при рассинхроне размеров прижималась в угол (0,0) и мерцала.
+  // Делаем её полностью прозрачной (событие наведения при этом продолжает срабатывать) и рисуем
+  // собственный DOM-тултип по координатам курсора — он не зависит от внутренней геометрии Plotly,
+  // поэтому не «съезжает», не мерцает и не дублируется. Работает одинаково в обеих темах и языках.
+  function mergeLayout(layout) {
+    layout = layout || {};
+    layout.hoverlabel = Object.assign(
+      {
+        bgcolor: "rgba(0,0,0,0)",
+        bordercolor: "rgba(0,0,0,0)",
+        font: { color: "rgba(0,0,0,0)", size: 1 },
+      },
+      layout.hoverlabel || {}
+    );
+    return layout;
+  }
+
+  // Единственный переиспользуемый DOM-тултип для всех графиков.
+  var _tip = null;
+  function chartTip() {
+    if (_tip) return _tip;
+    _tip = document.createElement("div");
+    _tip.className = "rl-chart-tip";
+    _tip.style.cssText =
+      "position:fixed;z-index:9999;pointer-events:none;display:none;max-width:320px;" +
+      "padding:6px 9px;border-radius:7px;font-size:12px;line-height:1.35;" +
+      "box-shadow:0 4px 14px rgba(0,0,0,0.18);white-space:normal;";
+    document.body.appendChild(_tip);
+    return _tip;
+  }
+  function tipText(pt) {
+    if (pt == null) return "";
+    if (typeof pt.hovertext === "string" && pt.hovertext) return pt.hovertext;
+    var label = null,
+      value = null;
+    if (typeof pt.y === "string") {
+      label = pt.y;
+      value = pt.x;
+    } else if (typeof pt.x === "string") {
+      label = pt.x;
+      value = pt.y;
+    } else if (pt.theta != null) {
+      label = pt.theta;
+      value = pt.r;
+    } else {
+      label = pt.x;
+      value = pt.y;
+    }
+    if (typeof pt.customdata === "string") label = pt.customdata;
+    var v = typeof value === "number" ? (Math.round(value * 100) / 100).toString() : value;
+    return (label != null && label !== "" ? label + ": " : "") + (v == null ? "" : v);
+  }
+  function showTip(data) {
+    if (!data || !data.points || !data.points.length) return;
+    var texts = [];
+    for (var i = 0; i < data.points.length; i++) {
+      var t = tipText(data.points[i]);
+      if (t && texts.indexOf(t) === -1) texts.push(t);
+    }
+    if (!texts.length) return;
+    var tip = chartTip();
+    tip.style.background = window.RL ? RL.cssVar("--surface", "#fff") : "#fff";
+    tip.style.color = window.RL ? RL.cssVar("--ink", "#1c2530") : "#1c2530";
+    tip.style.border = "1px solid " + (window.RL ? RL.cssVar("--line", "#c9cfd6") : "#c9cfd6");
+    tip.innerHTML = texts
+      .map(function (t) {
+        return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      })
+      .join("<br>");
+    var ev = data.event;
+    var x = ev ? ev.clientX + 14 : 0;
+    var y = ev ? ev.clientY + 14 : 0;
+    tip.style.display = "block";
+    // Не выходить за правый/нижний край окна.
+    var r = tip.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = window.innerWidth - r.width - 8;
+    if (y + r.height > window.innerHeight - 8) y = ev.clientY - r.height - 14;
+    tip.style.left = Math.max(8, x) + "px";
+    tip.style.top = Math.max(8, y) + "px";
+  }
+  function hideTip() {
+    if (_tip) _tip.style.display = "none";
+  }
+  // Низкоуровневый показ тултипа: готовый HTML + позиция курсора (для карт и др. виджетов).
+  window.RL.tipShowAt = function (html, clientX, clientY) {
+    var tip = chartTip();
+    tip.style.background = window.RL ? RL.cssVar("--surface", "#fff") : "#fff";
+    tip.style.color = window.RL ? RL.cssVar("--ink", "#1c2530") : "#1c2530";
+    tip.style.border = "1px solid " + (window.RL ? RL.cssVar("--line", "#c9cfd6") : "#c9cfd6");
+    tip.innerHTML = html;
+    var x = clientX + 14;
+    var y = clientY + 14;
+    tip.style.display = "block";
+    var r = tip.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = clientX - r.width - 14;
+    if (y + r.height > window.innerHeight - 8) y = clientY - r.height - 14;
+    tip.style.left = Math.max(8, x) + "px";
+    tip.style.top = Math.max(8, y) + "px";
+  };
+  window.RL.tipHide = hideTip;
   function wrap(Plotly) {
     if (!Plotly || Plotly.__rlExport) return Plotly;
     var _newPlot = Plotly.newPlot;
     var _react = Plotly.react;
     Plotly.newPlot = function (el, data, layout, cfg) {
-      var p = _newPlot(el, data, layout, mergeConfig(Plotly, cfg, el));
+      var p = _newPlot(el, data, mergeLayout(layout), mergeConfig(Plotly, cfg, el));
       // Если график построен до того, как контейнер получил финальную ширину, координаты
       // наведения оказываются рассчитаны для неверного размера и подсказки «съезжают».
       // Выравниваем график под контейнер на следующем кадре — дёшево и безопасно.
       if (p && typeof p.then === "function") {
         p.then(function () {
-          requestAnimationFrame(function () {
+          var node = typeof el === "string" ? document.getElementById(el) : el;
+          if (!node) return;
+          var doResize = function () {
             try {
-              var node = typeof el === "string" ? document.getElementById(el) : el;
-              if (node && Plotly.Plots && Plotly.Plots.resize) Plotly.Plots.resize(node);
+              if (Plotly.Plots && Plotly.Plots.resize) Plotly.Plots.resize(node);
             } catch (e) {}
-          });
+          };
+          requestAnimationFrame(doResize);
+          // Собственный тултип по курсору вместо встроенной подсказки Plotly (ставится один раз).
+          if (!node._rlTip && typeof node.on === "function") {
+            node._rlTip = true;
+            node.on("plotly_hover", showTip);
+            node.on("plotly_unhover", hideTip);
+            node.addEventListener("mouseleave", hideTip);
+          }
+          // Веб-шрифты (Golos/Lora) грузятся асинхронно и меняют метрики текста и размер
+          // контейнера уже после первой отрисовки — пересчитываем график, когда они готовы.
+          if (document.fonts && document.fonts.ready) document.fonts.ready.then(doResize);
+          setTimeout(doResize, 350);
+          // Контейнер может получить финальную ширину позже (шрифты, вкладки, скроллбар,
+          // раскрытие карточек). ResizeObserver держит график в размер контейнера, поэтому
+          // координаты наведения и подписи не «съезжают». Наблюдатель ставится один раз.
+          if (window.ResizeObserver && !node._rlRO) {
+            var raf = null;
+            node._rlRO = new ResizeObserver(function () {
+              if (raf) cancelAnimationFrame(raf);
+              raf = requestAnimationFrame(doResize);
+            });
+            node._rlRO.observe(node);
+          }
         });
       }
       return p;
     };
     if (_react) {
       Plotly.react = function (el, data, layout, cfg) {
-        return _react(el, data, layout, mergeConfig(Plotly, cfg, el));
+        return _react(el, data, mergeLayout(layout), mergeConfig(Plotly, cfg, el));
       };
     }
     Plotly.__rlExport = true;

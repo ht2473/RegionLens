@@ -1,8 +1,8 @@
-/* RegionLens — дашборд региона (Ф7, модуль 3).
+/* RegionLens — дашборд региона.
    Тянет /api/regions/<okato>/?year= и /api/transitions/?okato= и рисует:
    KPI (индекс+B4-дельта, ранг, тип+типичность, траектория), радар профиля по доменам,
-   диверг-бары изменения по доменам (B4), SHAP-вклад, шаговую траекторию типа по годам.
-   Формулировки: B4 — арифметика по доменам; SHAP — объяснение классификатора, не причинность. */
+   диверг-бары изменения по доменам, SHAP-вклад, шаговую траекторию типа по годам.
+   Формулировки: арифметика по доменам; SHAP — объяснение классификатора, не причинность. */
 
 (function () {
   "use strict";
@@ -151,13 +151,25 @@
   // Верхний отступ увеличен до 34px по всем графикам divergeBars(): при 10px подсказка при
   // наведении на самый верхний столбец (нет места сверху для её якоря) выходила за пределы
   // области построения и «наезжала» на заголовок карточки/модбар — недостаточный запас сверху.
+  // Обрезка длинной подписи для оси; полное имя показывается в подсказке.
+  function truncLabel(text, n) {
+    text = String(text == null ? "" : text);
+    return text.length > n ? text.slice(0, n - 1) + "…" : text;
+  }
+
   function divergeBars(id, labels, values, opts) {
     opts = opts || {};
     var colors = values.map(function (v) { return v >= 0 ? POS : NEG; });
+    var trace = { type: "bar", orientation: "h", x: values, y: labels, marker: { color: colors },
+      hovertemplate: "%{y}: %{x:.2f}<extra></extra>" };
+    if (opts.hover) {
+      // Полное (необрезанное) название — в подсказку через customdata.
+      trace.customdata = opts.hover;
+      trace.hovertemplate = "%{customdata}: %{x:.2f}<extra></extra>";
+    }
     Plotly.newPlot(
       id,
-      [{ type: "bar", orientation: "h", x: values, y: labels, marker: { color: colors },
-        hovertemplate: "%{y}: %{x:.2f}<extra></extra>" }],
+      [trace],
       { font: FONT, margin: { t: 34, b: 30, l: opts.left || 130, r: 20 },
         height: opts.height || 300, paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
         xaxis: { zeroline: true, zerolinecolor: RL.cssVar("--line", "#b9c2cb"), gridcolor: GRID },
@@ -196,11 +208,12 @@
       return;
     }
     var ordered = shap.slice().reverse(); // крупнейший |вклад| — сверху
+    var full = ordered.map(function (s) { return s.metric_name || "metric " + s.metric_id; });
     divergeBars(
       "chart-shap",
-      ordered.map(function (s) { return s.metric_name || "metric " + s.metric_id; }),
+      full.map(function (name) { return truncLabel(name, 40); }),
       ordered.map(function (s) { return s.shap_value; }),
-      { left: 240, height: 340 }
+      { left: 240, height: 340, hover: full }
     );
   }
 

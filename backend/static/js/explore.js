@@ -244,6 +244,7 @@
       .catch(function (e) {
         if (state.view === "map") {
           var el = document.getElementById("ex-map-legend");
+          if (el && el.querySelector(".map-legend-body")) el = el.querySelector(".map-legend-body");
           if (el) el.innerHTML = "<div class='legend-note'>" + RL.errText(e) + "</div>";
         } else {
           shell($values, RL.errText(e));
@@ -351,7 +352,7 @@
             return r.json();
           })
           .then(function (fc) {
-            geo = fc;
+            geo = window.RL && RL.unwrapGeojson ? RL.unwrapGeojson(fc) : fc;
             map.addSource("regions", { type: "geojson", data: geo });
             map.addLayer({
               id: "fill",
@@ -366,6 +367,11 @@
               paint: { "line-color": RL.cssVar("--map-line", "#ffffff"), "line-width": 0.6 },
             });
             wire();
+            if (window.RL && RL.fitToData) RL.fitToData(map, geo, 18);
+            if (window.RL && RL.softenZoomControls) RL.softenZoomControls(map, 0.5);
+            if (window.RL && RL.makeLegendCollapsible) {
+              RL.makeLegendCollapsible(document.getElementById("ex-map-legend"));
+            }
             if (window.RL && RL.onTheme) {
               RL.onTheme(function () {
                 try {
@@ -424,6 +430,7 @@
 
     function renderLegend(lo, hi) {
       var el = document.getElementById("ex-map-legend");
+      if (el && el.querySelector(".map-legend-body")) el = el.querySelector(".map-legend-body");
       if (!el) return;
       var unit = state.metric && state.metric.unit ? " · " + esc(state.metric.unit) : "";
       el.innerHTML =
@@ -550,7 +557,7 @@
   if (p.get("domain")) $domain.value = p.get("domain");
   if (p.get("q")) $search.value = p.get("q");
   var urlYear = parseInt(p.get("year"), 10);
-  if (!isNaN(urlYear)) state.year = urlYear;
+  if (!isNaN(urlYear) && urlYear >= 2000 && urlYear <= 2100) state.year = urlYear;
   if (p.get("view") === "map") state.view = "map";
   var urlMetric = parseInt(p.get("metric"), 10);
 

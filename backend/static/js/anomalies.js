@@ -115,7 +115,7 @@
         return r.json();
       })
       .then(function (fc) {
-        geo = fc;
+        geo = window.RL && RL.unwrapGeojson ? RL.unwrapGeojson(fc) : fc;
         map.addSource("regions", { type: "geojson", data: geo });
         map.addLayer({
           id: "fill",
@@ -131,6 +131,11 @@
         });
         wire();
         updateMap();
+        if (window.RL && RL.fitToData) RL.fitToData(map, geo, 18);
+        if (window.RL && RL.softenZoomControls) RL.softenZoomControls(map, 0.5);
+        if (window.RL && RL.makeLegendCollapsible) {
+          RL.makeLegendCollapsible(document.getElementById("map-legend"));
+        }
         if (window.RL && RL.onTheme) {
           RL.onTheme(function () {
             try {
@@ -182,6 +187,7 @@
 
   function renderLegend() {
     var el = document.getElementById("map-legend");
+    if (el && el.querySelector(".map-legend-body")) el = el.querySelector(".map-legend-body");
     if (!el) return;
     el.innerHTML =
       "<div class='legend-title'>" + gettext("Пространственные выбросы") + "</div>" +
