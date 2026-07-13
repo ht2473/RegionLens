@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 # Playwright (sync API) исполняется внутри событийного цикла; Django распознаёт такой
 # контекст как асинхронный и без флага блокирует обращения к ORM из тестовых фикстур
@@ -24,6 +25,11 @@ os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "true")
 
 import pytest
 from playwright.sync_api import ConsoleMessage, Error, Page
+
+# STATIC_ROOT создаётся при импорте conftest (это раньше старта любого сервера):
+# live_server (session-scope) поднимается прежде function-фикстур верхнего уровня,
+# и WhiteNoise на первом запросе предупреждал об отсутствующем каталоге статики.
+(Path(__file__).resolve().parents[2] / "staticfiles").mkdir(exist_ok=True)
 
 
 @pytest.fixture(scope="session")

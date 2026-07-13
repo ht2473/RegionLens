@@ -53,6 +53,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # Витрина data/regionlens.duckdb хранится в Git LFS; checkout по умолчанию оставляет
+      # вместо неё текстовый указатель, и все API-запросы падают с «not a valid DuckDB
+      # database file». Объекты LFS кэшируются по их идентификаторам: сетевая загрузка
+      # (и квота LFS-трафика GitHub) расходуется только при фактической смене витрины.
+      - name: Ключ кэша LFS
+        run: git lfs ls-files --long | cut -d ' ' -f1 | sort > .lfs-ids
+      - name: Кэш объектов LFS
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-ids') }}
+      - name: Загрузка витрины DuckDB (Git LFS)
+        run: git lfs pull
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
