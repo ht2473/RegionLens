@@ -1,0 +1,32 @@
+# Обновление витрины RegionLens: одна прогонка management-команды refresh_data.
+#
+# Запускается вручную (`systemctl start regionlens-refresh.service`) или автоматически
+# path-юнитом regionlens-refresh.path при появлении *.parquet в каталоге приёма.
+# Команда сама делает staging-сборку, проверку, бэкап и атомарную подмену файла;
+# работающие воркеры gunicorn подхватывают новую витрину без рестарта (горячее
+# переподключение по сигнатуре файла в core.duck).
+#
+# Пути ниже — примерная раскладка развёртывания (/opt/regionlens, venv рядом,
+# переменные окружения в /etc/regionlens.env) — поправьте под свой сервер.
+# Окружению нужны зависимости конвейера: pip install -e ".[pipeline,backend]".
+
+[Unit]
+Description=RegionLens: обновление витрины DuckDB из принятой выгрузки
+# Не запускать параллельно с самим собой (Type=oneshot это уже гарантирует),
+# сеть не требуется: выгрузка уже лежит на диске.
+
+[Service]
+Type=oneshot
+User=regionlens
+Group=regionlens
+WorkingDirectory=/opt/regionlens
+EnvironmentFile=/etc/regionlens.env
+ExecStart=/opt/regionlens/.venv/bin/python backend/manage.py refresh_data
+# Пересборка всей аналитики — минуты; щедрый таймаут на медленных VPS.
+TimeoutStartSec=30min
+# Журнал команды — в systemd journal: journalctl -u regionlens-refresh.service
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -29,6 +29,12 @@ DATABASES = {"default": env.db("DATABASE_URL", default=_default_db)}
 
 # OLAP: путь к DuckDB-файлу (read-only из приложения; владелец — конвейер).
 DUCKDB_PATH = env("DUCKDB_PATH", default=str(REPO_ROOT / "data" / "regionlens.duckdb"))
+
+# Обновление витрины (management-команда refresh_data): каталог приёма ручных
+# parquet-выгрузок и путь к реестру источников конвейера. Оба переопределяемы через
+# окружение — на сервере каталог приёма может жить вне дерева репозитория.
+DATA_INCOMING_DIR = env("DATA_INCOMING_DIR", default=str(REPO_ROOT / "data" / "incoming"))
+SOURCES_REGISTRY = env("SOURCES_REGISTRY", default=str(REPO_ROOT / "config" / "sources.yaml"))
 # Каталог обученных ML-моделей (карточки читает витрина «Модели»).
 MODELS_DIR = env("MODELS_DIR", default=str(REPO_ROOT / "models"))
 

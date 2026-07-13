@@ -1,6 +1,6 @@
 {
   "name": "anomaly_detector",
-  "created": "2026-07-07T22:49:06+00:00",
+  "created": "2026-07-13T23:39:02+00:00",
   "estimator": "IsolationForest",
   "sklearn_version": "1.7.2",
   "params": {

@@ -1,6 +1,6 @@
 {
   "name": "typology_classifier",
-  "created": "2026-07-07T22:48:41+00:00",
+  "created": "2026-07-13T23:38:51+00:00",
   "estimator": "HistGradientBoostingClassifier",
   "sklearn_version": "1.7.2",
   "params": {

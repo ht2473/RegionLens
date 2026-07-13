@@ -1,0 +1,22 @@
+# Автозапуск обновления витрины RegionLens при появлении выгрузки.
+#
+# Срабатывает, когда в каталоге приёма появляется хотя бы один *.parquet
+# (например, файл загружен через scp), и запускает regionlens-refresh.service.
+# После успешного обновления команда перемещает файл в data/incoming/processed/ —
+# условие срабатывания гаснет до следующей выгрузки.
+#
+# Установка:
+#   sudo mkdir -p /opt/regionlens/data/incoming
+#   sudo cp deploy/systemd/regionlens-refresh.* /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now regionlens-refresh.path
+
+[Unit]
+Description=RegionLens: наблюдение за каталогом приёма выгрузок
+
+[Path]
+PathExistsGlob=/opt/regionlens/data/incoming/*.parquet
+Unit=regionlens-refresh.service
+
+[Install]
+WantedBy=multi-user.target
