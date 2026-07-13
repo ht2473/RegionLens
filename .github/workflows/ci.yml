@@ -44,3 +44,26 @@ jobs:
       - name: Pytest
         # Прогон тестов с измерением покрытия; порог 85% — гейт качества.
         run: pytest --cov=core --cov=config --cov=pipeline --cov-report=term-missing --cov-fail-under=85
+
+  e2e:
+    # Браузерные сценарии (Playwright): проверяют рендер и поведение страниц, невидимые
+    # для серверных тестов, — горячие клавиши, геометрию шапки, тему карт, панель
+    # экспорта графиков. Живому серверу достаточно backend-зависимостей: коллекция
+    # ограничена tests/e2e и не импортирует модули конвейера.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[backend,dev]"
+      - name: Playwright browsers
+        # --with-deps ставит системные библиотеки chromium на раннере Ubuntu.
+        run: python -m playwright install --with-deps chromium
+      - name: E2E
+        run: pytest tests/e2e -m e2e --browser chromium

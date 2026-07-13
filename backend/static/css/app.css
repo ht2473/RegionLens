@@ -130,9 +130,14 @@ small { color: var(--ink-faint); }
 .nav-user { display: inline-flex; align-items: center; gap: 3px; padding: 3px 4px; white-space: nowrap; }
 .nav-avatar {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 28px; height: 28px; border-radius: 50%;
+  /* 24px, а не больше: аватар — единственный блок фиксированной высоты в шапке.
+     При 28px кнопка аккаунта (28 + 12px паддингов = 40px) перерастала логотип
+     (37.1px) и приподнимала всю шапку на ~3px только для вошедших — тот самый
+     «прыжок» между состояниями входа, зафиксированный e2e-тестом высоты шапки.
+     При 24px (24 + 12 = 36px) высоту строки в обоих состояниях задаёт логотип. */
+  width: 24px; height: 24px; border-radius: 50%;
   background: var(--accent-soft); color: var(--accent-deep);
-  font-size: 0.82rem; font-weight: 600; line-height: 1;
+  font-size: 0.78rem; font-weight: 600; line-height: 1;
 }
 .nav-user:hover .nav-avatar, .nav-user.is-active .nav-avatar { background: var(--accent); color: #fff; }
 .nav-logout { display: inline; margin: 0; }

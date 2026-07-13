@@ -45,6 +45,7 @@ dev = [                   # инструменты разработки
   "pytest>=8.2",
   "pytest-django>=4.8",
   "pytest-cov>=5.0",
+  "pytest-playwright>=0.5",  # браузерные e2e-сценарии (pytest -m e2e)
   "ruff>=0.5",
   "mypy>=1.10",
   "pre-commit>=3.7",
@@ -89,7 +90,13 @@ python_files = ["test_*.py"]
 # Порядок важен: backend/ перед корнем, чтобы пакет `config` (Django) имел приоритет
 # над одноимённым каталогом config/ с YAML (он не является Python-пакетом).
 pythonpath = ["backend", "."]
-addopts = "-q"
+# Браузерные сценарии исключены из прогона по умолчанию: они требуют установленных
+# браузеров Playwright и живого рендера. Запуск: `pytest -m e2e` (явный -m в командной
+# строке имеет приоритет над addopts).
+addopts = "-q -m 'not e2e'"
+markers = [
+  "e2e: браузерные сценарии Playwright (нужны браузеры: python -m playwright install chromium)",
+]
 
 [tool.coverage.run]
 # Покрытие измеряется по прикладному коду; автогенерируемые миграции не учитываются.

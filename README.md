@@ -132,7 +132,7 @@ RegionLens/
 │   └── run_all.py          # оркестратор конвейера
 ├── config/                 # YAML-конфиги аналитики (веса, пороги, домены)
 ├── data/                   # сырьё (DVC) и генерируемое хранилище DuckDB
-├── tests/                  # pytest (юнит + интеграционные + нагрузочные)
+├── tests/                  # pytest (юнит + интеграционные + нагрузочные + e2e)
 ├── docker-compose.yml
 ├── Makefile
 └── pyproject.toml
@@ -205,7 +205,8 @@ make install    # установка проекта со всеми группа
 make lint       # ruff check + ruff format --check
 make format     # автоформат и автофиксы
 make type       # mypy (strict)
-make test       # pytest
+make test       # pytest (браузерные e2e исключены из прогона по умолчанию)
+make e2e        # браузерные сценарии Playwright (первый запуск скачает chromium)
 make audit      # pip-audit — аудит зависимостей на уязвимости
 make load       # нагрузочный замер locust (нужен поднятый сервер)
 ```
@@ -217,7 +218,7 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-Непрерывная интеграция (GitHub Actions) прогоняет линт, форматирование, проверку типов, валидацию OpenAPI-схемы и тесты на каждый push.
+Непрерывная интеграция (GitHub Actions) прогоняет линт, форматирование, проверку типов, валидацию OpenAPI-схемы, тесты и браузерные e2e-сценарии (Playwright) на каждый push.
 
 ---
 

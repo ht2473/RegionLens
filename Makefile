@@ -17,6 +17,10 @@ type:             ## Проверить типы (mypy)
 test:             ## Прогнать тесты (pytest)
 	pytest
 
+e2e:              ## Браузерные сценарии Playwright (первый запуск скачает chromium)
+	python -m playwright install chromium
+	pytest tests/e2e -m e2e
+
 pipeline:         ## Пересобрать всю аналитику офлайн-конвейером
 	python -m pipeline.run_all
 
