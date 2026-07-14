@@ -194,7 +194,7 @@ python -m pipeline.run_all --only twins      # пересобрать ровно
 | `DATA_INCOMING_DIR` | Каталог приёма parquet-выгрузок для `refresh_data` (по умолчанию `data/incoming/`) |
 | `SOURCES_REGISTRY` | Путь к реестру источников конвейера (по умолчанию `config/sources.yaml`) |
 
-При `DJANGO_DEBUG=false` автоматически включаются HTTPS-редирект, secure-cookies и HSTS — боевые настройки безопасности проходят `python backend/manage.py check --deploy` без замечаний. Конфигурации развёртывания (docker-compose с nginx/Prometheus/Grafana, systemd-юниты обновления данных) — в каталоге [`deploy/`](deploy/).
+При `DJANGO_DEBUG=false` автоматически включаются HTTPS-редирект, secure-cookies и HSTS — боевые настройки безопасности проходят `python backend/manage.py check --deploy` без замечаний. Пошаговая инструкция развёртывания на чистом VPS (Docker Compose, nginx, TLS, бэкапы, обновление) — в [`docs/DEPLOY.md`](docs/DEPLOY.md); конфигурации и systemd-юниты — в каталоге [`deploy/`](deploy/).
 
 > **Важно при развёртывании за обратным прокси на своём домене:** задайте `DJANGO_CSRF_TRUSTED_ORIGINS` — без него POST-формы (вход, смена языка, избранное) вернут 403. Если TLS терминируется прокси, оставьте `DJANGO_TRUST_PROXY_SSL=true` (по умолчанию в проде), а прокси должен передавать заголовок `X-Forwarded-Proto`.
 

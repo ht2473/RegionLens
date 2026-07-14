@@ -1,0 +1,42 @@
+# deploy/nginx/nginx.conf.template — обратный прокси перед gunicorn-приложением.
+#
+# Это ШАБЛОН: официальный образ nginx подставляет переменную ${DOMAIN} из окружения
+# (envsubst для файлов в /etc/nginx/templates/) при старте контейнера. Значение задаётся
+# в .env → docker-compose.prod.yml прокидывает его в сервис nginx.
+#
+# Статику отдаёт само приложение (WhiteNoise со сжатием и хешированными именами),
+# поэтому nginx только проксирует запросы и не монтирует каталог статики.
+#
+# TLS: этот файл слушает 80/HTTP. На боевом VPS HTTPS обычно добавляют одним из способов
+# (см. docs/DEPLOY.md, раздел «TLS-сертификат»):
+#   • хостовой reverse-proxy/Caddy с автоматическим Let's Encrypt перед этим nginx;
+#   • расширение сервиса nginx контейнером certbot и вторым server-блоком на 443.
+
+upstream regionlens_app {
+    server app:8000;
+}
+
+server {
+    listen 80;
+    # Имя хоста берётся из окружения (${DOMAIN}); '_' в фолбэке ловит любой хост при
+    # локальной проверке. На проде подставляется реальный домен из .env.
+    server_name ${DOMAIN} _;
+
+    # Запас на выгрузки/экспорт (xlsx/docx/pdf).
+    client_max_body_size 20m;
+
+    # Метрики Prometheus наружу не отдаются: Prometheus собирает их напрямую внутри
+    # docker-сети сервиса app, публичный доступ к /metrics закрыт.
+    location = /metrics {
+        return 403;
+    }
+
+    location / {
+        proxy_pass http://regionlens_app;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_redirect off;
+    }
+}

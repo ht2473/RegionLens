@@ -1,27 +1,36 @@
-# docker-compose.prod.yml — «production-like» стек RegionLens для локальной демонстрации
-# и развёртывания на своём сервере (VPS): nginx + приложение (gunicorn) + PostgreSQL + Redis
-# + Prometheus + Grafana. Точка входа — nginx на порту 8080.
+# docker-compose.prod.yml — боевой стек RegionLens для развёртывания на отдельном VPS.
 #
-# Запуск:  docker compose -f docker-compose.prod.yml up -d --build
-# Секреты (пароли, ключ) задаются переменными окружения; значения по умолчанию — только для локали.
+# Состав: nginx (точка входа) → приложение (gunicorn) → PostgreSQL + Redis.
+# Мониторинг (Prometheus + Grafana) вынесен в опциональный профиль `monitoring`,
+# чтобы базовый стек оставался лёгким на скромном VPS.
+#
+# Запуск базового стека:
+#     docker compose -f docker-compose.prod.yml up -d --build
+# Запуск вместе с мониторингом:
+#     docker compose -f docker-compose.prod.yml --profile monitoring up -d --build
+#
+# Все секреты и домен задаются через файл .env рядом с этим compose (см. .env.example).
+# Значения по умолчанию пригодны только для локальной проверки, но НЕ для реального прода.
 
 services:
   postgres:
     image: postgres:16
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: regionlens
+      POSTGRES_USER: ${POSTGRES_USER:-regionlens}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-regionlens}
-      POSTGRES_DB: regionlens
+      POSTGRES_DB: ${POSTGRES_DB:-regionlens}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U regionlens"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-regionlens}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     volumes:
       - redisdata:/data
 
@@ -29,22 +38,33 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile.prod
-    # Миграции и демо-данные применяются при старте, затем поднимается gunicorn.
+    restart: unless-stopped
+    # Схема БД приводится к актуальной при старте (миграции идемпотентны). Наполнение
+    # боевыми данными — отдельный шаг развёртывания (см. docs/DEPLOY.md), а НЕ автозапуск:
+    # seed_demo здесь не вызывается, чтобы не трогать реальные пользовательские данные.
     command: >
       sh -c "python backend/manage.py migrate --no-input &&
-             python backend/manage.py seed_demo &&
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 60"
     environment:
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-change-me-to-a-long-random-string}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?укажите DJANGO_SECRET_KEY в .env}
       DJANGO_DEBUG: "false"
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}
-      DATABASE_URL: postgres://regionlens:${POSTGRES_PASSWORD:-regionlens}@postgres:5432/regionlens
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-}
+      DATABASE_URL: postgres://${POSTGRES_USER:-regionlens}:${POSTGRES_PASSWORD:-regionlens}@postgres:5432/${POSTGRES_DB:-regionlens}
       REDIS_URL: redis://redis:6379/0
       DUCKDB_PATH: /app/data/regionlens.duckdb
-      # Приложение за TLS-терминирующим прокси — доверяет X-Forwarded-Proto.
+      # Приложение за TLS-терминирующим прокси (nginx/хостовый reverse-proxy) —
+      # доверяет заголовку X-Forwarded-Proto для корректных HTTPS-редиректов и cookie.
       DJANGO_TRUST_PROXY_SSL: "true"
     expose:
       - "8000"
+    healthcheck:
+      # Приложение считается живым, когда отвечает healthz (nginx ждёт этого).
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz/', timeout=5).status==200 else 1)\""]
+      interval: 15s
+      timeout: 8s
+      retries: 5
+      start_period: 40s
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,25 +73,39 @@ services:
 
   nginx:
     image: nginx:1.27-alpine
+    restart: unless-stopped
+    # Шаблон конфигурации: nginx подставит ${DOMAIN} из окружения при старте
+    # (envsubst встроен в официальный образ для файлов из templates/).
     volumes:
-      - ./deploy/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./deploy/nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    # Порт публикации регулируется .env: по умолчанию 8080 (чтобы не конфликтовать при
+    # локальной проверке), на боевом VPS обычно ставят HTTP_PORT=80 и терминируют TLS
+    # хостовым reverse-proxy/Caddy, либо расширяют этот сервис certbot'ом (см. docs/DEPLOY.md).
     ports:
-      - "8080:80"
+      - "${HTTP_PORT:-8080}:80"
     depends_on:
-      - app
+      app:
+        condition: service_healthy
 
+  # ---- Опциональный мониторинг (профиль `monitoring`) --------------------------------
   prometheus:
     image: prom/prometheus:v3.1.0
+    restart: unless-stopped
+    profiles: ["monitoring"]
     volumes:
       - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - promdata:/prometheus
-    ports:
-      - "9090:9090"
+    expose:
+      - "9090"
     depends_on:
       - app
 
   grafana:
     image: grafana/grafana:11.4.0
+    restart: unless-stopped
+    profiles: ["monitoring"]
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_USERS_ALLOW_SIGN_UP: "false"
@@ -79,7 +113,7 @@ services:
       - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
       - grafanadata:/var/lib/grafana
     ports:
-      - "3000:3000"
+      - "${GRAFANA_PORT:-3000}:3000"
     depends_on:
       - prometheus
 
