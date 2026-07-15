@@ -42,14 +42,9 @@
 
   // Нормированные проценты веса по текущим значениям ползунков (сумма = 100%, либо равные
   // доли, если пользователь обнулил все веса разом) — та же нормировка, что и на бэкенде.
+  // Общая формула вынесена в RL.normalizeWeights (её же покрывают юнит-тесты).
   function normalizedPct() {
-    var total = 0;
-    DOMAINS.forEach(function (d) { total += Math.max(0, weights[d[0]] || 0); });
-    var out = {};
-    DOMAINS.forEach(function (d) {
-      out[d[0]] = total > 0 ? (100 * Math.max(0, weights[d[0]] || 0)) / total : 100 / DOMAINS.length;
-    });
-    return out;
+    return RL.normalizeWeights(weights, DOMAINS.map(function (d) { return d[0]; }));
   }
 
   function buildSliders() {

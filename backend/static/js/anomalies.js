@@ -1,4 +1,4 @@
-/* RegionLens — страница аномалий (Ф9, модуль 4). Доступ — роль analyst.
+/* RegionLens — страница аномалий. Доступ — роль analyst.
    Карта пространственных выбросов за год (IsolationForest) + списки резких структурных
    сдвигов рядов и кандидатов смены методологии (A3). Всё это диагностика данных —
    находки для проверки аналитиком, НЕ утверждение о причинах. Данные — /api/anomalies/. */
@@ -91,72 +91,30 @@
   // ── Карта пространственных выбросов (зависит от года) ──
   if (!root || typeof maplibregl === "undefined") return;
 
-  var map = new maplibregl.Map({
+  // Общая фабрика карты (см. RL.createRegionMap): создание, слои и кадрирование — там;
+  // здесь только специфика карты выбросов через хуки. Заливку по теме не перекрашиваем —
+  // цвета (выброс/норма/нет данных) выставляются в updateMap при каждой смене года.
+  var handle = RL.createRegionMap({
     container: "map",
-    style: {
-      version: 8,
-      sources: {},
-      layers: [{ id: "bg", type: "background", paint: { "background-color": RL.cssVar("--map-bg", "#eaf0f1") } }],
+    legend: "#map-legend",
+    geojsonUrl: GEOJSON_URL,
+    onReady: function (ctx) {
+      geo = ctx.geo; // хендлер года мутирует этот FeatureCollection и перерисовывает источник
+      wire();
+      updateMap();
     },
-    center: [99, 66],
-    zoom: 2,
-    minZoom: 1.6,
-    maxBounds: [[5, 25], [205, 86]],
-    renderWorldCopies: false,
-    attributionControl: false,
+    onError: function () {
+      root.innerHTML =
+        '<div class="shell"><p>' +
+        gettext(
+          "Не удалось загрузить границы регионов. Сформируйте <code>static/geo/regions.geojson</code> (см. README)."
+        ) +
+        "</p></div>";
+    },
   });
-  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-  var popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
-
-  map.on("load", function () {
-    fetch(GEOJSON_URL)
-      .then(function (r) {
-        if (!r.ok) throw new Error("geojson " + r.status);
-        return r.json();
-      })
-      .then(function (fc) {
-        geo = window.RL && RL.unwrapGeojson ? RL.unwrapGeojson(fc) : fc;
-        map.addSource("regions", { type: "geojson", data: geo });
-        map.addLayer({
-          id: "fill",
-          type: "fill",
-          source: "regions",
-          paint: { "fill-color": NODATA, "fill-opacity": 0.85 },
-        });
-        map.addLayer({
-          id: "line",
-          type: "line",
-          source: "regions",
-          paint: { "line-color": RL.cssVar("--map-line", "#ffffff"), "line-width": 0.6 },
-        });
-        wire();
-        updateMap();
-        if (window.RL && RL.fitToData) RL.fitToData(map, geo, 18);
-        if (window.RL && RL.softenZoomControls) RL.softenZoomControls(map, 0.5);
-        if (window.RL && RL.makeLegendCollapsible) {
-          RL.makeLegendCollapsible(document.getElementById("map-legend"));
-        }
-        if (window.RL && RL.onTheme) {
-          RL.onTheme(function () {
-            try {
-              if (!map.getLayer || !map.getLayer("bg")) return;
-              map.setPaintProperty("bg", "background-color", RL.cssVar("--map-bg", "#eaf0f1"));
-              if (map.getLayer("line"))
-                map.setPaintProperty("line", "line-color", RL.cssVar("--map-line", "#ffffff"));
-              NODATA = RL.cssVar("--map-nodata", "#dcdcdc");
-            } catch (e) {}
-          });
-        }
-      })
-      .catch(function () {
-        root.innerHTML =
-          '<div class="shell"><p>' +
-          gettext(
-            "Не удалось загрузить границы регионов. Сформируйте <code>static/geo/regions.geojson</code> (см. README)."
-          ) +
-          "</p></div>";
-      });
-  });
+  if (!handle) return;
+  var map = handle.map;
+  var popup = handle.popup;
 
   function updateMap() {
     fetch(API + "?kind=spatial&year=" + encodeURIComponent(state.year))

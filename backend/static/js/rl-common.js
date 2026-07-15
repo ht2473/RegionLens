@@ -1,4 +1,4 @@
-/* RegionLens — общий клиентский помощник (Фаза 3).
+/* RegionLens — общий клиентский помощник.
    Подключается из base.html ДО постраничных скриптов, доступен как window.RL.
    Назначение — единый понятный текст ошибки на всех страницах: сетевой сбой (fetch отклонён,
    сервер недоступен, база не собрана) больше не показывает сырое браузерное «Failed to fetch». */
@@ -358,6 +358,142 @@
       current = null;
       if (typeof opts.onLeave === "function") opts.onLeave();
     });
+  };
+
+  // Конфигурация базовой карты субъектов РФ (объект для конструктора maplibregl.Map).
+  // Единые для всех страниц значения: пустой стиль без внешних тайлов (рисуем только
+  // полигоны из geojson), фон-подложка по теме, центр и рамки панорамы по территории
+  // страны, антимеридиан не копируем (renderWorldCopies=false). Переопределяемы zoom и
+  // minZoom — рейтингу нужен более общий стартовый план, чем детальным картам.
+  // Чистая функция (без обращения к DOM/MapLibre, кроме чтения CSS-переменной темы) —
+  // удобно тестировать отдельно от браузера.
+  window.RL.regionMapConfig = function (opts) {
+    opts = opts || {};
+    return {
+      container: opts.container,
+      style: {
+        version: 8,
+        sources: {},
+        layers: [
+          { id: "bg", type: "background", paint: { "background-color": window.RL.cssVar("--map-bg", "#eaf0f1") } },
+        ],
+      },
+      center: [99, 66],
+      zoom: opts.zoom == null ? 2 : opts.zoom,
+      minZoom: opts.minZoom == null ? 1.6 : opts.minZoom,
+      maxBounds: [[5, 25], [205, 86]],
+      renderWorldCopies: false,
+      attributionControl: false,
+    };
+  };
+
+  // Фабрика хороплета субъектов РФ: единая инициализация, общая для всех карт приложения
+  // (обзор, аномалии, обзор показателей, рейтинг). Раньше этот блок дублировался в четырёх
+  // файлах; здесь он один, а различия страниц вынесены в опции и хуки. Карта создаётся
+  // синхронно и сразу возвращается ({ map, popup }) — постраничные обработчики (слайдер года,
+  // кнопки) навешиваются на неё до события load. Загрузка geojson, добавление слоёв заливки
+  // и контура, кадрирование, смягчение зума, сворачивание легенды и базовая реакция на тему
+  // (фон + контур) выполняются на load; всё, что специфично для страницы, вызывается через
+  // хуки onReady/onTheme/onError. Возвращает null, если MapLibre недоступен или нет контейнера
+  // (страница тогда работает без карты — как и прежде под guard'ами).
+  //
+  // Опции:
+  //   container   — id элемента-контейнера (обязателен);
+  //   zoom,minZoom — стартовый и минимальный зум (по умолчанию 2 и 1.6);
+  //   fillOpacity — прозрачность заливки (по умолчанию 0.85);
+  //   lineWidth   — толщина контура (по умолчанию 0.6);
+  //   legend      — CSS-селектор блока легенды для сворачивания (необязателен);
+  //   geojsonUrl  — источник границ (по умолчанию /static/geo/regions.geojson);
+  //   extraLayers — массив дополнительных слоёв, добавляемых после заливки и контура
+  //                 (напр. слои подсветки/выбора на рейтинге);
+  //   onReady(ctx)— вызывается после добавления слоёв и кадрирования; ctx = { map, popup, geo };
+  //   onTheme(ctx)— расширение реакции на тему сверх фона и контура (напр. перекраска
+  //                 доп. слоёв и заливки); вызывается внутри общего обработчика темы;
+  //   onError(err)— обработка недоступного geojson (показать сообщение, скрыть блок и т.п.).
+  window.RL.createRegionMap = function (opts) {
+    opts = opts || {};
+    var el = typeof opts.container === "string" ? document.getElementById(opts.container) : opts.container;
+    if (!el || typeof maplibregl === "undefined") return null;
+
+    var map = new maplibregl.Map(window.RL.regionMapConfig(opts));
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    var popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
+
+    var geojsonUrl = opts.geojsonUrl || "/static/geo/regions.geojson";
+    var fillOpacity = opts.fillOpacity == null ? 0.85 : opts.fillOpacity;
+    var lineWidth = opts.lineWidth == null ? 0.6 : opts.lineWidth;
+
+    map.on("load", function () {
+      fetch(geojsonUrl)
+        .then(function (r) {
+          if (!r.ok) throw new Error("geojson " + r.status);
+          return r.json();
+        })
+        .then(function (fc) {
+          var geo = window.RL && window.RL.unwrapGeojson ? window.RL.unwrapGeojson(fc) : fc;
+          map.addSource("regions", { type: "geojson", data: geo });
+          map.addLayer({
+            id: "fill",
+            type: "fill",
+            source: "regions",
+            paint: { "fill-color": window.RL.cssVar("--map-nodata", "#dcdcdc"), "fill-opacity": fillOpacity },
+          });
+          map.addLayer({
+            id: "line",
+            type: "line",
+            source: "regions",
+            paint: { "line-color": window.RL.cssVar("--map-line", "#ffffff"), "line-width": lineWidth },
+          });
+          if (opts.extraLayers) {
+            opts.extraLayers.forEach(function (layer) {
+              map.addLayer(layer);
+            });
+          }
+          if (window.RL.fitToData) window.RL.fitToData(map, geo, 18);
+          if (window.RL.softenZoomControls) window.RL.softenZoomControls(map, 0.5);
+          if (opts.legend && window.RL.makeLegendCollapsible) {
+            var lg = typeof opts.legend === "string" ? document.querySelector(opts.legend) : opts.legend;
+            window.RL.makeLegendCollapsible(lg);
+          }
+          // Общая реакция на смену темы: фон-подложка и цвет контура. Специфика страницы
+          // (перекраска заливки, слоёв подсветки/выбора) — через хук onTheme.
+          if (window.RL.onTheme) {
+            window.RL.onTheme(function () {
+              try {
+                if (!map.getLayer || !map.getLayer("bg")) return;
+                map.setPaintProperty("bg", "background-color", window.RL.cssVar("--map-bg", "#eaf0f1"));
+                if (map.getLayer("line")) {
+                  map.setPaintProperty("line", "line-color", window.RL.cssVar("--map-line", "#ffffff"));
+                }
+                if (typeof opts.onTheme === "function") opts.onTheme({ map: map, popup: popup, geo: geo });
+              } catch (e) {}
+            });
+          }
+          if (typeof opts.onReady === "function") opts.onReady({ map: map, popup: popup, geo: geo });
+        })
+        .catch(function (err) {
+          if (typeof opts.onError === "function") opts.onError(err);
+        });
+    });
+
+    return { map: map, popup: popup };
+  };
+
+  // Нормировка весов доменов в проценты (сумма = 100%). Если пользователь обнулил все веса,
+  // раздаём равные доли, чтобы не делить на ноль. Та же нормировка, что и на бэкенде при
+  // расчёте композитного индекса; вынесена в общий помощник, чтобы конструктор индекса и
+  // тесты пользовались одной формулой. Чистая функция.
+  window.RL.normalizeWeights = function (weights, keys) {
+    weights = weights || {};
+    var total = 0;
+    keys.forEach(function (k) {
+      total += Math.max(0, weights[k] || 0);
+    });
+    var out = {};
+    keys.forEach(function (k) {
+      out[k] = total > 0 ? (100 * Math.max(0, weights[k] || 0)) / total : 100 / keys.length;
+    });
+    return out;
   };
 
   // Поисковый комбобокс поверх <select>: печатаешь — список фильтруется. Значение и событие

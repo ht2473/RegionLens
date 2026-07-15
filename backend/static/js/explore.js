@@ -329,73 +329,32 @@
 
     function ensureInit() {
       if (map || typeof maplibregl === "undefined") return;
-      map = new maplibregl.Map({
+      // Общая фабрика карты (см. RL.createRegionMap): создание, слои и кадрирование — там;
+      // заливка выставляется в render при каждом выборе показателя, поэтому по теме её не
+      // перекрашиваем (хука onTheme не передаём — достаточно базового фон+контур).
+      var handle = RL.createRegionMap({
         container: "ex-map",
-        style: {
-          version: 8,
-          sources: {},
-          layers: [{ id: "bg", type: "background", paint: { "background-color": RL.cssVar("--map-bg", "#eaf0f1") } }],
+        legend: "#ex-map-legend",
+        geojsonUrl: GEOJSON_URL,
+        onReady: function (ctx) {
+          geo = ctx.geo;
+          wire();
+          ready = true;
+          if (pending) {
+            render(pending);
+            pending = null;
+          }
         },
-        center: [99, 66],
-        zoom: 2,
-        minZoom: 1.6,
-        maxBounds: [[5, 25], [205, 86]],
-        renderWorldCopies: false,
-        attributionControl: false,
+        onError: function () {
+          var el = document.getElementById("ex-map");
+          if (el) {
+            el.innerHTML = '<div class="shell"><p>' + gettext("Не удалось загрузить границы регионов.") + "</p></div>";
+          }
+        },
       });
-      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-      popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
-      map.on("load", function () {
-        fetch(GEOJSON_URL)
-          .then(function (r) {
-            if (!r.ok) throw new Error("geojson " + r.status);
-            return r.json();
-          })
-          .then(function (fc) {
-            geo = window.RL && RL.unwrapGeojson ? RL.unwrapGeojson(fc) : fc;
-            map.addSource("regions", { type: "geojson", data: geo });
-            map.addLayer({
-              id: "fill",
-              type: "fill",
-              source: "regions",
-              paint: { "fill-color": NODATA, "fill-opacity": 0.85 },
-            });
-            map.addLayer({
-              id: "line",
-              type: "line",
-              source: "regions",
-              paint: { "line-color": RL.cssVar("--map-line", "#ffffff"), "line-width": 0.6 },
-            });
-            wire();
-            if (window.RL && RL.fitToData) RL.fitToData(map, geo, 18);
-            if (window.RL && RL.softenZoomControls) RL.softenZoomControls(map, 0.5);
-            if (window.RL && RL.makeLegendCollapsible) {
-              RL.makeLegendCollapsible(document.getElementById("ex-map-legend"));
-            }
-            if (window.RL && RL.onTheme) {
-              RL.onTheme(function () {
-                try {
-                  if (!map.getLayer || !map.getLayer("bg")) return;
-                  map.setPaintProperty("bg", "background-color", RL.cssVar("--map-bg", "#eaf0f1"));
-                  if (map.getLayer("line"))
-                    map.setPaintProperty("line", "line-color", RL.cssVar("--map-line", "#ffffff"));
-                  NODATA = RL.cssVar("--map-nodata", "#dcdcdc");
-                } catch (e) {}
-              });
-            }
-            ready = true;
-            if (pending) {
-              render(pending);
-              pending = null;
-            }
-          })
-          .catch(function () {
-            var el = document.getElementById("ex-map");
-            if (el) {
-              el.innerHTML = '<div class="shell"><p>' + gettext("Не удалось загрузить границы регионов.") + "</p></div>";
-            }
-          });
-      });
+      if (!handle) return;
+      map = handle.map;
+      popup = handle.popup;
     }
 
     function wire() {

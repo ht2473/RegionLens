@@ -32,66 +32,47 @@
     if (!el || typeof maplibregl === "undefined") return null;
 
     var geo = null, ready = false, pending = null, onRow = null, lastRows = null;
-    var map = new maplibregl.Map({
+    // Общая фабрика карты (см. RL.createRegionMap): создание, базовые слои и кадрирование —
+    // там; здесь специфика рейтинга: более общий стартовый план, слои подсветки (наведение)
+    // и выбора (клик), а также скрытие блока карты, если границы недоступны.
+    var accent = RL.cssVar("--accent", "#1f6f63");
+    var accentDeep = RL.cssVar("--accent-deep", "#14584e");
+    var handle = RL.createRegionMap({
       container: "rankings-map",
-      style: {
-        version: 8, sources: {},
-        layers: [{ id: "bg", type: "background", paint: { "background-color": RL.cssVar("--map-bg", "#eaf0f1") } }],
+      legend: ".map-legend",
+      zoom: 1.6,
+      minZoom: 1.4,
+      fillOpacity: 0.9,
+      lineWidth: 0.5,
+      extraLayers: [
+        { id: "hl", type: "line", source: "regions",
+          paint: { "line-color": accent, "line-width": 2.5 },
+          filter: ["==", ["get", "okato"], "__none__"] },
+        // Отдельный слой постоянного выбора (клик по карте) — не сбрасывается при наведении.
+        { id: "sel", type: "line", source: "regions",
+          paint: { "line-color": accentDeep, "line-width": 3.4 },
+          filter: ["==", ["get", "okato"], "__none__"] },
+      ],
+      onReady: function (ctx) {
+        geo = ctx.geo;
+        wire();
+        ready = true;
+        if (pending) { paint(pending); pending = null; }
       },
-      center: [99, 66], zoom: 1.6, minZoom: 1.4, maxBounds: [[5, 25], [205, 86]], renderWorldCopies: false, attributionControl: false,
+      onTheme: function () {
+        // Слои подсветки/выбора и заливка (шкала мест) зависят от темы — перекрашиваем.
+        map.setPaintProperty("hl", "line-color", RL.cssVar("--accent", "#1f6f63"));
+        map.setPaintProperty("sel", "line-color", RL.cssVar("--accent-deep", "#14584e"));
+        if (lastRows) paint(lastRows);
+      },
+      onError: function () {
+        // geojson недоступен — убираем блок карты, таблица работает как прежде
+        var wrap = el.closest(".rankings-map-wrap");
+        if (wrap) wrap.style.display = "none";
+      },
     });
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    var popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false });
-
-    map.on("load", function () {
-      fetch("/static/geo/regions.geojson")
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (fc) {
-          if (!fc) {
-            var w = el.closest(".rankings-map-wrap");
-            if (w) w.style.display = "none";
-            return;
-          }
-          geo = window.RL && RL.unwrapGeojson ? RL.unwrapGeojson(fc) : fc;
-          map.addSource("regions", { type: "geojson", data: geo });
-          map.addLayer({ id: "fill", type: "fill", source: "regions",
-            paint: { "fill-color": RL.cssVar("--map-nodata", "#dcdcdc"), "fill-opacity": 0.9 } });
-          map.addLayer({ id: "line", type: "line", source: "regions",
-            paint: { "line-color": RL.cssVar("--map-line", "#ffffff"), "line-width": 0.5 } });
-          map.addLayer({ id: "hl", type: "line", source: "regions",
-            paint: { "line-color": RL.cssVar("--accent", "#1f6f63"), "line-width": 2.5 },
-            filter: ["==", ["get", "okato"], "__none__"] });
-          // Отдельный слой постоянного выбора (клик по карте) — не сбрасывается при наведении.
-          map.addLayer({ id: "sel", type: "line", source: "regions",
-            paint: { "line-color": RL.cssVar("--accent-deep", "#14584e"), "line-width": 3.4 },
-            filter: ["==", ["get", "okato"], "__none__"] });
-          wire();
-          ready = true;
-          if (window.RL && RL.fitToData) RL.fitToData(map, geo, 18);
-          if (window.RL && RL.softenZoomControls) RL.softenZoomControls(map, 0.5);
-          if (window.RL && RL.makeLegendCollapsible) {
-            RL.makeLegendCollapsible(document.querySelector(".map-legend"));
-          }
-          if (pending) { paint(pending); pending = null; }
-          
-          if (window.RL && RL.onTheme) {
-            RL.onTheme(function () {
-              try {
-                map.setPaintProperty("bg", "background-color", RL.cssVar("--map-bg", "#eaf0f1"));
-                map.setPaintProperty("line", "line-color", RL.cssVar("--map-line", "#ffffff"));
-                map.setPaintProperty("hl", "line-color", RL.cssVar("--accent", "#1f6f63"));
-                map.setPaintProperty("sel", "line-color", RL.cssVar("--accent-deep", "#14584e"));
-                if (lastRows) paint(lastRows);
-              } catch (e) {}
-            });
-          }
-        })
-        .catch(function () {
-          // geojson недоступен — убираем блок карты, таблица работает как прежде
-          var wrap = el.closest(".rankings-map-wrap");
-          if (wrap) wrap.style.display = "none";
-        });
-    });
+    if (!handle) return null;
+    var map = handle.map;
 
     function paint(rows) {
       if (!ready) { pending = rows; return; }
@@ -119,27 +100,22 @@
       if (ready) map.setFilter("sel", ["==", ["get", "okato"], okato || "__none__"]);
     }
 
-    var hovered = null;
+    // Наведение — общий DOM-тултип по курсору (RL.attachMapHover), как и на остальных картах.
+    // Прежний вариант рисовал попап MapLibre: при обновлении содержимого он на кадр вспыхивал
+    // в углу карты (мерцание/«дубли»). DOM-тултип от геометрии карты не зависит и позиционируется
+    // мгновенно у курсора. attachMapHover сам ведёт слой подсветки «hl»; onEnter/onLeave
+    // синхронизируют строку таблицы (двусторонняя связь карта↔таблица сохранена).
     function wire() {
-      map.on("mousemove", "fill", function (e) {
-        map.getCanvas().style.cursor = "pointer";
-        var p = e.features[0].properties;
-        if (p.okato !== hovered) {
-          popup.setHTML(
+      RL.attachMapHover(map, {
+        highlightId: "hl",
+        html: function (p) {
+          return (
             "<strong>" + (p.name || p.okato) + "</strong>" +
             (p.rank != null ? "<br>" + gettext("Место") + ": " + p.rank : "")
           );
-          highlight(p.okato);
-          if (onRow) onRow(p.okato, "hover");
-          hovered = p.okato;
-        }
-        popup.setLngLat(e.lngLat);
-        if (!popup.isOpen()) popup.addTo(map);
-      });
-      map.on("mouseleave", "fill", function () {
-        map.getCanvas().style.cursor = ""; popup.remove(); highlight(null);
-        hovered = null;
-        if (onRow) onRow(null, "hover");
+        },
+        onEnter: function (okato) { if (onRow) onRow(okato, "hover"); },
+        onLeave: function () { if (onRow) onRow(null, "hover"); },
       });
       map.on("click", "fill", function (e) {
         if (onRow) onRow(e.features[0].properties.okato, "click");
