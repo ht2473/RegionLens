@@ -70,3 +70,7 @@ dump/
 .coverage.*
 htmlcov/
 coverage.xml
+
+# Node / клиентские юнит-тесты (vitest). package.json и package-lock.json — в репо;
+# зависимости ставятся локально и в CI через `npm ci`.
+node_modules/

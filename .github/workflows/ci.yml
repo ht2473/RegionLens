@@ -80,3 +80,21 @@ jobs:
         run: python -m playwright install --with-deps chromium
       - name: E2E
         run: pytest tests/e2e -m e2e --browser chromium
+
+  js:
+    # Юнит-тесты клиентского JavaScript (vitest, окружение jsdom). Отдельный лёгкий job:
+    # не требует Python, витрины DuckDB и браузеров — только Node. Проверяет чистые
+    # функции фронтенда (rl-common.js), на которые опираются карты и графики.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      # npm ci ставит зависимости строго по package-lock.json — воспроизводимо и без
+      # обновления версий на раннере.
+      - name: Install
+        run: npm ci
+      - name: Vitest
+        run: npm test

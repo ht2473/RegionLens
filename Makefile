@@ -1,4 +1,4 @@
-.PHONY: install lint format type test audit load pipeline migrate seed bootstrap run all docker-up docker-down
+.PHONY: install lint format type test js-test audit load pipeline migrate seed bootstrap run all docker-up docker-down
 
 install:          ## Установить проект и все группы зависимостей
 	pip install -e ".[pipeline,backend,dev]"
@@ -20,6 +20,9 @@ test:             ## Прогнать тесты (pytest)
 e2e:              ## Браузерные сценарии Playwright (первый запуск скачает chromium)
 	python -m playwright install chromium
 	pytest tests/e2e -m e2e
+
+js-test:          ## Юнит-тесты клиентского JS (vitest; нужен Node и `npm ci`)
+	npm test
 
 pipeline:         ## Пересобрать всю аналитику офлайн-конвейером
 	python -m pipeline.run_all

@@ -1,0 +1,15 @@
+{
+  "name": "regionlens-frontend",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Юнит-тесты клиентского JavaScript RegionLens (vitest). Основной проект — Python/Django; здесь только тестовая оснастка для фронтенда.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.9"
+  }
+}
