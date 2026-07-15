@@ -23,7 +23,7 @@
 
 <div class="grid cols-3">
   <div class="card">
-    <div class="num">85</div>
+    <div class="num">{{ region_count|default:85 }}</div>
     <h3>{% trans "субъектов" %}</h3>
     <p>{% trans "Непересекающиеся регионы РФ; ключ стыковки с картой — код ОКАТО." %}</p>
   </div>

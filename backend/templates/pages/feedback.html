@@ -13,7 +13,7 @@
 {% if sent %}
   <div class="card" style="border-color: var(--accent); background: var(--accent-soft);">
     <h3 style="margin-top:0;">{% trans "Сообщение получено" %}</h3>
-    <p style="margin-bottom:0;">{% trans "Спасибо за обратную связь. Постоянное хранение сообщений и просмотр из личного кабинета появятся позже." %}</p>
+    <p style="margin-bottom:0;">{% trans "Спасибо за обратную связь — сообщение сохранено, мы его учтём." %}</p>
   </div>
 {% else %}
   <form method="post" action="{% url 'feedback' %}" style="max-width: 560px;">

@@ -36,6 +36,7 @@ from ..serializers import (
     MetricSerializer,
     MetricSeriesPointSerializer,
     MetricValuePointSerializer,
+    ModelPredictionSerializer,
     RankRobustnessRowSerializer,
     RankStabilityRowSerializer,
     RegionDashboardSerializer,
@@ -395,6 +396,45 @@ class TypologyExplain(APIView):
             )
         log.info("typology_explain", stage="api", okato=okato, year=year)
         return Response(TypologyExplainSerializer(data).data)
+
+
+class ModelPredict(APIView):
+    """GET /api/models/predict/?okato=&year= — применить обученные модели к профилю региона.
+
+    Интерактивная демонстрация ML-сервиса: сохранённые модели (классификатор типологии +
+    детектор аномалий) загружаются из файлов и применяются к готовому профилю выбранного
+    региона за год. Возвращает предсказанный тип и оценку нетипичности. Это применение
+    модели к профилю, НЕ прогноз будущего и НЕ причинность.
+    """
+
+    @extend_schema(
+        operation_id="models_predict",
+        parameters=[
+            P_YEAR,
+            OpenApiParameter("okato", OpenApiTypes.STR, required=True, description="ОКАТО региона"),
+        ],
+        responses=ModelPredictionSerializer,
+        summary="Применение ML-моделей к профилю региона",
+    )
+    def get(self, request: Request) -> Response:
+        year, err = _parse_year(request)
+        if err is not None:
+            return err
+        assert year is not None
+        okato = request.query_params.get("okato")
+        if not okato:
+            return Response(
+                {"detail": "параметр 'okato' обязателен"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.model_predict_region(okato, year)
+        if data is None:
+            return Response(
+                {"detail": "нет полного профиля региона за указанный год"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        log.info("models_predict", stage="api", okato=okato, year=year)
+        return Response(ModelPredictionSerializer(data).data)
 
 
 class ClusterProfile(APIView):

@@ -2372,3 +2372,59 @@ msgstr "Weight distribution"
 
 msgid "Скрыть или показать легенду"
 msgstr "Hide or show the legend"
+
+msgid "Применить модель к региону"
+msgstr "Apply a model to a region"
+
+msgid ""
+"Живая демонстрация: сохранённые модели загружаются из файлов и применяются к"
+" готовому профилю выбранного региона за год. Это применение модели к "
+"профилю, не прогноз будущего."
+msgstr ""
+"Live demo: saved models are loaded from files and applied to the prepared "
+"profile of the selected region for the year. This applies a model to a "
+"profile, not a forecast of the future."
+
+msgid "Применить модели"
+msgstr "Apply models"
+
+msgid "предсказанный тип региона"
+msgstr "predicted region type"
+
+msgid "нетипичный профиль"
+msgstr "atypical profile"
+
+msgid "в норме"
+msgstr "normal"
+
+msgid "оценка нетипичности"
+msgstr "atypicality score"
+
+msgid "Результат для региона"
+msgstr "Result for region"
+
+msgid "Применяем модели…"
+msgstr "Applying models…"
+
+msgid "Нет полного профиля региона за выбранный год."
+msgstr "No complete region profile for the selected year."
+
+msgid "Ошибка применения моделей"
+msgstr "Model application error"
+
+msgid "Не удалось загрузить список регионов."
+msgstr "Failed to load the list of regions."
+
+msgid "Модели недоступны."
+msgstr "Models are unavailable."
+
+msgid "тип"
+msgstr "type"
+
+msgid "год"
+msgstr "year"
+
+msgid "Спасибо за обратную связь — сообщение сохранено, мы его учтём."
+msgstr ""
+"Thank you for your feedback — your message has been saved and we'll take it "
+"into account."

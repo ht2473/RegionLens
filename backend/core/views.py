@@ -54,7 +54,13 @@ def _page(
 
 def home(request: HttpRequest) -> HttpResponse:
     """Главная страница (лендинг)."""
-    return _page(request, "pages/home.html", active="home", title=gettext("Главная"))
+    return _page(
+        request,
+        "pages/home.html",
+        active="home",
+        title=gettext("Главная"),
+        extra={"region_count": queries.region_count()},
+    )
 
 
 def map_page(request: HttpRequest) -> HttpResponse:
@@ -173,7 +179,13 @@ def compare(request: HttpRequest) -> HttpResponse:
 
 def regions(request: HttpRequest) -> HttpResponse:
     """Каталог регионов и переход к дашборду."""
-    return _page(request, "pages/regions.html", active="regions", title=gettext("Регионы"))
+    return _page(
+        request,
+        "pages/regions.html",
+        active="regions",
+        title=gettext("Регионы"),
+        extra={"region_count": queries.region_count()},
+    )
 
 
 def region_dashboard_page(request: HttpRequest, okato: str) -> HttpResponse:

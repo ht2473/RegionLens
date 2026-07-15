@@ -985,3 +985,144 @@ def data_profile() -> dict[str, Any] | None:
     except Exception as exc:  # noqa: BLE001 — граница мягкой деградации: нет хранилища → нет чисел
         log.warning("data_profile_unavailable", stage="api", error=str(exc))
         return None
+
+
+def region_count(default: int = 85) -> int:
+    """Число регионов, участвующих в аналитике (included_flag).
+
+    Вынесено в отдельную функцию, чтобы тексты страниц не держали «85» константой и
+    оставались верными после обновления данных. При недоступности витрины возвращает
+    default (мягкая деградация — страница не должна падать из-за этого числа).
+    """
+    try:
+        rows = q("SELECT COUNT(*) AS n FROM region_dim WHERE included_flag = TRUE")
+        return int(rows[0]["n"]) if rows else default
+    except Exception as exc:  # noqa: BLE001 — не число регионов важнее доступности страницы
+        log.warning("region_count_unavailable", stage="api", error=str(exc))
+        return default
+
+
+# --- Интерактивное применение ML-моделей ------------------------------------------------
+# Единственное место, где приложение применяет ML-модель НА ЛЕТУ (остальная аналитика
+# считается офлайн-конвейером заранее). Демонстрирует полный путь интеллектуального
+# сервиса: загрузка сохранённой модели из файла → сбор профиля региона → предсказание.
+# Модели закэшированы на процесс (LRU): joblib.load тяжёлый, а модель неизменна между
+# пересборками; при подмене файлов витрины кэш живёт до перезапуска воркера — это
+# приемлемо, т.к. модели обновляются тем же релизом, что и код.
+
+_MODELS_CACHE: dict[str, Any] = {}
+
+
+def reset_models_cache() -> None:
+    """Очистить кэш загруженных моделей (тесты; обновление моделей без рестарта).
+
+    Модели кэшируются на процесс ради скорости, но кэш нужно уметь сбрасывать: между
+    тестами для изоляции, а в проде — если модели переобучены тем же процессом.
+    """
+    _MODELS_CACHE.clear()
+
+
+def _load_cached_model(name: str) -> Any:
+    """Загрузить модель и её карточку с кэшированием на процесс (best-effort).
+
+    Возвращает кортеж (estimator, card) либо None, если модель недоступна
+    (файла нет, ML-стек не установлен) — вызывающий переводит это в 503/понятный ответ.
+    """
+    if name not in _MODELS_CACHE:
+        from pathlib import Path
+
+        from django.conf import settings
+
+        from pipeline.models_io import load_model
+
+        try:
+            _MODELS_CACHE[name] = load_model(name, models_dir=Path(settings.MODELS_DIR))
+        except Exception as exc:  # noqa: BLE001 — недоступность модели не должна валить API
+            log.warning("model_load_failed", stage="api", name=name, error=str(exc))
+            _MODELS_CACHE[name] = None
+    return _MODELS_CACHE[name]
+
+
+def _region_feature_vector(okato: str, year: int, feature_names: list[str]) -> list[float] | None:
+    """Собрать вектор признаков региона за год в порядке feature_names модели.
+
+    Признаки — z-оценки метрик ядра из features_wide (та же матрица, на которой модели
+    обучались). Порядок берётся из карточки модели, а не из БД: он критичен для
+    корректного применения. None, если у региона нет полного профиля за год.
+    """
+    rows = q(
+        "SELECT metric_id, z_value FROM features_wide WHERE okato = ? AND year = ?",
+        [okato, year],
+    )
+    by_metric = {str(r["metric_id"]): r["z_value"] for r in rows}
+    vector: list[float] = []
+    for name in feature_names:
+        value = by_metric.get(str(name))
+        if value is None:  # неполный профиль — модель применять некорректно
+            return None
+        vector.append(float(value))
+    return vector
+
+
+def model_predict_region(okato: str, year: int) -> dict[str, Any] | None:
+    """Применить обученные модели к профилю региона за год (интерактивный ML-сервис).
+
+    Загружает сохранённые модели (классификатор типологии + детектор аномалий), берёт
+    готовый профиль региона из витрины и возвращает предсказания: тип региона (с меткой)
+    и оценку нетипичности профиля. Это ДЕМОНСТРАЦИЯ применения модели к профилю, не
+    прогноз будущего и не причинность.
+
+    Возвращает None, если регион/год отсутствует или профиль неполный (→ 404 в API);
+    поле каждой модели равно None, если конкретная модель недоступна (→ мягкая деградация).
+    """
+    region = _loc(q("SELECT okato, region_name FROM region_dim WHERE okato = ?", [okato]))
+    if not region:
+        return None
+
+    result: dict[str, Any] = {
+        "okato": okato,
+        "region_name": region[0]["region_name"],
+        "year": year,
+        "typology": None,
+        "anomaly": None,
+    }
+    profile_incomplete = False
+
+    # --- Классификатор типологии: предсказанный тип + человекочитаемая метка ---
+    loaded = _load_cached_model("typology_classifier")
+    if loaded is not None:
+        estimator, card = loaded
+        vector = _region_feature_vector(okato, year, card.feature_names)
+        if vector is None:
+            profile_incomplete = True
+        else:
+            predicted = int(estimator.predict([vector])[0])
+            # Метку типа берём из витрины (clusters): единый словарь меток типологии.
+            label_row = q(
+                "SELECT cluster_label FROM clusters "
+                "WHERE cluster_id = ? AND year = ? AND algo = ? LIMIT 1",
+                [predicted, year, MAP_CLUSTER_ALGO],
+            )
+            result["typology"] = {
+                "cluster_id": predicted,
+                "cluster_label": _loc(label_row)[0]["cluster_label"] if label_row else None,
+            }
+
+    # --- Детектор аномалий: флаг выброса + оценка нетипичности ---
+    loaded = _load_cached_model("anomaly_detector")
+    if loaded is not None:
+        estimator, card = loaded
+        vector = _region_feature_vector(okato, year, card.feature_names)
+        if vector is None:
+            profile_incomplete = True
+        else:
+            # IsolationForest: predict → {1: норма, -1: выброс}; score_samples → чем
+            # МЕНЬШE, тем аномальнее. Отдаём знак и «сырую» оценку для отображения.
+            is_outlier = int(estimator.predict([vector])[0]) == -1
+            score = float(estimator.score_samples([vector])[0])
+            result["anomaly"] = {"is_outlier": is_outlier, "score": round(score, 4)}
+
+    # Профиль неполный и ни одна модель не смогла предсказать — данных недостаточно.
+    if profile_incomplete and result["typology"] is None and result["anomaly"] is None:
+        return None
+    return result

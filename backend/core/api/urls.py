@@ -51,6 +51,8 @@ urlpatterns = [
         endpoints.TypologyExplain.as_view(),
         name="typology-explain",
     ),
+    # Интерактивное применение обученных моделей к профилю региона (демонстрация ML-сервиса)
+    path("models/predict/", endpoints.ModelPredict.as_view(), name="models_predict"),
     # Сравнение
     path("compare/", endpoints.Compare.as_view(), name="compare"),
     # Аномалии и структурные сдвиги (доступ analyst)

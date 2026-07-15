@@ -101,6 +101,34 @@ class ScenarioSerializer(serializers.Serializer):
     sensitivity = SensitivityRowSerializer(many=True)
 
 
+class ModelTypologyPredictionSerializer(serializers.Serializer):
+    """Предсказание классификатора типологии: id типа и его человекочитаемая метка."""
+
+    cluster_id = serializers.IntegerField()
+    cluster_label = serializers.CharField(allow_null=True)
+
+
+class ModelAnomalyPredictionSerializer(serializers.Serializer):
+    """Предсказание детектора аномалий: флаг выброса и сырая оценка нетипичности."""
+
+    is_outlier = serializers.BooleanField()
+    score = serializers.FloatField()
+
+
+class ModelPredictionSerializer(serializers.Serializer):
+    """Результат интерактивного применения ML-моделей к профилю региона за год.
+
+    Поля моделей nullable: конкретная модель может быть недоступна (мягкая деградация),
+    но ответ по региону при этом всё равно осмысленный.
+    """
+
+    okato = serializers.CharField()
+    region_name = serializers.CharField()
+    year = serializers.IntegerField()
+    typology = ModelTypologyPredictionSerializer(allow_null=True)
+    anomaly = ModelAnomalyPredictionSerializer(allow_null=True)
+
+
 class TransitionSerializer(serializers.Serializer):
     """Переход региона между типами год-к-году + тип его траектории."""
 
