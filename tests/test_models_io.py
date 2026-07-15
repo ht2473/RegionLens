@@ -72,3 +72,64 @@ def test_list_model_cards(tmp_path: Path) -> None:
         )
     names = {card.name for card in list_model_cards(models_dir=tmp_path)}
     assert names == {"m1", "m2"}
+
+
+def test_alias_written_for_known_model(tmp_path: Path) -> None:
+    """Для модели из MODEL_ALIASES рядом пишется байтовая копия model1/model2.joblib."""
+    import joblib
+
+    from pipeline.models_io import MODEL_ALIASES
+
+    model = _tiny_model()
+    card = save_model(
+        model,
+        "typology_classifier",
+        params={"seed": 0},
+        metrics={"cv_accuracy": 1.0},
+        feature_names=["f0"],
+        n_samples=4,
+        models_dir=tmp_path,
+        log_mlflow=False,
+    )
+    alias = MODEL_ALIASES["typology_classifier"]
+    assert card.alias == alias
+    assert (tmp_path / f"{alias}.joblib").exists()  # копия под формальным обозначением
+    # карточка под алиасом не создаётся, иначе витрина показала бы модель дважды
+    assert not (tmp_path / f"{alias}.json").exists()
+    # копия — та же модель (те же предсказания)
+    aliased = joblib.load(tmp_path / f"{alias}.joblib")
+    sample = np.array([[0.0], [1.0]])
+    assert list(aliased.predict(sample)) == list(model.predict(sample))
+
+
+def test_no_alias_for_unaliased_model(tmp_path: Path) -> None:
+    """Модель без обозначения не создаёт лишних артефактов и имеет alias=None."""
+    card = save_model(
+        _tiny_model(),
+        "tiny",
+        params={},
+        metrics={},
+        feature_names=["f0"],
+        n_samples=4,
+        models_dir=tmp_path,
+        log_mlflow=False,
+    )
+    assert card.alias is None
+    assert list(tmp_path.glob("model*.joblib")) == []
+
+
+def test_list_model_cards_has_no_alias_duplicates(tmp_path: Path) -> None:
+    """Витрина перечисляет только канонические модели, без дублей-обозначений."""
+    for name in ("typology_classifier", "anomaly_detector"):
+        save_model(
+            _tiny_model(),
+            name,
+            params={},
+            metrics={},
+            feature_names=["f0"],
+            n_samples=4,
+            models_dir=tmp_path,
+            log_mlflow=False,
+        )
+    names = {card.name for card in list_model_cards(models_dir=tmp_path)}
+    assert names == {"typology_classifier", "anomaly_detector"}  # не четыре

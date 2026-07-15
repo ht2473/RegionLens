@@ -23,6 +23,16 @@ from pipeline.logging_setup import log
 # Каталог моделей (генерируемые артефакты; пересоздаются обучением).
 MODELS_DIR = Path("models")
 
+# Формальные обозначения моделей (model1, model2, …) в дополнение к говорящим именам.
+# Требование к оформлению ВКР просит артефакты вида model1.*/model2.*; чтобы не терять
+# читаемость (код и витрина оперируют говорящими именами), обозначение — это алиас:
+# при сохранении модели рядом с `<name>.joblib` пишется байтовая копия `<alias>.joblib`,
+# а само соответствие фиксируется в карточке (поле alias) и в docs/MODELS.md.
+MODEL_ALIASES: dict[str, str] = {
+    "typology_classifier": "model1",
+    "anomaly_detector": "model2",
+}
+
 
 @dataclass
 class ModelCard:
@@ -36,6 +46,9 @@ class ModelCard:
     metrics: dict[str, float]
     feature_names: list[str]
     n_samples: int
+    # Формальное обозначение (model1/model2, …) или None, если алиас не задан. Поле
+    # добавлено последним со значением по умолчанию — старые карточки без него читаются.
+    alias: str | None = None
 
 
 def _model_paths(name: str, models_dir: Path) -> tuple[Path, Path]:
@@ -71,10 +84,16 @@ def save_model(
         metrics=metrics,
         feature_names=feature_names,
         n_samples=n_samples,
+        alias=MODEL_ALIASES.get(name),
     )
     model_path, card_path = _model_paths(name, models_dir)
     joblib.dump(estimator, model_path)
     card_path.write_text(json.dumps(asdict(card), ensure_ascii=False, indent=2), encoding="utf-8")
+    # Байтовая копия под формальным обозначением (model1.joblib, …). Карточку под алиасом
+    # НЕ пишем: витрина перечисляет карточки по *.json и иначе показывала бы модель дважды.
+    # Соответствие обозначение↔модель хранится в карточке (alias) и в docs/MODELS.md.
+    if card.alias:
+        joblib.dump(estimator, models_dir / f"{card.alias}.joblib")
     log.info("model_saved", stage="models", name=name, estimator=card.estimator, metrics=metrics)
     if log_mlflow:
         _log_mlflow(estimator, card)

@@ -42,3 +42,4 @@ def test_models_page_shows_card(settings: pytest.FixtureRequest, tmp_path: Path)
     assert response.status_code == 200
     assert "Классификатор типологии" in body
     assert "87.0%" in body
+    assert "model1" in body  # формальное обозначение показано рядом с названием

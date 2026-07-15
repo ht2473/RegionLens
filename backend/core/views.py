@@ -339,6 +339,7 @@ def _model_cards() -> list[dict[str, object]]:
             {
                 "name": card.name,
                 "label": labels.get(card.name, card.name),
+                "alias": card.alias,
                 "estimator": card.estimator,
                 "created": card.created,
                 "sklearn_version": card.sklearn_version,

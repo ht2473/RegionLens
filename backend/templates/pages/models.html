@@ -15,7 +15,7 @@
   {% for m in model_cards %}
   <div class="card">
     <p class="eyebrow">{{ m.estimator }}</p>
-    <h2>{{ m.label }}</h2>
+    <h2>{{ m.label }}{% if m.alias %} <span class="muted">· {{ m.alias }}</span>{% endif %}</h2>
 
     <div class="kpi-row">
       {% for metric in m.metrics %}

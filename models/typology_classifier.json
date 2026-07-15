@@ -46,5 +46,6 @@
     "1920",
     "1925"
   ],
-  "n_samples": 1275
+  "n_samples": 1275,
+  "alias": "model1"
 }
