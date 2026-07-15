@@ -63,11 +63,13 @@
     var u = "/api/regions/" + encodeURIComponent(OKATO) + "/?year=" + state.year;
     var tw = "/api/regions/" + encodeURIComponent(OKATO) + "/twins/?year=" + state.year;
     var dc = "/api/decomposition/?okato=" + encodeURIComponent(OKATO) + "&year=" + state.year;
+    var vt = "/api/regions/" + encodeURIComponent(OKATO) + "/vs-type/?year=" + state.year;
     Promise.all([
       fetch(u),
       fetch("/api/transitions/?okato=" + encodeURIComponent(OKATO)),
       fetch(tw),
       fetch(dc),
+      fetch(vt),
     ])
       .then(function (rs) {
         if (rs[0].status === 404) throw new Error(gettext("Регион не найден или нет данных за год."));
@@ -77,17 +79,18 @@
           rs[1].ok ? rs[1].json() : [],
           rs[2].ok ? rs[2].json() : [],
           rs[3].ok ? rs[3].json() : [],
+          rs[4].ok ? rs[4].json() : null, // vs-type: 404, если у региона нет типа за год
         ]);
       })
       .then(function (out) {
         show("region-error", false);
         show("region-body", true);
-        render(out[0], out[1], out[2], out[3]);
+        render(out[0], out[1], out[2], out[3], out[4]);
       })
       .catch(function (err) { fail(RL.errText(err)); });
   }
 
-  function render(d, transitions, twins, decomp) {
+  function render(d, transitions, twins, decomp, vsType) {
     // Заголовок
     document.getElementById("region-title").textContent = d.region_name || OKATO;
     var typeLabel = d.cluster ? d.cluster.cluster_label : "—";
@@ -120,6 +123,7 @@
     drawTrajectory(transitions);
     drawTwins(twins || []);
     drawDecomp(decomp || []);
+    drawVsType(vsType);
   }
 
   function drawRadar(domains) {
@@ -214,6 +218,37 @@
       full.map(function (name) { return truncLabel(name, 40); }),
       ordered.map(function (s) { return s.shap_value; }),
       { left: 240, height: 340, hover: full }
+    );
+  }
+
+  function drawVsType(d) {
+    var note = document.getElementById("vs-type-typicality");
+    var box = document.getElementById("chart-vs-type");
+    if (!d || !d.metrics || !d.metrics.length) {
+      if (note) note.textContent = "";
+      box.innerHTML = '<p class="chart-note">' + gettext("Нет типологии для региона за этот год.") + "</p>";
+      return;
+    }
+    // Позиция по типичности: доля членов типа, которых регион ближе к центру (типичнее).
+    if (note) {
+      if (d.typicality_percentile == null || d.cluster_size < 2) {
+        note.textContent = "";
+      } else {
+        var moreTypical = Math.round((1 - d.typicality_percentile) * 100);
+        note.textContent =
+          gettext("Тип") + " «" + (d.cluster_label || d.cluster_id) + "»: " +
+          gettext("регион типичнее") + " " + moreTypical + "% " +
+          gettext("членов своего типа") + " (" + d.cluster_size + " " + gettext("регионов") + ").";
+      }
+    }
+    // Топ метрик по величине разрыва; крупнейший — сверху (divergeBars рисует снизу вверх).
+    var top = d.metrics.slice(0, 12).reverse();
+    var full = top.map(function (m) { return m.metric_name || "metric " + m.metric_id; });
+    divergeBars(
+      "chart-vs-type",
+      full.map(function (name) { return truncLabel(name, 40); }),
+      top.map(function (m) { return m.gap; }),
+      { left: 240, height: 360, hover: full }
     );
   }
 

@@ -224,6 +224,30 @@ class ClusterProfileRowSerializer(serializers.Serializer):
     mean_z = serializers.FloatField(allow_null=True)
 
 
+class RegionVsTypeMetricSerializer(serializers.Serializer):
+    """Разрыв одной метрики между регионом и центроидом его типа."""
+
+    metric_id = serializers.IntegerField()
+    metric_name = serializers.CharField(allow_null=True)
+    region_z = serializers.FloatField()
+    type_mean_z = serializers.FloatField()
+    gap = serializers.FloatField()  # region_z − type_mean_z: вправо — выше типа, влево — ниже
+
+
+class RegionVsTypeSerializer(serializers.Serializer):
+    """Регион против своего типа: типичность (A1) + разрывы z по метрикам."""
+
+    okato = serializers.CharField()
+    year = serializers.IntegerField()
+    cluster_id = serializers.IntegerField()
+    cluster_label = serializers.CharField(allow_null=True)
+    distance_to_centroid = serializers.FloatField(allow_null=True)
+    # Позиция по типичности: доля членов типа ближе к центру (0 — самый типичный, 1 — пограничный).
+    typicality_percentile = serializers.FloatField(allow_null=True)
+    cluster_size = serializers.IntegerField()
+    metrics = RegionVsTypeMetricSerializer(many=True)
+
+
 class CompareRowSerializer(serializers.Serializer):
     """Строка сравнения регионов: индекс по доменам + тип (для gap-анализа)."""
 

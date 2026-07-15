@@ -22,6 +22,11 @@ urlpatterns = [
     path("search/", endpoints.SiteSearch.as_view(), name="search"),
     path("regions/<str:okato>/", endpoints.RegionDashboard.as_view(), name="region-dashboard"),
     path(
+        "regions/<str:okato>/vs-type/",
+        endpoints.RegionVsType.as_view(),
+        name="region-vs-type",
+    ),
+    path(
         "regions/<str:okato>/twins/",
         endpoints.RegionTwins.as_view(),
         name="region-twins",

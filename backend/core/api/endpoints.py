@@ -42,6 +42,7 @@ from ..serializers import (
     RegionDashboardSerializer,
     RegionSerializer,
     RegionTwinSerializer,
+    RegionVsTypeSerializer,
     ScenarioSerializer,
     SchemeAgreementRowSerializer,
     SiteSearchSerializer,
@@ -232,6 +233,35 @@ class RegionTwins(APIView):
         data = queries.region_twins(okato, year)
         log.info("region_twins", stage="api", okato=okato, year=year, rows=len(data))
         return Response(RegionTwinSerializer(data, many=True).data)
+
+
+class RegionVsType(APIView):
+    """GET /api/regions/<okato>/vs-type/?year=<int> — регион против своего типа.
+
+    По каждой метрике ядра — разрыв z-оценки региона и центроида его типа (регион − тип),
+    отсортированный по величине отличия, плюс типичность (удалённость от центра типа и
+    позиция среди членов типа). 404 — если у региона нет кластера за указанный год.
+    """
+
+    @extend_schema(
+        operation_id="region_vs_type",
+        parameters=[P_YEAR],
+        responses=RegionVsTypeSerializer,
+        summary="Регион против своего типа на год",
+    )
+    def get(self, request: Request, okato: str) -> Response:
+        year, err = _parse_year(request)
+        if err is not None:
+            return err
+        assert year is not None
+        data = queries.region_vs_type(okato, year)
+        if data is None:
+            return Response(
+                {"detail": "нет типологии для региона за указанный год"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        log.info("region_vs_type", stage="api", okato=okato, year=year, rows=len(data["metrics"]))
+        return Response(RegionVsTypeSerializer(data).data)
 
 
 class IndexRanking(APIView):

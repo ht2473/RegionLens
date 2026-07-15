@@ -564,6 +564,84 @@ def cluster_profile(year: int, cluster_id: int, k: int | None = None) -> list[di
     return q(sql, params)
 
 
+def region_vs_type(okato: str, year: int) -> dict[str, Any] | None:
+    """Регион против своего типа на год: разрыв z-профиля региона и центроида его типа.
+
+    По каждой метрике ядра: z региона (features_wide), средний z типа (cluster_profile.mean_z)
+    и разрыв (регион − тип), отсортированные по |разрыву| — какие показатели делают регион
+    нетипичным для своего типа. Плюс типичность: distance_to_centroid и позиция региона
+    среди членов типа за год. Возвращает None, если у региона нет кластера за год (→ 404).
+    """
+    clus_rows = q(
+        "SELECT cluster_id, cluster_label, distance_to_centroid, k "
+        "FROM clusters WHERE okato = ? AND year = ? AND algo = ?",
+        [okato, year, MAP_CLUSTER_ALGO],
+    )
+    if not clus_rows:
+        return None
+    clus = clus_rows[0]
+    cid = clus["cluster_id"]
+
+    # z-профиль самого региона (метрика → z). Ключи приводим к строке: metric_id в разных
+    # таблицах может быть int или str, str() нормализует сопоставление с центроидом.
+    region_z = {
+        str(r["metric_id"]): r["z_value"]
+        for r in q(
+            "SELECT metric_id, z_value FROM features_wide WHERE okato = ? AND year = ?",
+            [okato, year],
+        )
+    }
+    # центроид типа (средний z по метрикам) за тот же k, что и у региона
+    profile = q(
+        "SELECT p.metric_id, m.metric_name, p.mean_z "
+        "FROM cluster_profile p JOIN metric_dim m USING(metric_id) "
+        "WHERE p.year = ? AND p.cluster_id = ? AND p.algo = ? AND p.k = ? "
+        "ORDER BY abs(p.mean_z) DESC",
+        [year, cid, MAP_CLUSTER_ALGO, clus["k"]],
+    )
+    metrics: list[dict[str, Any]] = []
+    for row in profile:
+        rz = region_z.get(str(row["metric_id"]))
+        if rz is None:
+            continue  # у региона нет значения этой метрики за год — пропускаем
+        metrics.append(
+            {
+                "metric_id": row["metric_id"],
+                "metric_name": row["metric_name"],
+                "region_z": rz,
+                "type_mean_z": row["mean_z"],
+                "gap": rz - row["mean_z"],
+            }
+        )
+    metrics.sort(key=lambda m: abs(m["gap"]), reverse=True)
+
+    # Типичность: доля прочих членов типа, что ближе к центру, чем регион (0 — самый
+    # типичный, 1 — самый пограничный). Контекст к абсолютному distance_to_centroid.
+    dists = [
+        row["distance_to_centroid"]
+        for row in q(
+            "SELECT distance_to_centroid FROM clusters "
+            "WHERE year = ? AND algo = ? AND cluster_id = ? AND distance_to_centroid IS NOT NULL",
+            [year, MAP_CLUSTER_ALGO, cid],
+        )
+    ]
+    d0 = clus["distance_to_centroid"]
+    percentile: float | None = None
+    if len(dists) > 1 and d0 is not None:
+        percentile = sum(1 for x in dists if x < d0) / (len(dists) - 1)
+
+    return {
+        "okato": okato,
+        "year": year,
+        "cluster_id": cid,
+        "cluster_label": clus["cluster_label"],
+        "distance_to_centroid": d0,
+        "typicality_percentile": percentile,
+        "cluster_size": len(dists),
+        "metrics": metrics,
+    }
+
+
 def compare(okatos: list[str], year: int, scheme: str = MAP_INDEX_SCHEME) -> list[dict[str, Any]]:
     """Сравнение регионов на год: индекс по доменам + тип — для gap-анализа на фронте."""
     placeholders = ", ".join(["?"] * len(okatos))
