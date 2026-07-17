@@ -122,6 +122,44 @@
     return parts.join("&");
   }
 
+  // Одноразовое применение целевых значений из ссылки — после того как слайдеры собраны
+  // по пресетам региона (иначе значения перетрутся при перестройке слайдеров).
+  var pendingOverrides = null;
+
+  function readUrlState() {
+    var p = new URLSearchParams(window.location.search);
+    var ov = {};
+    DOMAINS.forEach(function (d) {
+      var v = p.get("p_" + d[0]);
+      if (v !== null && v !== "") ov[d[0]] = v;
+    });
+    return { year: p.get("year"), okato: p.get("okato") || "", overrides: ov };
+  }
+
+  function writeUrlState() {
+    if (!state.okato) return;
+    var p = new URLSearchParams();
+    p.set("year", state.year);
+    p.set("okato", state.okato);
+    var ov = overrides();
+    Object.keys(ov).forEach(function (k) { p.set("p_" + k, ov[k]); });
+    window.history.replaceState(null, "", window.location.pathname + "?" + p.toString());
+  }
+
+  // Применить целевые значения из ссылки к уже собранным слайдерам (значение + подпись).
+  function applyPendingOverrides() {
+    if (!pendingOverrides) return false;
+    Object.keys(pendingOverrides).forEach(function (k) {
+      var sl = slidersEl.querySelector('.s-slider[data-domain="' + k + '"]');
+      if (!sl) return;
+      sl.value = pendingOverrides[k];
+      var lab = document.getElementById("sv-" + k);
+      if (lab) lab.textContent = sl.value;
+    });
+    pendingOverrides = null;
+    return true;
+  }
+
   function renderSummary(data) {
     summaryEl.innerHTML =
       '<div class="kpi"><div class="kpi-label">' + gettext("Текущее место") +
@@ -162,6 +200,7 @@
 
   function runScenario() {
     if (!state.okato) return;
+    writeUrlState();
     fetch("/api/index/scenario/?" + scenarioQuery(overrides()))
       .then(function (r) {
         if (!r.ok) throw new Error(gettext("Ошибка расчёта") + " (" + r.status + ")");
@@ -190,6 +229,7 @@
           currentPct[d[0]] = pct;
         });
         buildSliders();
+        var applied = applyPendingOverrides();
         renderSummary(data);
         renderHint(data.sensitivity);
         root.innerHTML =
@@ -198,6 +238,8 @@
           gettext("Столбцы «целевой» отражают положение ползунков, сводка сверху пересчитывает место в рейтинге. Учитываются только изменённые домены.") +
           '</p><div id="scenario-chart" class="chart"></div></div>';
         drawScenario();
+        if (applied) runScenario(); // пересчитать сводку под целевые из ссылки
+        else writeUrlState(); // свежий регион — зафиксировать year+okato в URL
       })
       .catch(function (e) {
         root.innerHTML = '<div class="shell"><p>' + RL.errText(e) + "</p></div>";
@@ -222,8 +264,20 @@
     runScenario();
   });
 
+  var initialState = readUrlState();
+  if (initialState.year && /^\d{4}$/.test(initialState.year)) {
+    state.year = Math.min(2024, Math.max(2010, parseInt(initialState.year, 10)));
+    RL.syncYearControl(state.year);
+  }
+  if (Object.keys(initialState.overrides).length) pendingOverrides = initialState.overrides;
+  RL.wireCopyLink("scenario-copy-link");
+
   loadRegions()
     .then(function () {
+      // Регион из ссылки — если такой есть в списке; иначе остаётся первый по алфавиту.
+      if (initialState.okato && regionSelect.querySelector('option[value="' + initialState.okato + '"]')) {
+        state.okato = initialState.okato;
+      }
       regionSelect.value = state.okato;
       loadRegionState();
     })

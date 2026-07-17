@@ -98,6 +98,28 @@
     if (label) label.textContent = year;
   };
 
+  // Кнопка «Скопировать ссылку»: копирует текущий URL (со всем состоянием страницы в query)
+  // в буфер обмена и на ~1.5 с показывает подтверждение. Принимает элемент или его id;
+  // если кнопки нет — тихо ничего не делает. Единый помощник для deep-link-страниц.
+  window.RL.wireCopyLink = function (el) {
+    var btn = typeof el === "string" ? document.getElementById(el) : el;
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var prev = btn.textContent;
+      var flash = function () {
+        btn.textContent = typeof gettext === "function" ? gettext("Ссылка скопирована") : "Ссылка скопирована";
+        setTimeout(function () {
+          btn.textContent = prev;
+        }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(window.location.href).then(flash, flash);
+      } else {
+        flash();
+      }
+    });
+  };
+
   // Развернуть антимеридиан в geojson России: восточная часть Чукотки лежит в отрицательных
   // долготах (-180..-169), из-за чего bbox данных формально охватывает весь мир (360°) — ломается
   // подгонка кадра и ограничение панорамы, а сама Чукотка рвётся по линии 180°. Сдвигаем

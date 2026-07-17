@@ -104,6 +104,40 @@
   var timer = null;
   function scheduleLoad() { clearTimeout(timer); timer = setTimeout(load, 250); }
 
+  function readUrlState() {
+    var p = new URLSearchParams(window.location.search);
+    var out = { year: p.get("year"), weights: {} };
+    DOMAINS.forEach(function (d) {
+      var v = p.get("w_" + d[0]);
+      if (v !== null && v !== "") out.weights[d[0]] = v;
+    });
+    return out;
+  }
+
+  function writeUrlState() {
+    var p = new URLSearchParams();
+    p.set("year", state.year);
+    DOMAINS.forEach(function (d) {
+      p.set("w_" + d[0], weights[d[0]]);
+    });
+    window.history.replaceState(null, "", window.location.pathname + "?" + p.toString());
+  }
+
+  // Восстановление состояния из ссылки при загрузке: год (в диапазоне) и веса (0–10).
+  function applyUrlState() {
+    var s = readUrlState();
+    if (s.year && /^\d{4}$/.test(s.year)) {
+      state.year = Math.min(2024, Math.max(2010, parseInt(s.year, 10)));
+      RL.syncYearControl(state.year);
+    }
+    DOMAINS.forEach(function (d) {
+      var v = s.weights[d[0]];
+      if (v == null) return;
+      var n = parseInt(v, 10);
+      if (!isNaN(n)) weights[d[0]] = Math.min(10, Math.max(0, n));
+    });
+  }
+
   function queryString() {
     var parts = ["year=" + state.year];
     DOMAINS.forEach(function (d) { parts.push("w_" + d[0] + "=" + weights[d[0]]); });
@@ -156,6 +190,7 @@
   }
 
   function load() {
+    writeUrlState();
     root.innerHTML = '<div class="shell"><p>' + gettext("Пересчёт рейтинга…") + "</p></div>";
     fetch("/api/index/custom/?" + queryString())
       .then(function (r) {
@@ -183,6 +218,8 @@
     load();
   });
 
+  applyUrlState();
+  RL.wireCopyLink("builder-copy-link");
   buildSliders();
   drawWeightChart();
   load();
