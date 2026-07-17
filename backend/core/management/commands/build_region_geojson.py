@@ -13,6 +13,10 @@ backend/static/geo/regions.geojson с единственным ключом okat
     python backend/manage.py build_region_geojson --source src.geojson --overrides fix.json
 
 Результат — отчёт о сопоставленных/несопоставленных фичах и непокрытых регионах.
+
+После пересборки из свежего источника один раз прогоните упрощение геометрии для карты
+(`make geojson-optimize` — mapshaper, топологически-корректно), чтобы файл на карте был
+лёгким; коммитьте уже упрощённый geojson. Повторно на упрощённом файле не запускать.
 """
 
 from __future__ import annotations

@@ -5,9 +5,17 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from typing import Any
 
 from core.management.commands.build_region_geojson import normalize_name, tag_features
+
+# Отгружаемый на карту файл (относительно корня репозитория — без Django).
+_GEOJSON = Path(__file__).resolve().parents[1] / "backend" / "static" / "geo" / "regions.geojson"
+# Верхняя граница размера: упрощённый файл ~0.26 МБ; порог ловит случайную регенерацию без
+# `make geojson-optimize` (полная геометрия — ~2.3 МБ, карта грузилась бы ощутимо дольше).
+_MAX_GEOJSON_BYTES = 600_000
 
 
 def test_normalize_strips_type_words_and_case() -> None:
@@ -60,3 +68,24 @@ def test_tag_reports_unmatched() -> None:
     tagged, unmatched = tag_features(feats, {"адыгея": "01000000"})
     assert tagged == []
     assert unmatched == ["Неизвестная земля"]
+
+
+def test_committed_geojson_is_small_and_valid() -> None:
+    """Отгружаемый на карту geojson — упрощён (лёгкий), валиден и покрывает все 85 субъектов."""
+    assert _GEOJSON.exists(), f"нет файла карты: {_GEOJSON}"
+    size = _GEOJSON.stat().st_size
+    assert size < _MAX_GEOJSON_BYTES, (
+        f"regions.geojson раздут ({size} б): прогоните `make geojson-optimize`"
+    )
+    fc: dict[str, Any] = json.loads(_GEOJSON.read_text(encoding="utf-8"))
+    assert fc["type"] == "FeatureCollection"
+    feats = fc["features"]
+    assert len(feats) == 85
+    for f in feats:
+        props = f["properties"]
+        assert props.get("okato"), "у фичи нет okato"
+        assert props.get("name"), "у фичи нет name"
+        # геометрия не выродилась при упрощении
+        assert f["geometry"] and f["geometry"]["coordinates"]
+    okatos = {f["properties"]["okato"] for f in feats}
+    assert len(okatos) == 85, "okato не уникальны 1:1"

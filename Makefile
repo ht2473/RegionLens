@@ -1,4 +1,4 @@
-.PHONY: install lint format type test js-test audit load pipeline migrate seed bootstrap run all docker-up docker-down
+.PHONY: install lint format type test js-test geojson-optimize audit load pipeline migrate seed bootstrap run all docker-up docker-down
 
 install:          ## Установить проект и все группы зависимостей
 	pip install -e ".[pipeline,backend,dev]"
@@ -23,6 +23,11 @@ e2e:              ## Браузерные сценарии Playwright (перв�
 
 js-test:          ## Юнит-тесты клиентского JS (vitest; нужен Node и `npm ci`)
 	npm test
+
+geojson-optimize: ## Упростить геометрию static/geo/regions.geojson (mapshaper, нужен Node)
+	npx mapshaper@0.7.45 backend/static/geo/regions.geojson \
+		-simplify 15% keep-shapes -o precision=0.001 force \
+		backend/static/geo/regions.geojson
 
 pipeline:         ## Пересобрать всю аналитику офлайн-конвейером
 	python -m pipeline.run_all
