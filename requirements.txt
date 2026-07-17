@@ -49,6 +49,10 @@ billiard==4.2.4
     # via celery
 blinker==1.9.0
     # via flask
+brotli==1.2.0 ; platform_python_implementation == 'CPython'
+    # via fonttools
+brotlicffi==1.2.0.1 ; platform_python_implementation != 'CPython'
+    # via fonttools
 cachetools==7.1.4
     # via
     #   mlflow-skinny
@@ -61,8 +65,10 @@ certifi==2026.5.20
     # via requests
 cffi==2.0.0
     # via
+    #   brotlicffi
     #   cryptography
     #   pygit2
+    #   weasyprint
 charset-normalizer==3.4.7
     # via requests
 click==8.4.1
@@ -99,6 +105,8 @@ cryptography==48.0.0
     #   asyncssh
     #   google-auth
     #   mlflow
+cssselect2==0.9.0
+    # via weasyprint
 cycler==0.12.1
     # via matplotlib
 databricks-sdk==0.114.0
@@ -115,13 +123,14 @@ distro==1.9.0
     #   iterative-telemetry
 django==5.2.15
     # via
+    #   django-prometheus
     #   djangorestframework
     #   drf-spectacular
     #   regionlens
 django-environ==0.13.0
     # via regionlens
 django-prometheus==2.5.0
-    # via regionlens (backend)
+    # via regionlens
 djangorestframework==3.17.1
     # via
     #   drf-spectacular
@@ -174,7 +183,9 @@ flatten-dict==0.5.0
 flufl-lock==9.1.0
     # via dvc
 fonttools==4.63.0
-    # via matplotlib
+    # via
+    #   matplotlib
+    #   weasyprint
 frozenlist==1.8.0
     # via
     #   aiohttp
@@ -214,7 +225,9 @@ greenlet==3.5.1 ; platform_machine == 'AMD64' or platform_machine == 'WIN32' or 
 gto==1.9.0
     # via dvc
 gunicorn==26.0.0 ; sys_platform != 'win32'
-    # via mlflow
+    # via
+    #   mlflow
+    #   regionlens
 h11==0.16.0
     # via uvicorn
 huey==3.0.1
@@ -355,7 +368,9 @@ pathspec==1.1.1
 patsy==1.0.2
     # via statsmodels
 pillow==12.2.0
-    # via matplotlib
+    # via
+    #   matplotlib
+    #   weasyprint
 platformdirs==4.10.0
     # via dvc
 polars==1.41.2
@@ -410,6 +425,8 @@ pydantic-settings==2.14.1
     # via gto
 pydot==4.0.1
     # via dvc
+pydyf==0.12.1
+    # via weasyprint
 pygit2==1.19.2
     # via scmrepo
 pygments==2.20.0
@@ -426,6 +443,8 @@ pyparsing==3.3.2
     #   grandalf
     #   matplotlib
     #   pydot
+pyphen==0.17.2
+    # via weasyprint
 python-dateutil==2.9.0.post0
     # via
     #   celery
@@ -451,7 +470,7 @@ pyyaml==6.0.3
     #   omegaconf
     #   regionlens
 redis==8.0.1
-    # via regionlens (backend)
+    # via regionlens
 referencing==0.37.0
     # via
     #   jsonschema
@@ -544,6 +563,12 @@ tabulate==0.10.0
     #   gto
 threadpoolctl==3.6.0
     # via scikit-learn
+tinycss2==1.5.1
+    # via
+    #   cssselect2
+    #   weasyprint
+tinyhtml5==2.1.0
+    # via weasyprint
 tomlkit==0.15.0
     # via dvc
 tqdm==4.67.3
@@ -621,15 +646,24 @@ wcwidth==0.7.0
     # via
     #   prettytable
     #   prompt-toolkit
+weasyprint==69.0
+    # via regionlens
+webencodings==0.5.1
+    # via
+    #   cssselect2
+    #   tinycss2
+    #   tinyhtml5
 werkzeug==3.1.8
     # via
     #   flask
     #   flask-cors
 whitenoise==6.12.0
-    # via regionlens (backend)
+    # via regionlens
 yarl==1.24.2
     # via aiohttp
 zc-lockfile==4.0
     # via dvc
 zipp==4.1.0
     # via importlib-metadata
+zopfli==0.4.3
+    # via fonttools

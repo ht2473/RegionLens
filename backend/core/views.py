@@ -241,7 +241,7 @@ def export_region(request: HttpRequest, okato: str) -> HttpResponse:
     строгую валидацию — пользовательский ввод не достигает файловой системы в сыром виде.
     """
     fmt = request.GET.get("format", "xlsx")
-    if fmt not in ("xlsx", "docx"):
+    if fmt not in ("xlsx", "docx", "pdf"):
         raise Http404("Неизвестный формат экспорта.")
     okato = _validated_okato(okato)
     try:
@@ -253,7 +253,21 @@ def export_region(request: HttpRequest, okato: str) -> HttpResponse:
     if data is None:
         raise Http404("Нет данных по региону за выбранный год.")
 
-    content = reports.region_xlsx(data) if fmt == "xlsx" else reports.region_docx(data)
+    if fmt == "xlsx":
+        content = reports.region_xlsx(data)
+    elif fmt == "docx":
+        content = reports.region_docx(data)
+    else:  # pdf
+        try:
+            content = reports.region_pdf(data)
+        except (ImportError, OSError):
+            # weasyprint или его системные библиотеки недоступны на этом сервере —
+            # отдаём понятную ошибку вместо 500 и не создаём задание экспорта.
+            return HttpResponse(
+                gettext("PDF-экспорт недоступен на этом сервере (не установлен weasyprint)."),
+                status=501,
+                content_type="text/plain; charset=utf-8",
+            )
     job = ExportJob(user=request.user, okato=okato, fmt=fmt, status=ExportJob.Status.DONE)
     filename = f"region_{okato}_{year}.{fmt}"
     job.file.save(filename, ContentFile(content))  # save=True: сохраняет и сам ExportJob

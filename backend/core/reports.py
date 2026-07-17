@@ -146,3 +146,98 @@ def region_docx(data: dict[str, Any]) -> bytes:
     buf = BytesIO()
     doc.save(buf)
     return buf.getvalue()
+
+
+def _pdf_html(data: dict[str, Any]) -> str:
+    """Собрать HTML отчёта региона для рендера в PDF. Все динамические значения экранируются."""
+    from html import escape
+
+    name = data.get("region_name") or data["okato"]
+    index = data.get("index") or {}
+
+    meta = (
+        f"ОКАТО: {escape(str(data['okato']))} · Год: {escape(str(data['year']))} · "
+        f"Федеральный округ: {escape(str(data.get('federal_district') or '—'))}"
+    )
+
+    facts = [f"Итоговый индекс (0–100): <strong>{_num(index.get('total_score'))}</strong>"]
+    rank = data.get("rank")
+    if rank:
+        facts.append(f"Ранг по индексу: {escape(str(rank['rank']))} из {escape(str(rank['of']))}")
+    cluster = data.get("cluster")
+    if cluster:
+        facts.append(
+            f"Тип (кластер): {escape(str(cluster.get('cluster_id')))} — "
+            f"{escape(str(cluster.get('cluster_label') or '—'))}"
+        )
+    facts_html = "".join(f"<li>{f}</li>" for f in facts)
+
+    domains = index.get("domains", [])
+    domain_rows = "".join(
+        "<tr><td>{d}</td><td>{s}</td><td>{p}</td><td>{dl}</td></tr>".format(
+            d=escape(_DOMAIN_RU.get(row["domain"], row["domain"])),
+            s=_num(row.get("score")),
+            p=_num(row.get("score_prev")),
+            dl=_num(row.get("delta")),
+        )
+        for row in domains
+    )
+    domains_html = (
+        "<h2>Баллы по доменам</h2>"
+        "<table><thead><tr><th>Домен</th><th>Балл</th><th>Предыдущий год</th>"
+        f"<th>Дельта</th></tr></thead><tbody>{domain_rows}</tbody></table>"
+        if domains
+        else ""
+    )
+
+    shap = data.get("shap_top", [])
+    shap_items = "".join(
+        f"<li>{escape(str(s.get('metric_name') or ''))}: {_num(s.get('shap_value'), 3)}</li>"
+        for s in shap
+    )
+    shap_html = (
+        f"<h2>Ключевые метрики (вклад в тип, SHAP)</h2><ul>{shap_items}</ul>" if shap else ""
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><style>
+  @page {{ size: A4; margin: 20mm 18mm; }}
+  body {{
+    font-family: "DejaVu Sans", sans-serif; color: #1c2530;
+    font-size: 11pt; line-height: 1.45;
+  }}
+  h1 {{ font-size: 20pt; margin: 0 0 4px; }}
+  h2 {{
+    font-size: 13pt; margin: 18px 0 6px;
+    border-bottom: 1px solid #c9cfd6; padding-bottom: 3px;
+  }}
+  .meta {{ color: #5b6672; font-size: 10pt; margin-bottom: 10px; }}
+  ul {{ margin: 4px 0; padding-left: 18px; }}
+  table {{ border-collapse: collapse; width: 100%; margin-top: 4px; }}
+  th, td {{ border: 1px solid #c9cfd6; padding: 5px 8px; text-align: left; font-size: 10pt; }}
+  th {{ background: #eef2f4; }}
+  .footer {{
+    margin-top: 22px; color: #5b6672; font-size: 9pt;
+    border-top: 1px solid #c9cfd6; padding-top: 6px;
+  }}
+</style></head><body>
+  <h1>Отчёт по региону: {escape(str(name))}</h1>
+  <p class="meta">{meta}</p>
+  <h2>Индекс развития</h2>
+  <ul>{facts_html}</ul>
+  {domains_html}
+  {shap_html}
+  <p class="footer">Автор: {escape(_AUTHOR)}</p>
+</body></html>"""
+
+
+def region_pdf(data: dict[str, Any]) -> bytes:
+    """Собрать отчёт региона в pdf (weasyprint) и вернуть его байты.
+
+    weasyprint импортируется лениво: на некоторых платформах (например, Windows без GTK)
+    его системные библиотеки не установлены, и это не должно ломать импорт модуля и другие
+    форматы экспорта. Вьюха экспорта ловит ошибку импорта и отдаёт понятное сообщение.
+    """
+    from weasyprint import HTML  # локальный импорт — см. docstring
+
+    return bytes(HTML(string=_pdf_html(data)).write_pdf())

@@ -261,6 +261,8 @@ def _describe_action(action: str) -> tuple[str, str]:
         return ("export", gettext("Экспорт отчёта (XLSX)"))
     if head == "export:docx":
         return ("export", gettext("Экспорт отчёта (DOCX)"))
+    if head == "export:pdf":
+        return ("export", gettext("Экспорт отчёта (PDF)"))
     if head == "saved_view:create":
         return ("view", gettext("Создан сохранённый вид «%(name)s»") % {"name": rest})
     if head == "saved_view:share":

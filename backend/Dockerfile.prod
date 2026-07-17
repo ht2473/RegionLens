@@ -32,9 +32,12 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# libpq5 — рантайм-зависимость драйвера psycopg.
+# Рантайм-зависимости: libpq5 (psycopg) + weasyprint (pango/cairo/gdk-pixbuf) и
+# кириллический шрифт DejaVu для PDF-экспорта отчёта региона.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq5 \
+    && apt-get install -y --no-install-recommends \
+        libpq5 \
+        libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libcairo2 fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /venv /venv

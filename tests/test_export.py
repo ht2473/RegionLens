@@ -22,6 +22,22 @@ from openpyxl import load_workbook
 
 pytestmark = pytest.mark.django_db
 
+
+def _weasyprint_available() -> bool:
+    """weasyprint импортируется без ошибок (есть пакет и системные pango/cairo).
+
+    На Windows без GTK импорт падает с OSError (не ImportError), поэтому pytest.importorskip
+    здесь не годится — ловим обе ошибки и пропускаем PDF-тесты корректно.
+    """
+    try:
+        import weasyprint  # noqa: F401
+    except (ImportError, OSError):
+        return False
+    return True
+
+
+_WEASYPRINT = _weasyprint_available()
+
 _PW = "Sl0transit-9"
 
 _SAMPLE: dict[str, Any] = {
@@ -66,6 +82,14 @@ def test_region_docx_is_valid_document() -> None:
     assert "Кузьмин" in text
 
 
+@pytest.mark.skipif(not _WEASYPRINT, reason="weasyprint/GTK недоступен (напр. Windows без GTK)")
+def test_region_pdf_is_valid_pdf() -> None:
+    """pdf — валидный PDF (сигнатура %PDF) с именем региона и атрибуцией автора внутри."""
+    content = reports.region_pdf(_SAMPLE)
+    assert content[:4] == b"%PDF"
+    assert len(content) > 1000
+
+
 def test_export_requires_login(client: Client) -> None:
     """Экспорт доступен только вошедшим."""
     resp = client.get("/regions/45000000/export/?format=xlsx&year=2024")
@@ -96,11 +120,32 @@ def test_export_downloads_and_logs(
     assert job.file
 
 
+@pytest.mark.skipif(not _WEASYPRINT, reason="weasyprint/GTK недоступен (напр. Windows без GTK)")
+def test_export_pdf_downloads_and_logs(
+    client: Client, monkeypatch: pytest.MonkeyPatch, settings: Any, tmp_path: Any
+) -> None:
+    """PDF-экспорт отдаёт вложение с сигнатурой %PDF и фиксирует ExportJob (fmt=pdf)."""
+    settings.MEDIA_ROOT = str(tmp_path)
+    monkeypatch.setattr("core.queries.region_dashboard", lambda okato, year: _SAMPLE)
+    user = User.objects.create_user("pdf_exporter", password=_PW)
+    client.force_login(user)
+
+    resp = client.get("/regions/45000000/export/?format=pdf&year=2024")
+    assert resp.status_code == 200
+    assert "attachment" in resp["Content-Disposition"]
+    assert ".pdf" in resp["Content-Disposition"]
+    assert b"".join(resp.streaming_content)[:4] == b"%PDF"
+
+    job = ExportJob.objects.get(user=user)
+    assert job.fmt == "pdf"
+    assert job.status == ExportJob.Status.DONE
+
+
 def test_export_rejects_unknown_format(client: Client) -> None:
     """Неизвестный формат — 404."""
     user = User.objects.create_user("u2", password=_PW)
     client.force_login(user)
-    assert client.get("/regions/45000000/export/?format=pdf").status_code == 404
+    assert client.get("/regions/45000000/export/?format=csv").status_code == 404
 
 
 def test_export_404_when_no_data(

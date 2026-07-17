@@ -179,7 +179,7 @@ class FeedbackMessage(models.Model):
 
 
 class ExportJob(models.Model):
-    """Задание экспорта отчёта по региону (xlsx / docx).
+    """Задание экспорта отчёта по региону (xlsx / docx / pdf).
 
     Экспорт синхронный (файл создаётся в запросе), поэтому статус по умолчанию `done`;
     модель фиксирует факт экспорта и путь к файлу для истории в личном кабинете
@@ -189,6 +189,7 @@ class ExportJob(models.Model):
     class Format(models.TextChoices):
         XLSX = "xlsx", "Excel (.xlsx)"
         DOCX = "docx", "Word (.docx)"
+        PDF = "pdf", "PDF (.pdf)"
 
     class Status(models.TextChoices):
         PENDING = "pending", "В очереди"

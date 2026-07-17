@@ -28,11 +28,13 @@
            href="{% url 'export_region' okato %}?format=xlsx&year={{ export_year }}">{% trans "Экспорт XLSX" %}</a>
         <a class="btn ghost" id="export-docx"
            href="{% url 'export_region' okato %}?format=docx&year={{ export_year }}">{% trans "Экспорт DOCX" %}</a>
+        <a class="btn ghost" id="export-pdf"
+           href="{% url 'export_region' okato %}?format=pdf&year={{ export_year }}">{% trans "Экспорт PDF" %}</a>
       {% endif %}
     </div>
     {% if not user.is_authenticated %}
       {% url 'login' as login_url %}
-      <p style="margin-top:12px; color:var(--ink-faint); font-size:0.88rem;">{% blocktrans %}<a href="{{ login_url }}">Войдите</a>, чтобы экспортировать отчёт по региону в xlsx/docx.{% endblocktrans %}</p>
+      <p style="margin-top:12px; color:var(--ink-faint); font-size:0.88rem;">{% blocktrans %}<a href="{{ login_url }}">Войдите</a>, чтобы экспортировать отчёт по региону в xlsx/docx/pdf.{% endblocktrans %}</p>
     {% endif %}
   </section>
 
