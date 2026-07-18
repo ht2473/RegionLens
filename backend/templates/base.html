@@ -61,12 +61,13 @@
         </div>
 
         <div class="nav-group" x-data="{ d: false }" @click.away="d = false" @keydown.escape="d = false">
-          <button type="button" class="nav-group-btn{% if active == 'typology' or active == 'compare' or active == 'anomalies' or active == 'correlations' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{% trans "Аналитика" %} <span class="caret" aria-hidden="true">▾</span></button>
+          <button type="button" class="nav-group-btn{% if active == 'typology' or active == 'compare' or active == 'anomalies' or active == 'correlations' or active == 'spatial' %} is-active{% endif %}" @click="d = !d" :aria-expanded="d.toString()" aria-haspopup="true">{% trans "Аналитика" %} <span class="caret" aria-hidden="true">▾</span></button>
           <div class="nav-menu" x-show="d" x-cloak @click="d = false">
             <a href="{% url 'typology' %}" class="{% if active == 'typology' %}is-active{% endif %}">{% trans "Типология" %}</a>
             <a href="{% url 'compare' %}" class="{% if active == 'compare' %}is-active{% endif %}">{% trans "Сравнение" %}</a>
             <a href="{% url 'anomalies_page' %}" class="{% if active == 'anomalies' %}is-active{% endif %}">{% trans "Аномалии" %}</a>
             <a href="{% url 'correlations_page' %}" class="{% if active == 'correlations' %}is-active{% endif %}">{% trans "Корреляции" %}</a>
+            <a href="{% url 'spatial_page' %}" class="{% if active == 'spatial' %}is-active{% endif %}">{% trans "Пространственная автокорреляция" %}</a>
           </div>
         </div>
 

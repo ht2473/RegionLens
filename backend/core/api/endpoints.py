@@ -37,6 +37,8 @@ from ..serializers import (
     MetricSeriesPointSerializer,
     MetricValuePointSerializer,
     ModelPredictionSerializer,
+    MoranGlobalSerializer,
+    MoranLocalRowSerializer,
     RankRobustnessRowSerializer,
     RankStabilityRowSerializer,
     RegionDashboardSerializer,
@@ -363,6 +365,70 @@ class BetaConvergence(APIView):
         data = queries.beta_convergence_list()
         log.info("beta_convergence", stage="api", rows=len(data))
         return Response(BetaConvergenceRowSerializer(data, many=True).data)
+
+
+class MoranGlobal(APIView):
+    """GET /api/spatial/moran/?year=<int>&scheme=equal|pca|expert — глобальный Moran's I.
+
+    Пространственная автокорреляция индекса развития: похожи ли соседние регионы. morans_i>0 —
+    кластеризация (богатые рядом с богатыми и т. п.); значимость — перестановочным тестом.
+    404, если пространственная стадия ещё не посчитана (нет таблицы/строки за год).
+    """
+
+    @extend_schema(
+        operation_id="moran_global",
+        parameters=[P_YEAR, P_SCHEME],
+        responses=MoranGlobalSerializer,
+        summary="Глобальный Moran's I индекса на год",
+    )
+    def get(self, request: Request) -> Response:
+        year, err = _parse_year(request)
+        if err is not None:
+            return err
+        assert year is not None
+        scheme = request.query_params.get("scheme", queries.MAP_INDEX_SCHEME)
+        if scheme not in INDEX_SCHEMES:
+            return Response(
+                {"detail": f"'scheme' должен быть одним из {list(INDEX_SCHEMES)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.moran_global(year, scheme)
+        if data is None:
+            return Response(
+                {"detail": "пространственная статистика не посчитана за указанный год/схему"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        log.info("moran_global", stage="api", year=year, scheme=scheme)
+        return Response(MoranGlobalSerializer(data).data)
+
+
+class MoranLocal(APIView):
+    """GET /api/spatial/lisa/?year=<int>&scheme=equal|pca|expert — локальный LISA по регионам.
+
+    По каждому региону — тип пространственного кластера (HH/LL — регион и соседи вместе высоко/
+    низко; HL/LH — пространственные выбросы; ns — незначимо) для карты LISA. Read-only.
+    """
+
+    @extend_schema(
+        operation_id="moran_local",
+        parameters=[P_YEAR, P_SCHEME],
+        responses=MoranLocalRowSerializer(many=True),
+        summary="Локальный LISA по регионам на год",
+    )
+    def get(self, request: Request) -> Response:
+        year, err = _parse_year(request)
+        if err is not None:
+            return err
+        assert year is not None
+        scheme = request.query_params.get("scheme", queries.MAP_INDEX_SCHEME)
+        if scheme not in INDEX_SCHEMES:
+            return Response(
+                {"detail": f"'scheme' должен быть одним из {list(INDEX_SCHEMES)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = queries.moran_local(year, scheme)
+        log.info("moran_local", stage="api", year=year, scheme=scheme, rows=len(data))
+        return Response(MoranLocalRowSerializer(data, many=True).data)
 
 
 class Transitions(APIView):

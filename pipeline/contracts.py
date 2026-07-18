@@ -73,6 +73,35 @@ BETA_CONVERGENCE_SCHEMA = {
     "r_squared": pl.Float64,
 }
 
+# Контракт moran_global: глобальная пространственная автокорреляция индекса по (year, scheme).
+# morans_i — глобальный индекс Морана (>0 ⇒ соседние регионы похожи); expected_i = -1/(n-1) —
+# ожидание при отсутствии автокорреляции; z_score/p_value — значимость перестановочным тестом
+# (999 перестановок, seed=42). Веса — смежность по общей границе (rook), строкан-нормированные;
+# n_regions — число регионов с соседями (эксклавы/острова исключены).
+MORAN_GLOBAL_SCHEMA = {
+    "weighting_scheme": pl.Utf8,
+    "year": pl.Int32,
+    "morans_i": pl.Float64,
+    "expected_i": pl.Float64,
+    "z_score": pl.Float64,
+    "p_value": pl.Float64,
+    "n_regions": pl.Int32,
+}
+
+# Контракт moran_local: локальная автокорреляция (LISA) по региону для (year, scheme). local_i —
+# локальный индекс Морана; quadrant при p<0.05 — тип кластера: HH/LL (регион и соседи вместе
+# высоко/низко), HL/LH (пространственные выбросы), иначе "ns". p_value — перестановочная значимость.
+# Веса — те же rook-смежности. Регионы без соседей — quadrant "ns", p_value/local_i = null.
+MORAN_LOCAL_SCHEMA = {
+    "weighting_scheme": pl.Utf8,
+    "year": pl.Int32,
+    "okato": pl.Utf8,
+    "local_i": pl.Float64,
+    "quadrant": pl.Utf8,
+    "p_value": pl.Float64,
+    "n_neighbors": pl.Int32,
+}
+
 # Контракт index_dispersion: межрегиональный разброс КОМПОЗИТНОГО ИНДЕКСА по годам (σ-сходимость).
 # Грань — (year, weighting_scheme). В отличие от dispersion (по метрикам), здесь — разброс самого
 # индекса развития по регионам: сужается ли он во времени (σ-сходимость) и динамика неравенства.

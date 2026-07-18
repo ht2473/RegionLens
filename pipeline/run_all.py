@@ -165,6 +165,14 @@ def _stage_beta_convergence(duckdb_path: str, sources_path: str, log_mlflow: boo
     run_beta_convergence(dev_index, duckdb_path=duckdb_path, write=True)
 
 
+def _stage_spatial(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
+    """Пространственная автокорреляция индекса: глобальный Moran's I и локальный LISA."""
+    from pipeline.spatial import run_spatial
+
+    dev_index = read_table(duckdb_path, "dev_index")
+    run_spatial(dev_index, duckdb_path=duckdb_path, write=True)
+
+
 def _stage_correlations(duckdb_path: str, sources_path: str, log_mlflow: bool) -> None:
     """Парные корреляции метрик по регионам на год."""
     from pipeline.correlations import run_correlations
@@ -292,6 +300,13 @@ STAGES: tuple[Stage, ...] = (
         ("dev_index",),
         ("beta_convergence",),
         "β-сходимость индекса: догоняют ли отстающие (по схемам весов)",
+    ),
+    Stage(
+        "spatial",
+        _stage_spatial,
+        ("dev_index",),
+        ("moran_global", "moran_local"),
+        "пространственная автокорреляция индекса (Moran's I, LISA)",
     ),
     Stage(
         "correlations",

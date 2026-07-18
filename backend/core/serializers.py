@@ -419,6 +419,27 @@ class IndexDispersionRowSerializer(serializers.Serializer):
     gini = serializers.FloatField(allow_null=True)
 
 
+class MoranGlobalSerializer(serializers.Serializer):
+    """Глобальный Moran's I индекса на год/схему: значение, ожидание и значимость."""
+
+    morans_i = serializers.FloatField()
+    expected_i = serializers.FloatField()
+    z_score = serializers.FloatField()
+    p_value = serializers.FloatField()
+    n_regions = serializers.IntegerField()
+
+
+class MoranLocalRowSerializer(serializers.Serializer):
+    """Локальный LISA по региону: квадрант кластера (HH/LL/HL/LH/ns) и значимость."""
+
+    okato = serializers.CharField()
+    name = serializers.CharField(allow_null=True)
+    local_i = serializers.FloatField(allow_null=True)
+    quadrant = serializers.CharField()
+    p_value = serializers.FloatField(allow_null=True)
+    n_neighbors = serializers.IntegerField()
+
+
 class SchemeAgreementRowSerializer(serializers.Serializer):
     """Согласованность двух схем весов в году: ранговая корреляция Спирмена их рейтингов.
 

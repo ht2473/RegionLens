@@ -23,6 +23,8 @@ pipeline = [              # офлайн-конвейер: аналитика/ML
   "statsmodels>=0.14",
   "shap>=0.45",
   "ruptures>=1.1",
+  "esda>=2.5",             # пространственная автокорреляция: Moran's I / LISA
+  "libpysal>=4.10",        # пространственные веса (соседство) для esda
   "mlflow>=2.13",
   "joblib>=1.4",
   "pandera>=0.20",
@@ -81,6 +83,7 @@ module = [
   "django.*", "rest_framework.*", "drf_spectacular.*",
   "pandas.*", "sklearn.*", "scipy.*", "statsmodels.*",
   "shap.*", "ruptures.*", "mlflow.*", "joblib.*", "pandera.*",
+  "esda.*", "libpysal.*",
   "openpyxl.*", "docx.*", "weasyprint.*",
 ]
 ignore_missing_imports = true

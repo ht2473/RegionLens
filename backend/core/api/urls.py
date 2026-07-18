@@ -47,6 +47,8 @@ urlpatterns = [
     ),
     path("index/dispersion/", endpoints.IndexDispersion.as_view(), name="index_dispersion"),
     path("index/beta/", endpoints.BetaConvergence.as_view(), name="beta_convergence"),
+    path("spatial/moran/", endpoints.MoranGlobal.as_view(), name="moran_global"),
+    path("spatial/lisa/", endpoints.MoranLocal.as_view(), name="moran_local"),
     path("transitions/", endpoints.Transitions.as_view(), name="transitions"),
     # Типология (profile — до <okato>/explain, чтобы не перехватился как okato)
     path("typology/", endpoints.Typology.as_view(), name="typology"),

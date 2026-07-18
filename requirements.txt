@@ -45,6 +45,8 @@ attrs==26.1.0
     #   jsonschema
     #   referencing
     #   sqltrie
+beautifulsoup4==4.15.0
+    # via libpysal
 billiard==4.2.4
     # via celery
 blinker==1.9.0
@@ -62,7 +64,10 @@ celery==5.6.3
     #   dvc
     #   dvc-task
 certifi==2026.5.20
-    # via requests
+    # via
+    #   pyogrio
+    #   pyproj
+    #   requests
 cffi==2.0.0
     # via
     #   brotlicffi
@@ -166,6 +171,8 @@ dvc-task==0.40.2
     # via dvc
 entrypoints==0.4
     # via gto
+esda==2.10.0
+    # via regionlens
 et-xmlfile==2.0.0
     # via openpyxl
 fastapi==0.136.3
@@ -202,6 +209,10 @@ funcy==2.0
     #   dvc
     #   dvc-task
     #   gto
+geopandas==1.1.4
+    # via
+    #   esda
+    #   libpysal
 gitdb==4.0.12
     # via gitpython
 gitpython==3.1.50
@@ -248,7 +259,9 @@ iterative-telemetry==0.0.10
 itsdangerous==2.2.0
     # via flask
 jinja2==3.1.6
-    # via flask
+    # via
+    #   flask
+    #   libpysal
 joblib==1.5.3
     # via
     #   regionlens
@@ -264,6 +277,10 @@ kombu==5.6.2
     #   celery
     #   dvc
     #   dvc-task
+libpysal==4.15.0
+    # via
+    #   esda
+    #   regionlens
 llvmlite==0.45.1
     # via
     #   numba
@@ -303,15 +320,20 @@ numba==0.62.1
 numpy==2.3.5
     # via
     #   contourpy
+    #   esda
+    #   geopandas
+    #   libpysal
     #   matplotlib
     #   mlflow
     #   numba
     #   pandas
     #   patsy
+    #   pyogrio
     #   ruptures
     #   scikit-learn
     #   scipy
     #   shap
+    #   shapely
     #   skops
     #   statsmodels
 omegaconf==2.3.0
@@ -343,18 +365,24 @@ orjson==3.11.9 ; implementation_name == 'cpython'
 packaging==26.2
     # via
     #   dvc
+    #   geopandas
     #   gunicorn
     #   hydra-core
     #   kombu
+    #   libpysal
     #   matplotlib
     #   mlflow-skinny
     #   mlflow-tracing
     #   pandera
+    #   pyogrio
     #   shap
     #   skops
     #   statsmodels
 pandas==2.3.3
     # via
+    #   esda
+    #   geopandas
+    #   libpysal
     #   mlflow
     #   regionlens
     #   shap
@@ -372,7 +400,9 @@ pillow==12.2.0
     #   matplotlib
     #   weasyprint
 platformdirs==4.10.0
-    # via dvc
+    # via
+    #   dvc
+    #   libpysal
 polars==1.41.2
     # via regionlens
 polars-runtime-32==1.41.2
@@ -437,6 +467,8 @@ pygtrie==2.5.0
     #   dvc-data
     #   scmrepo
     #   sqltrie
+pyogrio==0.13.0
+    # via geopandas
 pyparsing==3.3.2
     # via
     #   dvc
@@ -445,6 +477,8 @@ pyparsing==3.3.2
     #   pydot
 pyphen==0.17.2
     # via weasyprint
+pyproj==3.7.2
+    # via geopandas
 python-dateutil==2.9.0.post0
     # via
     #   celery
@@ -482,6 +516,7 @@ requests==2.34.2
     #   dvc
     #   dvc-studio-client
     #   iterative-telemetry
+    #   libpysal
     #   mlflow-skinny
 rich==15.0.0
     # via
@@ -500,12 +535,16 @@ ruptures==1.1.10
     # via regionlens
 scikit-learn==1.7.2
     # via
+    #   esda
+    #   libpysal
     #   mlflow
     #   regionlens
     #   shap
     #   skops
 scipy==1.17.1
     # via
+    #   esda
+    #   libpysal
     #   mlflow
     #   regionlens
     #   ruptures
@@ -523,6 +562,11 @@ setuptools==82.0.1
     # via zc-lockfile
 shap==0.52.0
     # via regionlens
+shapely==2.1.2
+    # via
+    #   esda
+    #   geopandas
+    #   libpysal
 shellingham==1.5.4
     # via typer
 shortuuid==1.0.13
@@ -539,6 +583,8 @@ slicer==0.0.8
     # via shap
 smmap==5.0.3
     # via gitdb
+soupsieve==2.8.4
+    # via beautifulsoup4
 sqlalchemy==2.0.50
     # via
     #   alembic
@@ -589,6 +635,7 @@ typing-extensions==4.15.0
     #   alembic
     #   anyio
     #   asyncssh
+    #   beautifulsoup4
     #   fastapi
     #   graphene
     #   mlflow-skinny

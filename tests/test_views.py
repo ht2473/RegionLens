@@ -18,6 +18,7 @@ PAGES = [
     "/compare/",
     "/anomalies/",
     "/correlations/",
+    "/spatial/",
     "/regions/",
     "/methodology/",
     "/data/",
@@ -259,7 +260,7 @@ def _role_client(role: str) -> Client:
 def test_analytics_pages_public_anonymous() -> None:
     """Все вкладки «Аналитики» открыты всем, включая анонимов → 200."""
     c = Client()
-    for url in ("/typology/", "/compare/", "/anomalies/", "/correlations/"):
+    for url in ("/typology/", "/compare/", "/anomalies/", "/correlations/", "/spatial/"):
         assert c.get(url).status_code == 200
 
 

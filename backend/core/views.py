@@ -145,6 +145,16 @@ def correlations_page(request: HttpRequest) -> HttpResponse:
     )
 
 
+def spatial_page(request: HttpRequest) -> HttpResponse:
+    """Пространственная автокорреляция (Moran's I, LISA) — модуль «Аналитика»."""
+    return _page(
+        request,
+        "pages/spatial.html",
+        active="spatial",
+        title=gettext("Пространственная автокорреляция"),
+    )
+
+
 def rankings(request: HttpRequest) -> HttpResponse:
     """Рейтинг регионов по индексу."""
     return _page(

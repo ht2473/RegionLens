@@ -29,6 +29,7 @@ urlpatterns = [
     path("dispersion/", views.dispersion_page, name="dispersion_page"),
     path("anomalies/", views.anomalies_page, name="anomalies_page"),
     path("correlations/", views.correlations_page, name="correlations_page"),
+    path("spatial/", views.spatial_page, name="spatial_page"),
     path("help/", views.help_page, name="help"),
     path("feedback/", views.feedback, name="feedback"),
     path(

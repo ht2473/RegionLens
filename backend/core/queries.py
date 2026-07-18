@@ -400,6 +400,27 @@ def beta_convergence_list() -> list[dict[str, Any]]:
     )
 
 
+def moran_global(year: int, scheme: str = MAP_INDEX_SCHEME) -> dict[str, Any] | None:
+    """Глобальный Moran's I индекса на год/схему (таблица moran_global). None, если не посчитан."""
+    rows = q(
+        "SELECT morans_i, expected_i, z_score, p_value, n_regions "
+        "FROM moran_global WHERE year = ? AND weighting_scheme = ?",
+        [year, scheme],
+    )
+    return rows[0] if rows else None
+
+
+def moran_local(year: int, scheme: str = MAP_INDEX_SCHEME) -> list[dict[str, Any]]:
+    """Локальный LISA по регионам на год/схему (таблица moran_local + имя региона). Read-only."""
+    return q(
+        "SELECT ml.okato, r.region_name AS name, ml.local_i, ml.quadrant, ml.p_value, "
+        "ml.n_neighbors FROM moran_local ml "
+        "LEFT JOIN region_dim r USING (okato) "
+        "WHERE ml.year = ? AND ml.weighting_scheme = ? ORDER BY ml.okato",
+        [year, scheme],
+    )
+
+
 def _domain_breakdown(cur: dict[str, Any], prev: dict[str, Any] | None) -> list[dict[str, Any]]:
     """Поддоменная разбивка балла: значение в году, в предыдущем году и дельта (B4).
 
