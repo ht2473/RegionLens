@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Пространственная автокорреляция" %} — RegionLens{% endblock %}
+
+{% block head %}
+  <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">{% trans "Расширенная аналитика" %}</p>
+  <h1>{% trans "Пространственная автокорреляция" %}</h1>
+  <p class="lead">{% blocktrans %}Похожи ли соседние регионы по индексу развития? Глобальный индекс Морана оценивает пространственную кластеризацию в целом, локальный LISA — размечает регионы по типам кластеров (высокий среди высоких, низкий среди низких) и пространственным выбросам. Это <strong>описательная статистика</strong>, а не модель причин.{% endblocktrans %}</p>
+</section>
+
+<div class="map-controls">
+  <div class="year-control">
+    <label for="year-slider">{% trans "Год" %}: <strong id="year-label">2024</strong></label>
+    <input type="range" id="year-slider" min="2010" max="2024" step="1" value="2024">
+  </div>
+  <div class="scheme-control">
+    <label for="scheme-select">{% trans "Схема весов" %}:</label>
+    <select id="scheme-select">
+      <option value="equal">{% trans "Равные" %}</option>
+      <option value="pca">PCA</option>
+      <option value="expert">{% trans "Экспертные" %}</option>
+    </select>
+  </div>
+</div>
+
+<div class="card">
+  <h3>{% trans "Глобальный Moran's I" %}</h3>
+  <div id="moran-global"><p class="chart-note">{% trans "Загрузка…" %}</p></div>
+</div>
+
+<div class="card">
+  <h3>{% trans "Кластеры LISA" %} (<span id="sp-year">2024</span>)</h3>
+  <p class="chart-note">{% trans "Значимые (p<0.05) локальные кластеры и пространственные выбросы. Наведение показывает тип и локальный индекс, клик ведёт к дашборду региона. Эксклавы и острова без соседей — незначимо." %}</p>
+  <div class="map-wrap">
+    <div id="map" data-year="2024"></div>
+    <div id="map-legend" class="map-legend"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="{% static 'js/spatial.js' %}"></script>
+{% endblock %}

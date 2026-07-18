@@ -817,3 +817,60 @@ msgstr ""
 " interactively above: the model is loaded from a file and applied to the "
 "profile of the selected region. This makes the intelligent service "
 "reproducible and verifiable."
+
+msgid "Высокий среди высоких"
+msgstr "High among high"
+
+msgid "Низкий среди низких"
+msgstr "Low among low"
+
+msgid "Высокий среди низких"
+msgstr "High among low"
+
+msgid "Низкий среди высоких"
+msgstr "Low among high"
+
+msgid "Незначимо"
+msgstr "Not significant"
+
+msgid "автокорреляция незначима — пространственной структуры не видно"
+msgstr "autocorrelation is not significant — no spatial structure visible"
+
+msgid ""
+"значимая положительная автокорреляция — соседние регионы похожи по индексу"
+msgstr ""
+"significant positive autocorrelation — neighboring regions are similar in "
+"the index"
+
+msgid ""
+"значимая отрицательная автокорреляция — соседи контрастны (шахматный узор)"
+msgstr ""
+"significant negative autocorrelation — neighbors contrast (checkerboard "
+"pattern)"
+
+msgid "Ожидание E[I]"
+msgstr "Expected E[I]"
+
+msgid "перестановочный тест, 999"
+msgstr "permutation test, 999"
+
+msgid "Кластеры LISA"
+msgstr "LISA clusters"
+
+msgid ""
+"Локальный индекс Морана: значимые (p<0.05) пространственные кластеры и "
+"выбросы."
+msgstr "Local Moran's I: significant (p<0.05) spatial clusters and outliers."
+
+msgid ""
+"Пространственная статистика не посчитана. Запустите конвейер: python -m "
+"pipeline.run_all --only spatial."
+msgstr ""
+"Spatial statistics not computed. Run the pipeline: python -m "
+"pipeline.run_all --only spatial."
+
+msgid "Локальный I"
+msgstr "Local I"
+
+msgid "p-значение"
+msgstr "p-value"
