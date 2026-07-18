@@ -68,6 +68,7 @@ certifi==2026.5.20
     #   pyogrio
     #   pyproj
     #   requests
+    #   sentry-sdk
 cffi==2.0.0
     # via
     #   brotlicffi
@@ -558,6 +559,8 @@ scmrepo==3.6.2
     #   gto
 semver==3.0.4
     # via gto
+sentry-sdk==2.66.0
+    # via regionlens
 setuptools==82.0.1
     # via zc-lockfile
 shap==0.52.0
@@ -676,6 +679,7 @@ urllib3==2.7.0
     #   docker
     #   dulwich
     #   requests
+    #   sentry-sdk
 uvicorn==0.48.0
     # via mlflow-skinny
 vine==5.1.0

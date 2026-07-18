@@ -257,3 +257,9 @@ if _PROD and SECRET_KEY == "dev-insecure-change-me":
         "В боевом режиме (DJANGO_DEBUG=false) необходимо задать длинный случайный "
         "DJANGO_SECRET_KEY в окружении (.env / переменные хостинга)."
     )
+
+# Трекинг ошибок (Sentry/GlitchTip): включается переменной SENTRY_DSN, иначе no-op.
+# Инициализация в config.observability — там же покрыта тестами.
+from config.observability import configure_sentry  # noqa: E402
+
+SENTRY_ENABLED = configure_sentry(env)

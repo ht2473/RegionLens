@@ -4254,6 +4254,7 @@ backend = [
     { name = "psycopg", extra = ["binary"] },
     { name = "python-docx" },
     { name = "redis" },
+    { name = "sentry-sdk" },
     { name = "weasyprint" },
     { name = "whitenoise" },
 ]
@@ -4320,6 +4321,7 @@ requires-dist = [
     { name = "ruptures", marker = "extra == 'pipeline'", specifier = ">=1.1" },
     { name = "scikit-learn", marker = "extra == 'pipeline'", specifier = ">=1.4" },
     { name = "scipy", marker = "extra == 'pipeline'", specifier = ">=1.13" },
+    { name = "sentry-sdk", marker = "extra == 'backend'", specifier = ">=2.0" },
     { name = "shap", marker = "extra == 'pipeline'", specifier = ">=0.45" },
     { name = "statsmodels", marker = "extra == 'pipeline'", specifier = ">=0.14" },
     { name = "structlog", specifier = ">=24.1" },
@@ -4644,6 +4646,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/72/d1/d3159231aec234a59dd7d601e9dd9fe96f3afff15efd33c1070019b26132/semver-3.0.4.tar.gz", hash = "sha256:afc7d8c584a5ed0a11033af086e8af226a9c0b206f313e0301f8dd7b6b589602", size = 269730, upload-time = "2025-01-24T13:19:27.617Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a6/24/4d91e05817e92e3a61c8a21e08fd0f390f5301f1c448b137c57c4bc6e543/semver-3.0.4-py3-none-any.whl", hash = "sha256:9c824d87ba7f7ab4a1890799cec8596f15c1241cb473404ea1cb0c55e4b04746", size = 17912, upload-time = "2025-01-24T13:19:24.949Z" },
+]
+
+[[package]]
+name = "sentry-sdk"
+version = "2.66.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "certifi" },
+    { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/48/ff/670abe04c5072719b5060ed93851d0d69525d60f8f2c5810f8becd58f9c1/sentry_sdk-2.66.0.tar.gz", hash = "sha256:9727d35aa83c56cd53294676fe65b96296a334c9ce107fa2142bd70f47acb265", size = 935745, upload-time = "2026-07-16T12:42:04.663Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c7/bb/49b10783f29067da2eec179320617e94faf63196609de47aeab3c26c3325/sentry_sdk-2.66.0-py3-none-any.whl", hash = "sha256:096136c214c602be2b323524d30755dc5b30ec5a218a206207f33b12c05c6f11", size = 504769, upload-time = "2026-07-16T12:42:02.919Z" },
 ]
 
 [[package]]

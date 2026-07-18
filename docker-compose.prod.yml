@@ -56,6 +56,10 @@ services:
       # Приложение за TLS-терминирующим прокси (nginx/хостовый reverse-proxy) —
       # доверяет заголовку X-Forwarded-Proto для корректных HTTPS-редиректов и cookie.
       DJANGO_TRUST_PROXY_SSL: "true"
+      # Трекинг ошибок (Sentry/GlitchTip): пусто → выключено. Задаётся в .env на сервере.
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-production}
+      SENTRY_TRACES_SAMPLE_RATE: ${SENTRY_TRACES_SAMPLE_RATE:-0.0}
     expose:
       - "8000"
     healthcheck:

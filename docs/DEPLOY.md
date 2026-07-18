@@ -157,3 +157,21 @@ docker compose -f docker-compose.prod.yml logs -f nginx
 Мониторинг (при запуске профиля `monitoring`): Grafana доступна на порту `3000`
 (логин `admin`, пароль из `GRAFANA_PASSWORD`); наружу её лучше не публиковать —
 пробрасывайте через SSH-туннель либо закройте firewall'ом.
+
+## 10. Трекинг ошибок (Sentry / GlitchTip)
+
+Необязательно, но полезно в проде: непойманные исключения уходят в приёмник ошибок со
+стектрейсом и контекстом запроса. Поддерживается облачный **Sentry** и self-hosted
+**GlitchTip** — протокол DSN один и тот же, меняется только адрес.
+
+Включается одной переменной окружения (см. `.env.example`, секция «Трекинг ошибок»):
+
+```bash
+SENTRY_DSN=https://<key>@<host>/<project>   # пусто → трекинг выключен (dev/CI)
+# SENTRY_ENVIRONMENT=production
+# SENTRY_TRACES_SAMPLE_RATE=0.0             # 0.0 — только ошибки, без performance-трасс
+```
+
+Без `SENTRY_DSN` инициализация пропускается — никаких внешних вызовов. Персональные данные
+(email, IP) наружу не отправляются (`send_default_pii=False`). Self-hosted GlitchTip
+поднимается своим docker-compose рядом; в RegionLens достаточно указать его DSN.
