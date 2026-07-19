@@ -1,0 +1,18 @@
+# Еженедельная очистка старых файлов экспорта RegionLens.
+#
+# Устанавливается вместе с regionlens-cleanup.service (см. его заголовок).
+# Проверка расписания и журналов:
+#   systemctl list-timers regionlens-cleanup.timer
+#   journalctl -u regionlens-cleanup.service
+
+[Unit]
+Description=RegionLens: еженедельная очистка файлов экспорта
+
+[Timer]
+# Раз в неделю, воскресенье 04:00; Persistent — наверстать пропуск, если сервер был выключен.
+OnCalendar=Sun *-*-* 04:00:00
+Persistent=true
+Unit=regionlens-cleanup.service
+
+[Install]
+WantedBy=timers.target

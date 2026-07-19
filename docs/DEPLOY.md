@@ -158,6 +158,26 @@ gunzip -c backup_YYYY-MM-DD.sql.gz | docker compose -f docker-compose.prod.yml \
   exec -T postgres psql -U regionlens regionlens
 ```
 
+### Очистка файлов экспорта
+
+Отчёты (xlsx/docx/pdf) складываются в `media/exports/` и, в отличие от бэкапов, растут со
+временем — это единственный источник неограниченного роста диска. Команда `cleanup_exports`
+удаляет задания экспорта старше N дней с их файлами и подчищает файлы-сироты (остаются после
+удаления аккаунтов):
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T app \
+  python backend/manage.py cleanup_exports --days 30      # --dry-run для предпросмотра
+```
+
+Автоматически — systemd-таймер (еженедельно, воскресенье 04:00):
+
+```bash
+sudo cp deploy/systemd/regionlens-cleanup.* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now regionlens-cleanup.timer
+```
+
 ## 9. Диагностика
 
 ```bash

@@ -1,0 +1,32 @@
+# Очистка старых файлов экспорта RegionLens — одна прогонка management-команды cleanup_exports.
+#
+# Запускается по таймеру regionlens-cleanup.timer (еженедельно) либо вручную:
+#   systemctl start regionlens-cleanup.service
+# Команда удаляет задания экспорта старше N дней с их файлами и подчищает файлы-сироты
+# в media/exports/ (см. её --help). Порог задаётся через CLEANUP_DAYS.
+#
+# ExecStart рассчитан на docker-стек (docker-compose.prod.yml); для venv-развёртывания
+# замените вызов на `<venv>/bin/python backend/manage.py cleanup_exports --days ...`.
+#
+# Установка:
+#   sudo cp deploy/systemd/regionlens-cleanup.* /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now regionlens-cleanup.timer
+
+[Unit]
+Description=RegionLens: очистка старых файлов экспорта (media/exports/)
+After=docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+User=regionlens
+Group=regionlens
+WorkingDirectory=/opt/regionlens
+EnvironmentFile=/etc/regionlens.env
+# Хранить экспорты не старше стольких дней (переопределяемо).
+Environment=CLEANUP_DAYS=30
+ExecStart=/bin/bash -c 'docker compose -f docker-compose.prod.yml exec -T app python backend/manage.py cleanup_exports --days "$CLEANUP_DAYS"'
+TimeoutStartSec=10min
+StandardOutput=journal
+StandardError=journal
