@@ -78,7 +78,7 @@ flowchart LR
 
 Оркеструется `pipeline/run_all.py`; каждая стадия читает контрактные таблицы из DuckDB и пишет свои. Поддерживается частичная пересборка (`--from`, `--only`, `--list`).
 
-Стадии (в порядке зависимостей): `etl` → `features` → `typology` → `dev_index` → `transitions` → `twins` → `anomalies` → `dispersion` → `rank_stability` → `rank_robustness` → `scheme_agreement` → `index_dispersion` → `beta_convergence` → `correlations` → `index_decomposition` → `data_quality` → `metric_catalog`.
+Стадии (в порядке зависимостей): `etl` → `features` → `typology` → `dev_index` → `transitions` → `twins` → `anomalies` → `dispersion` → `rank_stability` → `rank_robustness` → `scheme_agreement` → `index_dispersion` → `beta_convergence` → `spatial` → `correlations` → `index_decomposition` → `data_quality` → `metric_catalog`.
 
 Контракты таблиц (`pipeline/contracts.py`) — единый источник схем; валидация через pandera по принципу «падение валидации = падение конвейера».
 
@@ -148,7 +148,7 @@ erDiagram
 ### 7.2. OLAP (DuckDB)
 
 Справочники и факты: `region_dim`, `metric_dim`, `fact_region`, `features_wide`.
-Аналитика: `dev_index`, `clusters`, `cluster_profile`, `cluster_shap`, `transitions`, `region_twins`, `anomalies`, `dispersion`, `rank_stability`, `rank_robustness`, `scheme_agreement`, `index_dispersion`, `beta_convergence`, `correlations`, `index_decomposition`, `data_quality`, `metric_catalog`.
+Аналитика: `dev_index`, `clusters`, `cluster_profile`, `cluster_shap`, `transitions`, `region_twins`, `anomalies`, `dispersion`, `rank_stability`, `rank_robustness`, `scheme_agreement`, `index_dispersion`, `beta_convergence`, `moran_global`, `moran_local`, `correlations`, `index_decomposition`, `data_quality`, `metric_catalog`.
 
 Подробные схемы — в `DATA_DICTIONARY.md` и `pipeline/contracts.py`.
 
@@ -199,9 +199,11 @@ erDiagram
 ## 10. Наблюдаемость и эксплуатация
 
 - **Логи:** structlog, структурные, с request-id (middleware) — сквозная трассировка запроса.
+- **Метрики:** Prometheus (`django-prometheus`, эндпоинт `/metrics`); дашборды — Grafana (профиль `monitoring` в проде).
+- **Трекинг ошибок:** Sentry / self-hosted GlitchTip — опционально, включается `SENTRY_DSN` (без PII).
 - **Трекинг экспериментов:** MLflow (метрики и параметры стадий конвейера).
-- **Пересборка:** `python -m pipeline.run_all` (полностью или частично) — воспроизводимо.
-- **Планируемое (Фаза 1 плана развития):** health-check, метрики Prometheus, трекинг ошибок, автоматическая пересборка по расписанию.
+- **Health-check:** эндпоинт `/healthz/` (проверяется nginx и Docker healthcheck).
+- **Пересборка:** `python -m pipeline.run_all` (полностью или частично) — воспроизводимо; в проде запускается вручную или автоматически (systemd path-unit по появлению выгрузки).
 
 ---
 
@@ -219,13 +221,14 @@ erDiagram
 | Контракты | pandera | Валидация схем таблиц. |
 | Фронтенд | Alpine.js, Plotly, MapLibre GL | Реактивность, графики, карта без сборочного шага. |
 | Логи | structlog | Структурные логи с request-id. |
+| Наблюдаемость | Prometheus/Grafana, Sentry/GlitchTip | Метрики и дашборды; трекинг ошибок (опционально). |
 
 ---
 
 ## 12. Развёртывание
 
-**Разработка:** `docker-compose` (PostgreSQL + backend); DuckDB собирается конвейером.
-**Продакшн (план развития):** прод-Dockerfile (multi-stage), gunicorn, отдача статики (whitenoise), managed PostgreSQL, Redis-кэш, health-check и метрики. Секреты — через переменные окружения; при `DEBUG=false` боевые настройки безопасности включаются автоматически.
+**Разработка:** `docker-compose.yml` (PostgreSQL + backend); DuckDB собирается конвейером.
+**Продакшн:** `docker-compose.prod.yml` — nginx (TLS-терминация, отдача статики), gunicorn-приложение (прод-Dockerfile multi-stage, whitenoise), PostgreSQL, Redis-кэш, профиль `monitoring` (Prometheus + Grafana). Health-check, автоприменение миграций при старте. Секреты — через переменные окружения (`.env`); при `DEBUG=false` боевые настройки безопасности (HTTPS-редирект, secure-cookies, HSTS) включаются автоматически и проверяются `manage.py check --deploy`. Подробности — [DEPLOY.md](DEPLOY.md).
 
 ---
 
