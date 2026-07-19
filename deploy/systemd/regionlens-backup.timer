@@ -1,0 +1,18 @@
+# Ежедневный запуск резервного копирования PostgreSQL RegionLens.
+#
+# Устанавливается вместе с regionlens-backup.service (см. его заголовок).
+# Проверка расписания и последних запусков:
+#   systemctl list-timers regionlens-backup.timer
+#   journalctl -u regionlens-backup.service
+
+[Unit]
+Description=RegionLens: ежедневный бэкап PostgreSQL
+
+[Timer]
+# Каждый день в 03:30; Persistent — наверстать пропущенный запуск (если сервер был выключен).
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+Unit=regionlens-backup.service
+
+[Install]
+WantedBy=timers.target

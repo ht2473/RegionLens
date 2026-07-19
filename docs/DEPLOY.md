@@ -132,11 +132,23 @@ docker compose -f docker-compose.prod.yml up -d --build
 ## 8. Резервное копирование
 
 Единственные невоспроизводимые данные — пользовательское состояние в PostgreSQL
-(аналитику пересобирает конвейер). Регулярный дамп:
+(аналитику пересобирает конвейер). Разовый дамп:
 
 ```bash
 docker compose -f docker-compose.prod.yml exec -T postgres \
   pg_dump -U regionlens regionlens | gzip > backup_$(date +%F).sql.gz
+```
+
+**Автоматически (рекомендуется).** Скрипт `deploy/backup/pg_backup.sh` делает то же самое
+в каталог `data/backups/postgres/` с ротацией (по умолчанию 7 последних; настраивается
+переменными `BACKUP_DIR`, `KEEP_BACKUPS`). Запуск по расписанию — через systemd-таймер:
+
+```bash
+sudo cp deploy/systemd/regionlens-backup.* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now regionlens-backup.timer   # ежедневно в 03:30
+systemctl list-timers regionlens-backup.timer         # проверить расписание
+journalctl -u regionlens-backup.service               # журнал последних прогонов
 ```
 
 Восстановление:
