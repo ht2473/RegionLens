@@ -16,6 +16,15 @@ upstream regionlens_app {
     server app:8000;
 }
 
+# Протокол исходного клиента. Если перед этим nginx стоит фронт-прокси (Caddy/Traefik),
+# который терминировал TLS и проставил X-Forwarded-Proto — используем его; иначе берём
+# схему самого nginx. Без этого nginx затирал бы https → http, и Django за терминирующим
+# прокси уходил бы в цикл редиректов (SECURE_SSL_REDIRECT) и слал бы небезопасные cookies.
+map $http_x_forwarded_proto $client_proto {
+    default $scheme;
+    "~.+"   $http_x_forwarded_proto;
+}
+
 server {
     listen 80;
     # Имя хоста берётся из окружения (${DOMAIN}); '_' в фолбэке ловит любой хост при
@@ -36,7 +45,7 @@ server {
         proxy_set_header Host              $host;
         proxy_set_header X-Real-IP         $remote_addr;
         proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Proto $client_proto;
         proxy_redirect off;
     }
 }

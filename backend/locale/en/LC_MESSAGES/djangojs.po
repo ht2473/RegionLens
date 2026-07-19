@@ -874,3 +874,18 @@ msgstr "Local I"
 
 msgid "p-значение"
 msgstr "p-value"
+
+msgid "Сдвиг к равным весам"
+msgstr "Shift toward equal weights"
+
+msgid "Нет типологии для региона за этот год."
+msgstr "No typology for the region for this year."
+
+msgid "регион типичнее"
+msgstr "region is more typical than"
+
+msgid "членов своего типа"
+msgstr "of members of its type"
+
+msgid "Скрыть или показать легенду"
+msgstr "Hide or show the legend"
