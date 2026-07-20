@@ -178,6 +178,19 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now regionlens-cleanup.timer
 ```
 
+### Ретеншн журнала аудита
+
+Журнал аудита растёт со временем. Ретеншн (по умолчанию хранить год) — командой:
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T app \
+  python backend/manage.py prune_audit_log --days 365    # --dry-run для предпросмотра
+```
+
+Планируется по желанию тем же способом, что и очистка экспортов (systemd-таймер, реже —
+например, раз в месяц). DuckDB-бэкапы витрины пишутся сжатыми (gzip); восстановление —
+распаковкой: `gunzip -c regionlens_<stamp>.duckdb.gz > data/regionlens.duckdb`.
+
 ## 9. Диагностика
 
 ```bash

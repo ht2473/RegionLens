@@ -8,7 +8,9 @@
 
 from __future__ import annotations
 
+import gzip
 import os
+import shutil
 from io import StringIO
 from pathlib import Path
 
@@ -208,13 +210,17 @@ def test_swap_creates_backup_replaces_and_prunes(tmp_path: Path) -> None:
         make_store(staging, probe=version)
         backup = refresh.swap_store(staging, target, backups, keep=2)
         assert backup is not None and backup.exists()
+        assert backup.suffix == ".gz", "бэкап пишется сжатым (.duckdb.gz)"
         assert not staging.exists(), "staging перемещается, а не копируется"
         assert read_probe(target) == version
 
-    kept = sorted(backups.glob("regionlens_*.duckdb"))
+    kept = sorted(backups.glob("regionlens_*.duckdb.gz"))
     assert len(kept) == 2, "ротация должна хранить ровно keep последних бэкапов"
-    # Свежайший бэкап — витрина, которую только что заменили (probe=3).
-    assert read_probe(kept[-1]) == 3
+    # Свежайший бэкап (gzip) — витрина, которую только что заменили (probe=3): распаковываем.
+    restored = tmp_path / "restored.duckdb"
+    with gzip.open(kept[-1], "rb") as src, open(restored, "wb") as dst:
+        shutil.copyfileobj(src, dst)
+    assert read_probe(restored) == 3
 
 
 def test_swap_without_existing_target(tmp_path: Path) -> None:
@@ -322,7 +328,7 @@ def test_command_full_flow_from_incoming_dir(refresh_env: Path, monkeypatch) -> 
 
     target = refresh_env / "data" / "regionlens.duckdb"
     assert read_probe(target) == 2, "боевая витрина подменена собранной"
-    assert list((refresh_env / "data" / "backups").glob("regionlens_*.duckdb"))
+    assert list((refresh_env / "data" / "backups").glob("regionlens_*.duckdb.gz"))
     assert not list(incoming_dir.glob("*.parquet")), "принятый файл убран из каталога приёма"
     assert list((incoming_dir / "processed").glob("*_data_v2.parquet"))
     registry_text = Path(refresh_env / "config" / "sources.yaml").read_text(encoding="utf-8")

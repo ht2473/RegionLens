@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+import gzip
 import os
 import shutil
 from datetime import datetime
@@ -219,8 +220,9 @@ def swap_store(staging: Path, target: Path, backups_dir: Path, keep: int = 3) ->
     Бэкап делается КОПИЕЙ (не переносом): между «убрали старый файл» и «положили
     новый» не возникает окна, когда витрины нет вовсе. Сама подмена — ``os.replace``:
     атомарна в пределах файловой системы; открытые read-only соединения читателей
-    продолжают видеть прежний inode до переподключения. Хранится ``keep`` последних
-    бэкапов, более старые удаляются.
+    продолжают видеть прежний inode до переподключения. Бэкап пишется сжатым (gzip,
+    ``.duckdb.gz``); восстановление — распаковкой. Хранится ``keep`` последних бэкапов,
+    более старые удаляются.
 
     Возвращает путь созданного бэкапа (None, если боевой витрины ещё не было).
     """
@@ -231,13 +233,17 @@ def swap_store(staging: Path, target: Path, backups_dir: Path, keep: int = 3) ->
         # (иначе copy2 молча перезаписал бы предыдущий бэкап), а лексикографический
         # порядок по-прежнему совпадает с хронологическим.
         stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-        backup = backups_dir / f"regionlens_{stamp}.duckdb"
-        shutil.copy2(target, backup)
+        # Бэкап пишем сжатым (gzip ≈ −25% к размеру витрины): 3 копии заметно легче на диске.
+        # Восстановление — распаковкой: gunzip -c backup.duckdb.gz > regionlens.duckdb.
+        backup = backups_dir / f"regionlens_{stamp}.duckdb.gz"
+        with open(target, "rb") as src, gzip.open(backup, "wb", compresslevel=6) as dst:
+            shutil.copyfileobj(src, dst)
     os.replace(staging, target)
 
     # Ротация: имена содержат сортируемую метку времени — лексикографический порядок
-    # совпадает с хронологическим, свежие в конце.
-    existing = sorted(backups_dir.glob("regionlens_*.duckdb"))
+    # совпадает с хронологическим, свежие в конце. Шаблон ловит и старые сырые (.duckdb),
+    # и новые сжатые (.duckdb.gz) копии — переход на gzip не оставляет «зависших» бэкапов.
+    existing = sorted(backups_dir.glob("regionlens_*.duckdb*"))
     for stale in existing[:-keep] if keep > 0 else existing:
         stale.unlink()
 
