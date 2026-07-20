@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import pytest
 from sklearn.tree import DecisionTreeClassifier
 
 from pipeline.models_io import list_model_cards, load_model, save_model
@@ -133,3 +134,28 @@ def test_list_model_cards_has_no_alias_duplicates(tmp_path: Path) -> None:
         )
     names = {card.name for card in list_model_cards(models_dir=tmp_path)}
     assert names == {"typology_classifier", "anomaly_detector"}  # не четыре
+
+
+def test_list_model_cards_empty_when_dir_missing(tmp_path: Path) -> None:
+    """Каталога моделей нет — витрина карточек пустая, без ошибки."""
+    assert list_model_cards(models_dir=tmp_path / "does-not-exist") == []
+
+
+def test_save_model_mlflow_skips_when_unavailable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """log_mlflow=True не ломает сохранение, если mlflow недоступен (трекинг best-effort)."""
+    import sys
+
+    monkeypatch.setitem(sys.modules, "mlflow", None)  # import mlflow → ImportError
+    card = save_model(
+        _tiny_model(),
+        "tiny",
+        params={},
+        metrics={},
+        feature_names=["f0"],
+        n_samples=4,
+        models_dir=tmp_path,
+        log_mlflow=True,
+    )
+    assert card.name == "tiny"  # модель сохранена, трекинг тихо пропущен

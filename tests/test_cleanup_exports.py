@@ -75,3 +75,21 @@ def test_recent_orphan_is_kept(settings, tmp_path: Path) -> None:  # type: ignor
     call_command("cleanup_exports", "--days", "30")
 
     assert orphan.exists()
+
+
+def test_no_exports_dir_is_safe(settings, tmp_path: Path) -> None:  # type: ignore[no-untyped-def]
+    """Каталога exports/ ещё нет — команда не падает (listdir ловит FileNotFoundError)."""
+    settings.MEDIA_ROOT = str(tmp_path)
+    call_command("cleanup_exports", "--days", "30")  # без исключений
+
+
+def test_missing_physical_file_still_removes_job(settings, tmp_path: Path) -> None:  # type: ignore[no-untyped-def]
+    """У старого задания пропал физический файл — запись всё равно удаляется без ошибки."""
+    settings.MEDIA_ROOT = str(tmp_path)
+    user = get_user_model().objects.create_user("exporter3", password="x")
+    job = _make_job(user, "gone.xlsx", age_days=40)
+    Path(job.file.path).unlink()  # физический файл исчез (size() бросит — ловится)
+
+    call_command("cleanup_exports", "--days", "30")
+
+    assert not ExportJob.objects.filter(pk=job.pk).exists()
